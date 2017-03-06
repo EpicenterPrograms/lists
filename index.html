@@ -9,6 +9,7 @@
             var Priority = (function() {
                 var instances = [];
                 return function(description, date, importance) {
+                    this.instances = instances;
                     this.description = description;
                     this.date = date;
                     this.importance = importance;
@@ -24,9 +25,6 @@
         </script>
     </head>
     <body>
-        <p>
-            Trial number = 0
-        </p>
         <ol id="list"></ol>
     </body>
 </html>
