@@ -5,10 +5,28 @@
             To-Do List
         </title>
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
+        <script>
+            var Priority = (function() {
+                var instances = [];
+                return function(description, date, importance) {
+                    this.description = description;
+                    this.date = date;
+                    this.importance = importance;
+                    instances.push(this);
+                };
+            })();
+            new Priority("This is a test", "1-23-4567", "10");
+            window.addEventListener("load", function() {
+                Priority.instances.forEach(function(instance) {
+                    document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
+                });
+            });
+        </script>
     </head>
     <body>
         <p>
             Trial number = 0
         </p>
+        <ol id="list"></ol>
     </body>
-</head>
+</html>
