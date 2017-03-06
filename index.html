@@ -7,13 +7,12 @@
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
         <script>
             var Priority = (function() {
-                var instances = [];
+                this.instances = [];
                 return function(description, date, importance) {
-                    this.instances = instances;
                     this.description = description;
                     this.date = date;
                     this.importance = importance;
-                    instances.push(this);
+                    Priority.instances.push(this);
                 };
             })();
             new Priority("This is a test", "1-23-4567", "10");
