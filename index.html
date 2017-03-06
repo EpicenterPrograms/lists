@@ -14,6 +14,7 @@
             }
             Priority.instances = [];
             new Priority("This is a test", "1-23-4567", "10");
+            new Priority("This is another test", "1-23-4567", "10");
             window.addEventListener("load", function() {
                 Priority.instances.forEach(function(instance) {
                     document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
