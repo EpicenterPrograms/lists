@@ -23,7 +23,7 @@
                 Priority.instances.forEach(function(instance) {
                     document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
                 });
-                document.getElementById("list").innerHTML += "<li>{0}</li>".format(checkAll("'I am cool'.indexOf('{0}')>-1", null, ["is","am","are"], "||"));
+                document.getElementById("list").innerHTML += "<li>{0}</li>".format(checkAll('"I am cool".indexOf("{0}")>-1', null, ["is","am","are"], "||"));
             });
         </script>
     </head>
