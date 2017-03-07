@@ -6,15 +6,19 @@
         </title>
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
         <script>
+            var now = new Date();
             var Priority = function(description, date, importance) {
                 this.description = description;
+                date = date.toLowerCase();
                 this.date = date;
                 this.importance = importance;
                 Priority.instances.push(this);
             }
             Priority.instances = [];
+            
             new Priority("This is a test", "1-23-4567", "10");
             new Priority("This is another test", "1-23-4567", "10");
+            
             window.addEventListener("load", function() {
                 Priority.instances.forEach(function(instance) {
                     document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
@@ -24,5 +28,9 @@
     </head>
     <body>
         <ol id="list"></ol>
+        <h2>
+            Past Due
+        </h2>
+        <ul id="pastDue"></ul>
     </body>
 </html>
