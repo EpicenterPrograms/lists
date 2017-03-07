@@ -23,6 +23,7 @@
                 Priority.instances.forEach(function(instance) {
                     document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
                 });
+                document.getElementById("list").innerHTML += "<li>{0}</li>".format("testing");
             });
         </script>
     </head>
