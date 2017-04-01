@@ -6,6 +6,13 @@
         </title>
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
         <script>
+            var items;
+            if (localStorage.getItem("To-Do-List")) {
+                items = JSON.parse(localStorage.getItem("To-Do-List"));
+            } else {
+                items = {};
+            }
+            localStorage.setItem("To-Do-List", items);
             var now = new Date();
             var Priority = function(description, date, importance) {
                 this.description = description;
@@ -15,19 +22,51 @@
                 Priority.instances.push(this);
             }
             Priority.instances = [];
+            items.forEach(function(value, key) {
+                new Priority(key, value.date, value.importance);
+            });
             
-            new Priority("This is a test", "1-23-4567", "10");
-            new Priority("This is another test", "1-23-4567", "10");
+            function include() {
+                var description = getId("description").value.trim();
+                new Priority(description, "1-23-4567", "10");
+                items[description] = {"date":"1-23-4567", "importance":"10"};
+                localStorage.setItem("To-Do-List", items);
+                getId("description").value = "";
+                createList();
+            }
+            function createList() {
+                getId("list").innerHTML = "";
+                Priority.instances.forEach(function(instance) {
+                    getId("list").innerHTML += "<li>" + instance.description + "</li>";
+                });
+            }
             
             window.addEventListener("load", function() {
-                Priority.instances.forEach(function(instance) {
-                    document.getElementById("list").innerHTML += "<li>" + instance.description + "</li>";
+                createList();
+                getId("remove").addEventListener("click", function() {
+                    items.forEach(function(value, key) {
+                        if (key == getId("description").value.trim()) {
+                            delete items[key];
+                            return "break";
+                        }
+                    });
+                    localStorage.setItem("To-Do-List", items);
+                    getId("description").value = "";
+                    createList();
                 });
             });
         </script>
     </head>
     <body>
         <ol id="list"></ol>
+        <br>
+        <input type="text" id="description" placeholder="Thing to do">
+        <button onclick="include()">
+            Add to list
+        </button>
+        <button id="remove">
+            Remove
+        </button>
         <h2>
             Past Due
         </h2>
