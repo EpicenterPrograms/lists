@@ -7,9 +7,10 @@
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
         <script>
             var items;
+            localStorage.clear();
             if (localStorage.getItem("To-Do-List")) {
                 console.log(localStorage.getItem("To-Do-List"));
-                items = localStorage.getItem("To-Do-List");
+                items = JSON.parse(localStorage.getItem("To-Do-List"));
             } else {
                 items = {};
             }
@@ -31,7 +32,7 @@
                 var description = getId("description").value.trim();
                 new Priority(description, "1-23-4567", "10");
                 items[description] = {"date":"1-23-4567", "importance":"10"};
-                localStorage.setItem("To-Do-List", items);
+                localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
                 createList();
             }
@@ -51,7 +52,7 @@
                             return "break";
                         }
                     });
-                    localStorage.setItem("To-Do-List", items);
+                    localStorage.setItem("To-Do-List", JSON.stringify(items));
                     getId("description").value = "";
                     createList();
                 });
