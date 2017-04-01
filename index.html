@@ -8,6 +8,7 @@
         <script>
             var items;
             if (localStorage.getItem("To-Do-List")) {
+                console.log(localStorage.getItem("To-Do-List"));
                 items = JSON.parse(localStorage.getItem("To-Do-List"));
             } else {
                 items = {};
