@@ -51,6 +51,12 @@
                             return "break";
                         }
                     });
+                    Priority.instances.forEach(function(instance, index) {
+                        if (instance.description == getId("description").value.trim()) {
+                            Priority.instances.splice(index, 1);
+                            return "break";
+                        }
+                    });
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                     getId("description").value = "";
                     createList();
