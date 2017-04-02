@@ -46,10 +46,11 @@
                     label.for = input.id;
                     label.title = "due: {0}\nimportance: {1}".format(instance.date, instance.importance);
                     label.innerHTML = instance.description;
-                    var br = document.createElement("br");
+                    var brs = [document.createElement("br"), document.createElement("br")];
                     getId("list").appendChild(input);
                     getId("list").appendChild(label);
-                    getId("list").appendChild(br);
+                    getId("list").appendChild(brs[0]);
+                    getId("list").appendChild(brs[1]);
                 });
             }
             
