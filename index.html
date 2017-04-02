@@ -13,6 +13,7 @@
                 items = {};
             }
             localStorage.setItem("To-Do-List", JSON.stringify(items));
+            var itemNumber = 1;
             var now = new Date();
             var Priority = function(description, date, importance) {
                 this.description = description;
@@ -37,7 +38,18 @@
             function createList() {
                 getId("list").innerHTML = "";
                 Priority.instances.forEach(function(instance) {
-                    getId("list").innerHTML += "<li>" + instance.description + "</li>";
+                    var input = document.createElement("input");
+                    input.type = "checkbox";
+                    input.id = "item" + itemNumber;
+                    itemNumber++;
+                    var label = document.createElement("label");
+                    label.for = input.id;
+                    label.title = "due: {0}\nimportance: {1}".format(instance.date, instance.importance);
+                    label.innerHTML = instance.description;
+                    var br = document.createElement("br");
+                    getId("list").appendChild(input);
+                    getId("list").appendChild(label);
+                    getId("list").appendChild(br);
                 });
             }
             
@@ -64,7 +76,7 @@
         </script>
     </head>
     <body>
-        <ol id="list"></ol>
+        <div id="list" class="list"></div>
         <br>
         <br>
         <input type="text" id="description" placeholder="Thing to do">
