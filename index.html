@@ -81,6 +81,39 @@
         <br>
         <br>
         <input type="text" id="description" placeholder="Thing to do">
+        <br>
+        <br>
+        <select id="recurrence">
+            <option value="" disabled selected>
+                Recurrence
+            </option>
+            <option value="once">
+                One time
+            </option>
+            <option value="monthly">
+                Monthly
+            </option>
+            <option value="weekly">
+                Weekly
+            </option>
+            <option value="daily">
+                Daily
+            </option>
+        </select>
+        <div id="once" style="display:none">
+            <br>
+        </div>
+        <div id="monthly" style="display:none">
+            <br>
+        </div>
+        <div id="weekly" style="display:none">
+            <br>
+        </div>
+        <div id="daily" style="display:none">
+            <br>
+        </div>
+        <br>
+        <br>
         <button onclick="include()">
             Add to list
         </button>
