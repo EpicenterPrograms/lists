@@ -18,10 +18,11 @@
             var Priority = function(description, date, importance) {
                 this.date = date.toLowerCase();
                 this.importance = importance;
-                this.checkbox = document.createElement("input");
-                this.checkbox.type = "checkbox";
-                this.checkbox.id = "item" + itemNumber;
-                this.checkbox.style.margin = ".5em";
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.id = "item" + itemNumber;
+                checkbox.style.margin = ".5em";
+                this.checkbox = checkbox;
                 itemNumber++;
                 this.description = document.createElement("label");
                 this.description.for = this.checkbox.id;
