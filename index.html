@@ -22,17 +22,16 @@
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
                 checkbox.style.margin = ".5em";
-                this.checkbox = checkbox;
                 itemNumber++;
                 this.description = document.createElement("label");
                 this.description.for = this.checkbox.id;
                 this.description.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
                 this.description.innerHTML = description;
-                getId("list").appendChild(this.checkbox);
+                getId("list").appendChild(checkbox);
                 getId("list").appendChild(this.description);
                 getId("list").appendChild(document.createElement("br"));
-                this.checkbox.addEventListener("click", function() {
-                    if (this.checkbox.checked) {
+                checkbox.addEventListener("click", function() {
+                    if (checkbox.checked) {
                         this.description.style.textDecoration = "line-through";
                     } else {
                         this.description.style.textDecoration = "none";
