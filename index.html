@@ -23,18 +23,18 @@
                 checkbox.id = "item" + itemNumber;
                 checkbox.style.margin = ".5em";
                 itemNumber++;
-                this.description = document.createElement("label");
-                this.description.for = checkbox.id;
-                this.description.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
-                this.description.innerHTML = description;
+                var label = document.createElement("label");
+                label.for = checkbox.id;
+                label.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
+                label.innerHTML = description;
                 getId("list").appendChild(checkbox);
-                getId("list").appendChild(this.description);
+                getId("list").appendChild(label);
                 getId("list").appendChild(document.createElement("br"));
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
-                        this.description.style.textDecoration = "line-through";
+                        label.style.textDecoration = "line-through";
                     } else {
-                        this.description.style.textDecoration = "none";
+                        label.style.textDecoration = "none";
                     }
                 });
                 Priority.instances.push(this);
