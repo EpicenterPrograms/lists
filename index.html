@@ -16,16 +16,30 @@
             var itemNumber = 1;
             var now = new Date();
             var Priority = function(description, date, importance) {
-                this.description = description;
-                date = date.toLowerCase();
-                this.date = date;
+                this.date = date.toLowerCase();
                 this.importance = importance;
+                this.checkbox = document.createElement("input");
+                this.checkbox.type = "checkbox";
+                this.checkbox.id = "item" + itemNumber;
+                this.checkbox.style.margin = ".5em";
+                itemNumber++;
+                this.description = document.createElement("label");
+                this.description.for = this.checkbox.id;
+                this.description.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
+                this.description.innerHTML = description;
+                getId("list").appendChild(this.checkbox);
+                getId("list").appendChild(this.description);
+                getId("list").appendChild(document.createElement("br"));
+                this.checkbox.addEventListener("click", function() {
+                    if (this.checkbox.checked) {
+                        this.description.style.textDecoration = "line-through";
+                    } else {
+                        this.description.style.textDecoration = "none";
+                    }
+                });
                 Priority.instances.push(this);
             }
             Priority.instances = [];
-            items.forEach(function(value, key) {
-                new Priority(key, value.date, value.importance);
-            });
             
             function include() {
                 var description = getId("description").value.trim();
@@ -33,29 +47,16 @@
                 items[description] = {"date":"1-23-4567", "importance":"10"};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
-                createList();
             }
-            function createList() {
+            function refresh() {
                 getId("list").innerHTML = "";
-                Priority.instances.forEach(function(instance) {
-                    var input = document.createElement("input");
-                    input.type = "checkbox";
-                    input.id = "item" + itemNumber;
-                    input.style.margin = ".5em";
-                    itemNumber++;
-                    var label = document.createElement("label");
-                    label.for = input.id;
-                    label.title = "due: {0}\nimportance: {1}".format(instance.date, instance.importance);
-                    label.innerHTML = instance.description;
-                    var br = document.createElement("br");
-                    getId("list").appendChild(input);
-                    getId("list").appendChild(label);
-                    getId("list").appendChild(br);
+                items.forEach(function(value, key) {
+                    new Priority(key, value.date, value.importance);
                 });
             }
             
             window.addEventListener("finished", function() {
-                createList();
+                refresh();
                 getId("remove").addEventListener("click", function() {
                     items.forEach(function(value, key) {
                         if (key == getId("description").value.trim()) {
@@ -71,7 +72,7 @@
                     });
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                     getId("description").value = "";
-                    createList();
+                    refresh();
                 });
             });
         </script>
