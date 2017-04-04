@@ -24,7 +24,7 @@
                 checkbox.style.margin = ".5em";
                 itemNumber++;
                 this.description = document.createElement("label");
-                this.description.for = this.checkbox.id;
+                this.description.for = checkbox.id;
                 this.description.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
                 this.description.innerHTML = description;
                 getId("list").appendChild(checkbox);
