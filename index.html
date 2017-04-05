@@ -62,17 +62,17 @@
                         case "once":
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "none";
-                            getId("once").style.display = "block";
+                            getId("once").style.display = "inline-block";
                             break;
                         case "monthly":
                             getId("once").style.display = "none";
                             getId("weekly").style.display = "none";
-                            getId("monthly").style.display = "block";
+                            getId("monthly").style.display = "inline-block";
                             break;
                         case "weekly":
                             getId("once").style.display = "none";
                             getId("monthly").style.display = "none";
-                            getId("weekly").style.display = "block";
+                            getId("weekly").style.display = "inline-block";
                             break;
                         case "daily":
                             getId("once").style.display = "none";
@@ -183,6 +183,7 @@
             <br>
             <input type="checkbox" id="sunday">
             <label for="sunday">Sunday</label>
+            <br>
             <br>
         </div>
         <br>
