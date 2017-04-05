@@ -57,6 +57,30 @@
             
             window.addEventListener("finished", function() {
                 refresh();
+                getId("recurrence").addEventListener("change", function() {
+                    switch (this.value) {
+                        case "once":
+                            getId("monthly").style.display = "none";
+                            getId("weekly").style.display = "none";
+                            getId("once").style.display = "block";
+                            break;
+                        case "monthly":
+                            getId("once").style.display = "none";
+                            getId("weekly").style.display = "none";
+                            getId("monthly").style.display = "block";
+                            break;
+                        case "weekly":
+                            getId("once").style.display = "none";
+                            getId("monthly").style.display = "none";
+                            getId("weekly").style.display = "block";
+                            break;
+                        case "daily":
+                            getId("once").style.display = "none";
+                            getId("monthly").style.display = "none";
+                            getId("weekly").style.display = "none";
+                            break;
+                    }
+                });
                 getId("remove").addEventListener("click", function() {
                     items.forEach(function(value, key) {
                         if (key == getId("description").value.trim()) {
@@ -84,6 +108,31 @@
         <input type="text" id="description" placeholder="Thing to do">
         <br>
         <br>
+        <select id="importance">
+            <option value="" disabled selected>
+                Importance
+            </option>
+            <option value="1">
+                1
+            </option>
+            <option value="2">
+                2
+            </option>
+            <option value="3">
+                3
+            </option>
+            <option value="4">
+                4
+            </option>
+            <option value="5">
+                5
+            </option>
+        </select>
+        <note>
+            One is least important and five is most important.
+        </note>
+        <br>
+        <br>
         <select id="recurrence">
             <option value="" disabled selected>
                 Recurrence
@@ -101,18 +150,58 @@
                 Daily
             </option>
         </select>
+        <br>
         <div id="once" style="display:none">
+            <br>
+            <input type="text" id="fullDate" placeholder="Date (month/day/year)">
             <br>
         </div>
         <div id="monthly" style="display:none">
             <br>
+            <input type="text" id="day" placeholder="Day of the month">
+            <br>
         </div>
         <div id="weekly" style="display:none">
             <br>
-        </div>
-        <div id="daily" style="display:none">
+            <input type="checkbox" id="monday">
+            <label for="monday">Monday</label>
+            <br>
+            <input type="checkbox" id="tuesday">
+            <label for="tuesday">Tuesday</label>
+            <br>
+            <input type="checkbox" id="wednesday">
+            <label for="wednesday">Wednesday</label>
+            <br>
+            <input type="checkbox" id="thursday">
+            <label for="thursday">Thursday</label>
+            <br>
+            <input type="checkbox" id="friday">
+            <label for="friday">Friday</label>
+            <br>
+            <input type="checkbox" id="saturday">
+            <label for="saturday">Saturday</label>
+            <br>
+            <input type="checkbox" id="sunday">
+            <label for="sunday">Sunday</label>
             <br>
         </div>
+        <br>
+        <input type="text" id="time" placeholder="Time (hour:minute)">
+        &ensp;
+        <select id="timeFormat">
+            <option value="" disabled selected>
+                Time format
+            </option>
+            <option value="am">
+                am
+            </option>
+            <option value="pm">
+                pm
+            </option>
+            <option value="24-hour">
+                24-hour
+            </option>
+        </select>
         <br>
         <br>
         <button onclick="include()">
