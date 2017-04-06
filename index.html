@@ -48,6 +48,18 @@
                 getId("description").value = "";
                 getId("importance").value = "";
                 getId("recurrence").value = "";
+                getId("fullDate").value = "";
+                getId("quickSelect").value = "";
+                getId("day").value = "";
+                ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(function(ID) {
+                    getId(ID).checked = false;
+                });
+                getId("time").value = "";
+                getId("timeFormat").value = "";
+                getId("once").style.display = "none";
+                getId("monthly").style.display = "none";
+                getId("weekly").style.display = "none";
+                refresh();
             }
             function refresh() {
                 getId("list").innerHTML = "";
