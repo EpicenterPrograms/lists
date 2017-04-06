@@ -6,18 +6,17 @@
         </title>
         <script src="https://coolprogramminguser.github.io/Standards/behavior.js"></script>
         <script>
-            var items;
+            var items = {};
             if (localStorage.getItem("To-Do-List")) {
                 items = JSON.parse(localStorage.getItem("To-Do-List"));
-            } else {
-                items = {};
             }
             localStorage.setItem("To-Do-List", JSON.stringify(items));
             var itemNumber = 1;
             var now = new Date();
-            var Priority = function(description, date, importance) {
-                this.date = date.toLowerCase();
+            var Priority = function(description, importance, date, recurrence) {
                 this.importance = importance;
+                this.date = date.toLowerCase();
+                this.recurrence = recurrence;
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -25,7 +24,7 @@
                 itemNumber++;
                 var label = document.createElement("label");
                 label.for = checkbox.id;
-                label.title = "due: {0}\nimportance: {1}".format(this.date, this.importance);
+                label.title = "due: {0}\nimportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][now.getDay()]+", "+this.date, this.importance);
                 label.innerHTML = description;
                 getId("list").appendChild(checkbox);
                 getId("list").appendChild(label);
@@ -43,15 +42,17 @@
             
             function include() {
                 var description = getId("description").value.trim();
-                new Priority(description, "1-23-4567", "10");
-                items[description] = {"date":"1-23-4567", "importance":"10"};
+                new Priority(description, getId("importance").value, "1-23-4567", getId("recurrence").value);
+                items[description] = {"importance":getId("importance").value, "date":"1/23/4567", "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
+                getId("importance").value = "";
+                getId("recurrence").value = "";
             }
             function refresh() {
                 getId("list").innerHTML = "";
                 items.forEach(function(value, key) {
-                    new Priority(key, value.date, value.importance);
+                    new Priority(key, value.importance, value.date, value.recurrence);
                 });
             }
             
@@ -80,6 +81,9 @@
                             getId("weekly").style.display = "none";
                             break;
                     }
+                });
+                getId("quickSelect").addEventListener("change", function() {
+                    getId("fullDate").value = this.value;
                 });
                 getId("remove").addEventListener("click", function() {
                     items.forEach(function(value, key) {
@@ -154,6 +158,32 @@
         <div id="once" style="display:none">
             <br>
             <input type="text" id="fullDate" placeholder="Date (month/day/year)">
+            <select id="quickSelect">
+                <option value="" disabled selected>
+                    Quick select
+                </option>
+                <option value="monday">
+                    Monday
+                </option>
+                <option value="tuesday">
+                    Tuesday
+                </option>
+                <option value="wednesday">
+                    Wednesday
+                </option>
+                <option value="thursday">
+                    Thursday
+                </option>
+                <option value="friday">
+                    Friday
+                </option>
+                <option value="saturday">
+                    Saturday
+                </option>
+                <option value="sunday">
+                    Sunday
+                </option>
+            </select>
             <br>
             <br>
         </div>
