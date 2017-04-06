@@ -54,6 +54,9 @@
                 items.forEach(function(value, key) {
                     new Priority(key, value.importance, value.date, value.recurrence);
                 });
+                if (getId("list").innerHTML == "") {
+                    getId("list").innerHTML = "<p>Add some things to do.</p>";
+                }
             }
             
             window.addEventListener("finished", function() {
