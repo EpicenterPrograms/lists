@@ -42,7 +42,21 @@
             
             function include() {
                 var description = getId("description").value.trim();
-                new Priority(description, getId("importance").value, "1/23/4567", getId("recurrence").value);
+                var date;
+                if (getId("fullDate").value) {
+                    date = getId("fullDate").value;
+                } else if (getId("day").value) {
+                    date = getId("day").value;
+                } else {
+                    date = "";
+                    ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(function(ID) {
+                        if (getId(ID).checked) {
+                            date += ID + " ";
+                        }
+                    });
+                    date.trim();
+                }
+                new Priority(description, getId("importance").value, date, getId("recurrence").value);
                 items[description] = {"importance":getId("importance").value, "date":"1/23/4567", "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
