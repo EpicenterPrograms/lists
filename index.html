@@ -56,8 +56,8 @@
                     });
                     date.trim();
                 }
-                new Priority(description, getId("importance").value, date, getId("recurrence").value);
-                items[description] = {"importance":getId("importance").value, "date":"1/23/4567", "recurrence":getId("recurrence").value};
+                date += "~" + getId("time").value.trim() + " " + getId("timeFormat");
+                items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
                 getId("importance").value = "";
@@ -78,7 +78,7 @@
             function refresh() {
                 getId("list").innerHTML = "";
                 items.forEach(function(value, key) {
-                    new Priority(key, value.importance, value.date, value.recurrence);
+                    new Priority(key, value.importance, value.time, value.recurrence);
                 });
                 if (getId("list").innerHTML == "") {
                     getId("list").innerHTML = "<p>Add some things to do.</p>";
