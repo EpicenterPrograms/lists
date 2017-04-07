@@ -56,7 +56,7 @@
                     });
                     date.trim();
                 }
-                date += "~" + getId("time").value.trim() + " " + getId("timeFormat");
+                date += "~" + getId("time").value.trim() + " " + getId("timeFormat").value;
                 items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
