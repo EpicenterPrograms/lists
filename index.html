@@ -68,11 +68,14 @@
                             var number = week.indexOf(weekday);
                             if (now.getDay() > number) {
                                 number = 7 + number - now.getDay();
+                            } else {
+                                number -= now.getDay();
                             }
                             if (number - now.getDay() < closest) {
                                 closest = number;
                             }
                         });
+                        closest += now.getDay();
                         if (closest > 6) {
                             closest -= 7;
                         }
@@ -85,11 +88,14 @@
                                     var number = week.indexOf(weekday);
                                     if (now.getDay() + 1 > number) {
                                         number = 7 + number - now.getDay();
+                                    } else {
+                                        number -= now.getDay() + 1;
                                     }
                                     if (number - now.getDay() - 1 < closest) {
                                         closest = number;
                                     }
                                 });
+                                closest += now.getDay() + 1;
                                 if (closest > 6) {
                                     closest -= 7;
                                 }
