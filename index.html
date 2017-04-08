@@ -18,19 +18,48 @@
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
                 var intermediate;
-                function combine(array, string) {
-                    return new Date(array.join(" ") + string);
+                function combine(array) {
+                    return new Date(array.join(" ") + time);
                 }
                 switch (recurrence) {
                     case "once":
                         if (date.includes("/")) {  // if the time is a date
                             then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         } else {  // when it's a day of the week
-                            then = now;
+                            then = week.indexOf(then.toLowerCase());
+                            if (now.getDay() == then) {
+                                if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
+                                    then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
+                                } else {
+                                    then = new Date(now.getTime() + 604800000);
+                                }
+                            } else if (now.getDay() < then) {
+                                then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                            } else {
+                                then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                            }
                         }
                         break;
                     case "monthly":
-                        then = now;
+                        if (now.getDate() == then) {
+                            if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, then]))) {
+                                then = new Date(combine([now.getFullYear(), now.getMonth()+1, then]));
+                            } else {
+                                if (now.getMonth() + 2 <= 12) {
+                                    then = new Date(combine([now.getFullYear(), now.getMonth()+2, then]));
+                                } else {
+                                    then = new Date(combine([now.getFullYear()+1, 1, then]));
+                                }
+                            }
+                        } else if (now.getDate() < then) {
+                            then = new Date(now.getTime() + (then-now.getDate())*86400000);
+                        } else {
+                            if (now.getMonth() + 2 <= 12) {
+                                then = new Date(combine([now.getFullYear(), now.getMonth()+2, then]));
+                            } else {
+                                then = new Date(combine([now.getFullYear()+1, 1, then]));
+                            }
+                        }
                         break;
                     case "weekly":
                         then = now;
