@@ -26,17 +26,17 @@
                         if (date.includes("/")) {  // if the time is a date
                             then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         } else {  // when it's a day of the week
-                            
+                            then = now;
                         }
                         break;
                     case "monthly":
-                        
+                        then = now;
                         break;
                     case "weekly":
-                        
+                        then = now;
                         break;
                     case "daily":
-                        
+                        then = now;
                         break;
                 }
                 this.importance = importance;
