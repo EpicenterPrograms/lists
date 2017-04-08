@@ -17,7 +17,6 @@
             var Priority = function(description, importance, date, recurrence, lastFinished) {
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
-                var intermediate;
                 function combine(array) {
                     return new Date(array.join(" ") + time);
                 }
@@ -64,7 +63,49 @@
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                     case "weekly":
-                        then = now;
+                        var closest = Infinity;
+                        then.split(" ").forEach(function(weekday) {
+                            var number = week.indexOf(weekday);
+                            if (now.getDay() > number) {
+                                number += 7;
+                            }
+                            if (number - now.getDay() < closest) {
+                                closest = number;
+                            }
+                        });
+                        if (closest > 6) {
+                            closest -= 7;
+                        }
+                        then = closest;
+                        if (now.getDay() == then) {
+                            if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
+                                then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
+                            } else {
+                                closest = Infinity;
+                                then.split(" ").forEach(function(weekday) {
+                                    var number = week.indexOf(weekday);
+                                    if (now.getDay() + 1 > number) {
+                                        number += 7;
+                                    }
+                                    if (number - now.getDay() - 1 < closest) {
+                                        closest = number;
+                                    }
+                                });
+                                if (closest > 6) {
+                                    closest -= 7;
+                                }
+                                then = closest;
+                                if (now.getDay() < then) {
+                                    then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                                } else {
+                                    then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                                }
+                            }
+                        } else if (now.getDay() < then) {
+                            then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                        } else {
+                            then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                        }
                         break;
                     case "daily":
                         then = now;
