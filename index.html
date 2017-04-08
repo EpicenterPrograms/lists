@@ -87,7 +87,7 @@
                                 then.split(" ").forEach(function(weekday) {
                                     var number = week.indexOf(weekday);
                                     if (now.getDay() + 1 > number) {
-                                        number = 7 + number - now.getDay();
+                                        number = 6 + number - now.getDay();
                                     } else {
                                         number -= now.getDay() + 1;
                                     }
