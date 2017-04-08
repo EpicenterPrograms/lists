@@ -106,6 +106,7 @@
                         } else {
                             then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
                         }
+                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                     case "daily":
                         then = now;
