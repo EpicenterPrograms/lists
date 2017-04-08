@@ -67,7 +67,7 @@
                         then.split(" ").forEach(function(weekday) {
                             var number = week.indexOf(weekday);
                             if (now.getDay() > number) {
-                                number += 7;
+                                number = 7 + then - now.getDay();
                             }
                             if (number - now.getDay() < closest) {
                                 closest = number;
@@ -76,8 +76,7 @@
                         if (closest > 6) {
                             closest -= 7;
                         }
-                        then = closest;
-                        if (now.getDay() == then) {
+                        if (now.getDay() == closest) {
                             if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
                                 then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
                             } else {
@@ -85,7 +84,7 @@
                                 then.split(" ").forEach(function(weekday) {
                                     var number = week.indexOf(weekday);
                                     if (now.getDay() + 1 > number) {
-                                        number += 7;
+                                        number = 7 + then - now.getDay();
                                     }
                                     if (number - now.getDay() - 1 < closest) {
                                         closest = number;
@@ -94,14 +93,13 @@
                                 if (closest > 6) {
                                     closest -= 7;
                                 }
-                                then = closest;
-                                if (now.getDay() < then) {
-                                    then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                                if (now.getDay() < closest) {
+                                    then = new Date(now.getTime() + (closest-now.getDay())*86400000);
                                 } else {
-                                    then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                                    then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
                                 }
                             }
-                        } else if (now.getDay() < then) {
+                        } else if (now.getDay() < closest) {
                             then = new Date(now.getTime() + (then-now.getDay())*86400000);
                         } else {
                             then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
