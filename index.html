@@ -71,7 +71,7 @@
                             } else {
                                 number -= now.getDay();
                             }
-                            if (number - now.getDay() < closest) {
+                            if (number < closest) {
                                 closest = number;
                             }
                         });
@@ -91,7 +91,7 @@
                                     } else {
                                         number -= now.getDay() + 1;
                                     }
-                                    if (number - now.getDay() - 1 < closest) {
+                                    if (number < closest) {
                                         closest = number;
                                     }
                                 });
