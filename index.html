@@ -67,7 +67,7 @@
                         then.split(" ").forEach(function(weekday) {
                             var number = week.indexOf(weekday);
                             if (now.getDay() > number) {
-                                number = 7 + then - now.getDay();
+                                number = 7 + number - now.getDay();
                             }
                             if (number - now.getDay() < closest) {
                                 closest = number;
@@ -84,7 +84,7 @@
                                 then.split(" ").forEach(function(weekday) {
                                     var number = week.indexOf(weekday);
                                     if (now.getDay() + 1 > number) {
-                                        number = 7 + then - now.getDay();
+                                        number = 7 + number - now.getDay();
                                     }
                                     if (number - now.getDay() - 1 < closest) {
                                         closest = number;
