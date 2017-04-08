@@ -113,6 +113,7 @@
                 items.forEach(function(value, key) {
                     priorities[value.importance].push([key, value]);
                 });
+                priorities.reverse();
                 priorities.forEach(function(priorityList) {
                     priorityList.forEach(function(priority) {
                         new Priority(priority[0], priority[1].importance, priority[1].time, priority[1].recurrence);
