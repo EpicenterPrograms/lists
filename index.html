@@ -13,7 +13,40 @@
             localStorage.setItem("To-Do-List", JSON.stringify(items));
             var itemNumber = 1;
             var now = new Date();
-            var Priority = function(description, importance, date, recurrence) {
+            var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            var Priority = function(description, importance, date, recurrence, lastFinished) {
+                var then = date.split("~")[0].trim();
+                var time = " " + date.split("~")[1].trim();
+                var intermediate;
+                function combine(array, string) {
+                    return new Date(array.join(" ") + string);
+                }
+                /*
+                switch (recurrence) {
+                    case "once":
+                        if (date.includes("/")) {  // if the time is a date
+                            then = [].concat(then.split("/")[2], then.split("/").slice(0,2));
+                        } else {  // when it's a day of the week
+                            intermediate = new Date(now.getTime() + (week.indexOf(then) + (week.indexOf(then)<now.getDay()?7:0) - now.getDay()) * 86400000);
+                            then = [intermediate.getFullYear(), intermediate.getMonth()+1, intermediate.getDate()];  // The month needs +1 because .getMonth() starts counting months at 0, but new Date([date in an array]) starts counting dates at 1.
+                        }
+                        if (combine(then,time).getTime() < now.getTime()) {
+                            then
+                        } else {
+                            then = combine(then, time);
+                        }
+                        break;
+                    case "monthly":
+                        
+                        break;
+                    case "weekly":
+                        
+                        break;
+                    case "daily":
+                        
+                        break;
+                }
+                */
                 this.importance = importance;
                 this.date = date.toLowerCase();
                 this.recurrence = recurrence;
@@ -25,10 +58,10 @@
                 var label = document.createElement("label");
                 label.for = checkbox.id;
                 label.title = "due: {0}\nimportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][now.getDay()]+", "+this.date, this.importance);
-                label.innerHTML = description;
+                label.innerHTML = description + "<br>";
                 getId("list").appendChild(checkbox);
                 getId("list").appendChild(label);
-                getId("list").appendChild(document.createElement("br"));
+                // getId("list").appendChild(document.createElement("br"));
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
                         label.style.textDecoration = "line-through";
@@ -49,14 +82,14 @@
                     date = getId("day").value;
                 } else {
                     date = "";
-                    ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(function(ID) {
+                    week.forEach(function(ID) {
                         if (getId(ID).checked) {
                             date += ID + " ";
                         }
                     });
                     date.trim();
                 }
-                date += "~" + getId("time").value.trim() + " " + getId("timeFormat").value;
+                date += "~" + getId("time").value.trim() + (getId("timeFormat").value!="24-hour" ? " "+getId("timeFormat").value : "");
                 items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
@@ -65,7 +98,7 @@
                 getId("fullDate").value = "";
                 getId("quickSelect").value = "";
                 getId("day").value = "";
-                ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(function(ID) {
+                week.forEach(function(ID) {
                     getId(ID).checked = false;
                 });
                 getId("time").value = "";
