@@ -100,9 +100,9 @@
                                 }
                             }
                         } else if (now.getDay() < closest) {
-                            then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                            then = new Date(now.getTime() + (closest-now.getDay())*86400000);
                         } else {
-                            then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                            then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
                         }
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
