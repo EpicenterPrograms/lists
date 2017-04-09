@@ -153,7 +153,7 @@
                         var then = getId("fullDate").value;
                         then = week.indexOf(then.toLowerCase());
                         if (now.getDay() == then) {
-                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+time).getTime()) {
+                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
                                 date = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate();
                             } else {
                                 then = new Date(now.getTime() + 604800000);
