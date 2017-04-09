@@ -38,6 +38,7 @@
                                 then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
                             }*/
                             then = now;
+                            console.warn("This ran.");
                         }
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
