@@ -22,24 +22,7 @@
                 }
                 switch (recurrence) {
                     case "once":
-                        if (date.includes("/")) {  // if the time is a date
-                            then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
-                        } else {  // when it's a day of the week
-                            /*then = week.indexOf(then.toLowerCase());
-                            if (now.getDay() == then) {
-                                if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
-                                    then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
-                                } else {
-                                    then = new Date(now.getTime() + 604800000);
-                                }
-                            } else if (now.getDay() < then) {
-                                then = new Date(now.getTime() + (then-now.getDay())*86400000);
-                            } else {
-                                then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                            }*/
-                            then = now;
-                            console.warn("This ran.");
-                        }
+                        then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                     case "monthly":
