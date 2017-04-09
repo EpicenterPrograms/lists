@@ -25,7 +25,7 @@
                         if (date.includes("/")) {  // if the time is a date
                             then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         } else {  // when it's a day of the week
-                            then = week.indexOf(then.toLowerCase());
+                            /*then = week.indexOf(then.toLowerCase());
                             if (now.getDay() == then) {
                                 if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
                                     then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
@@ -36,7 +36,8 @@
                                 then = new Date(now.getTime() + (then-now.getDay())*86400000);
                             } else {
                                 then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                            }
+                            }*/
+                            then = now;
                         }
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
@@ -144,8 +145,28 @@
             function include() {
                 var description = getId("description").value.trim();
                 var date;
+                var time = getId("time").value.trim() + (getId("timeFormat").value!="24-hour" ? " "+getId("timeFormat").value : "");
                 if (getId("fullDate").value) {
-                    date = getId("fullDate").value;
+                    if (getId("fullDate").value.includes("/")) {
+                        date = getId("fullDate").value;
+                    } else {  // if it's a day of the week
+                        var then = getId("fullDate").value;
+                        then = week.indexOf(then.toLowerCase());
+                        if (now.getDay() == then) {
+                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+time)) {
+                                date = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate();
+                            } else {
+                                then = new Date(now.getTime() + 604800000);
+                                date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                            }
+                        } else if (now.getDay() < then) {
+                            then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                            date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                        } else {
+                            then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+                            date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                        }
+                    }
                 } else if (getId("day").value) {
                     date = getId("day").value;
                 } else {
@@ -157,7 +178,7 @@
                     });
                     date.trim();
                 }
-                date += "~" + getId("time").value.trim() + (getId("timeFormat").value!="24-hour" ? " "+getId("timeFormat").value : "");
+                date += "~" + time;
                 items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
