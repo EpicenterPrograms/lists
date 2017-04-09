@@ -43,22 +43,22 @@
                         break;
                     case "monthly":
                         if (now.getDate() == then) {
-                            if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, then]))) {
-                                then = new Date(combine([now.getFullYear(), now.getMonth()+1, then]));
+                            if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, then]).getTime()) {
+                                then = combine([now.getFullYear(), now.getMonth()+1, then]);
                             } else {
                                 if (now.getMonth() + 2 <= 12) {
-                                    then = new Date(combine([now.getFullYear(), now.getMonth()+2, then]));
+                                    then = combine([now.getFullYear(), now.getMonth()+2, then]);
                                 } else {
-                                    then = new Date(combine([now.getFullYear()+1, 1, then]));
+                                    then = combine([now.getFullYear()+1, 1, then]);
                                 }
                             }
                         } else if (now.getDate() < then) {
                             then = new Date(now.getTime() + (then-now.getDate())*86400000);
                         } else {
                             if (now.getMonth() + 2 <= 12) {
-                                then = new Date(combine([now.getFullYear(), now.getMonth()+2, then]));
+                                then = combine([now.getFullYear(), now.getMonth()+2, then]);
                             } else {
-                                then = new Date(combine([now.getFullYear()+1, 1, then]));
+                                then = combine([now.getFullYear()+1, 1, then]);
                             }
                         }
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
@@ -81,8 +81,8 @@
                             closest -= 7;
                         }
                         if (now.getDay() == closest) {
-                            if (now.getTime() <= new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]))) {
-                                then = new Date(combine([now.getFullYear(), now.getMonth()+1, now.getDate()]));
+                            if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, now.getDate()]).getTime()) {
+                                then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
                             } else {
                                 closest = Infinity;
                                 then.split(" ").forEach(function(weekday) {
@@ -153,7 +153,7 @@
                         var then = getId("fullDate").value;
                         then = week.indexOf(then.toLowerCase());
                         if (now.getDay() == then) {
-                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+time)) {
+                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+time).getTime()) {
                                 date = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate();
                             } else {
                                 then = new Date(now.getTime() + 604800000);
