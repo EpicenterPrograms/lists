@@ -185,7 +185,7 @@
                 getId("list").innerHTML = "";
                 var priorities = [[], [], [], [], []];
                 items.forEach(function(value, key) {
-                    priorities[value.importance].push([key, value]);
+                    priorities[value.importance-1].push([key, value]);
                 });
                 priorities.reverse();
                 priorities.forEach(function(priorityList) {
