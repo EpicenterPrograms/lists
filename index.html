@@ -154,17 +154,17 @@
                         then = week.indexOf(then.toLowerCase());
                         if (now.getDay() == then) {
                            if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
-                                date = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate();
+                                date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
                             } else {
                                 then = new Date(now.getTime() + 604800000);
-                                date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                                date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                             }
                         } else if (now.getDay() < then) {
                             then = new Date(now.getTime() + (then-now.getDay())*86400000);
-                            date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                            date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                         } else {
                             then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                            date = then.getFullYear() + "/" + (then.getMonth()+1) + "/" + then.getDate();
+                            date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                         }
                     }
                 } else if (getId("day").value) {
