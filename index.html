@@ -112,7 +112,14 @@
                 var label = document.createElement("label");
                 label.for = checkbox.id;
                 label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
-                label.innerHTML = description + "<br>";
+                label.innerHTML = description;
+                if (recurrence != "daily" && then.getTime()-now.getTime() < 86400000 && then.getTime()-now.getTime() > 0) {
+                    label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+                }
+                if (then.getTime() - now.getTime() < 0) {
+                    label.style.color = "red";
+                }
+                label.innerHTML = label.innerHTML + "<br>";
                 getId("list").appendChild(checkbox);
                 getId("list").appendChild(label);
                 checkbox.addEventListener("click", function() {
@@ -244,6 +251,7 @@
                     getId("description").value = "";
                     refresh();
                 });
+                setInterval(refresh, 1000000);
             });
         </script>
     </head>
