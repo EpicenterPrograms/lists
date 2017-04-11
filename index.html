@@ -113,7 +113,7 @@
                 label.for = checkbox.id;
                 label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
                 label.innerHTML = description;
-                if (recurrence != "daily" && then.getTime()-now.getTime() < 86400000 && then.getTime()-now.getTime() > 0) {
+                if (recurrence != "daily" && then.getTime()-now.getTime() < 100000000 && then.getTime()-now.getTime() > 0) {
                     label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
                 }
                 if (then.getTime() - now.getTime() < 0) {
