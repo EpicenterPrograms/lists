@@ -115,7 +115,7 @@
                 label.innerHTML = description;
                 if (recurrence != "daily" && then.getTime()-now.getTime() > 0) {
                     if (then.getTime()-now.getTime() < 100000000) {
-                        label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+                        label.innerHTML = "<mark style='font-weight:bold'>" + label.innerHTML + "</mark>";
                     } else if (then.getTime()-now.getTime() < 200000000) {
                         label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
                     }
