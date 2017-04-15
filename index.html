@@ -104,7 +104,7 @@
                 this.importance = importance;
                 this.date = date.trim().split("~").join(" ");
                 this.recurrence = recurrence;
-                this.urgency = Math.round(then.getTime()/1000+1000000/importance);
+                this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(15+importance));
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -217,9 +217,6 @@
                     getId("list").appendChild(instance.elements);
                     getId("list").appendChild(document.createElement("br"));
                 });
-                setTimeout(function() {
-                    console.log(Priority.instances);
-                }, 100);
                 if (getId("list").innerHTML == "") {
                     getId("list").innerHTML = "<p>Add some things to do.</p>";
                 }
