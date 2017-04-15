@@ -114,10 +114,16 @@
                 label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
                 label.innerHTML = description;
                 if (recurrence != "daily" && then.getTime()-now.getTime() > 0) {
-                    if (then.getTime()-now.getTime() < 100000000) {
+                    var later;
+                    if (now.getHours() < 10) {  // if the current time is before 10:00am
+                        later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
+                    } else {
+                        later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
+                    }
+                    if (then.getTime() < later.getTime()) {
                         label.style.fontWeight = "bold";
                         label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
-                    } else if (then.getTime()-now.getTime() < 200000000) {
+                    } else if (then.getTime() < later.getTime() + 86400000) {
                         label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
                     }
                 }
@@ -303,7 +309,7 @@
             <option value="weekly">
                 Weekly
             </option>
-            <option value="daily">
+            <option value="daily" disabled>
                 Daily
             </option>
         </select>
