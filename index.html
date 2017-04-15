@@ -104,6 +104,7 @@
                 this.importance = importance;
                 this.date = date.trim().split("~").join(" ");
                 this.recurrence = recurrence;
+                this.urgency = Math.round(then.getTime()/1000*(15+importance));
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -146,9 +147,9 @@
                         refresh();
                     }
                 });
-                Priority.instances.push(this);
+                Priority.instances[this.urgency] = this;
             }
-            Priority.instances = [];
+            Priority.instances = {};
             
             function include() {
                 var description = getId("description").value.trim();
@@ -207,15 +208,9 @@
             }
             function refresh() {
                 getId("list").innerHTML = "";
-                var priorities = [[], [], [], [], []];
+                Priority.instances = {};
                 items.forEach(function(value, key) {
-                    priorities[value.importance-1].push([key, value]);
-                });
-                priorities.reverse();
-                priorities.forEach(function(priorityList) {
-                    priorityList.forEach(function(priority) {
-                        new Priority(priority[0], priority[1].importance, priority[1].time, priority[1].recurrence);
-                    });
+                    new Priority(key, value.importance, value.time, value.recurrence);
                 });
                 Priority.instances.forEach(function(instance) {
                     getId("list").appendChild(instance.elements);
