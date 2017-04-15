@@ -132,8 +132,10 @@
                     label.style.color = "red";
                 }
                 label.innerHTML = label.innerHTML + "<br>";
-                getId("list").appendChild(checkbox);
-                getId("list").appendChild(label);
+                var elements = document.createElement("div");
+                elements.appendChild(checkbox);
+                elements.appendChild(label);
+                this.elements = elements;
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
                         label.style.textDecoration = "line-through";
@@ -215,6 +217,9 @@
                     priorityList.forEach(function(priority) {
                         new Priority(priority[0], priority[1].importance, priority[1].time, priority[1].recurrence);
                     });
+                });
+                Priority.instances.forEach(function(instance) {
+                    getId("list").appendChild(instance.elements);
                 });
                 if (getId("list").innerHTML == "") {
                     getId("list").innerHTML = "<p>Add some things to do.</p>";
