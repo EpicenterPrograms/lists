@@ -131,7 +131,6 @@
                     label.style.fontWeight = "bold";
                     label.style.color = "red";
                 }
-                label.innerHTML = label.innerHTML + "<br>";
                 var elements = document.createElement("div");
                 elements.appendChild(checkbox);
                 elements.appendChild(label);
@@ -220,6 +219,7 @@
                 });
                 Priority.instances.forEach(function(instance) {
                     getId("list").appendChild(instance.elements);
+                    getId("list").appendChild(document.createElement("br"));
                 });
                 if (getId("list").innerHTML == "") {
                     getId("list").innerHTML = "<p>Add some things to do.</p>";
