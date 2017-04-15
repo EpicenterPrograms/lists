@@ -148,7 +148,7 @@
                     }
                 });
                 var increment = 0;
-                safeWhile("Priority.instances[this.urgency+increment]", function() {
+                while(Priority.instances[this.urgency+increment] != undefined) {
                     // while there's a target key value already taken, increase the target key by 1
                     // (prevents overwriting when things have the same due-date and importance)
                     increment++;
