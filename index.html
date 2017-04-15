@@ -147,7 +147,13 @@
                         refresh();
                     }
                 });
-                Priority.instances[this.urgency] = this;
+                var increment = 0;
+                safeWhile("Priority.instances[this.urgency+increment]", function() {
+                    // while there's a target key value already taken, increase the target key by 1
+                    // (prevents overwriting when things have the same due-date and importance)
+                    increment++;
+                });
+                Priority.instances[this.urgency+increment] = this;
             }
             Priority.instances = {};
             
