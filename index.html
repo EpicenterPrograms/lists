@@ -115,7 +115,7 @@
                 label.innerHTML = description;
                 if (recurrence != "daily" && then.getTime()-now.getTime() > 0) {
                     var later;
-                    if (now.getHours() < 10) {  // if the current time is before 10:00am
+                    if (now.getHours() < 8) {  // if the current time is before 8:00am
                         later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
                     } else {
                         later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
@@ -137,8 +137,12 @@
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
                         label.style.textDecoration = "line-through";
+                        label.style.fontWeight = "inherit";
+                        if (label.children.length > 0) {
+                            label.children[0].style.background = "inherit";
+                        }
                     } else {
-                        label.style.textDecoration = "none";
+                        refresh();
                     }
                 });
                 Priority.instances.push(this);
