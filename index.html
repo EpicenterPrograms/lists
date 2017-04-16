@@ -86,14 +86,18 @@
                                 }
                                 if (now.getDay() < closest) {
                                     then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+                                    then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
                                 } else {
                                     then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+                                    then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
                                 }
                             }
                         } else if (now.getDay() < closest) {
                             then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+                            then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
                         } else {
                             then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+                            then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
                         }
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
