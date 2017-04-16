@@ -143,6 +143,7 @@
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
                         label.style.textDecoration = "line-through";
+                        label.style.color = "inherit";
                         label.style.fontWeight = "inherit";
                         if (label.children.length > 0) {
                             label.children[0].style.background = "inherit";
@@ -222,7 +223,6 @@
                 items.forEach(function(value, key) {
                     new Priority(key, value.importance, value.time, value.recurrence);
                 });
-                console.log(Priority.instances);
                 Priority.instances.forEach(function(instance) {
                     getId("list").appendChild(instance.elements);
                     getId("list").appendChild(document.createElement("br"));
