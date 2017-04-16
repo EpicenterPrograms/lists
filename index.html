@@ -108,7 +108,7 @@
                 this.importance = importance;
                 this.date = date.trim().split("~").join(" ");
                 this.recurrence = recurrence;
-                this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(20-importance));
+                this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
