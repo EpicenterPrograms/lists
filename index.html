@@ -166,7 +166,6 @@
                     }
                     var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
                     watcher.observe(getId("list"), {"childList":true, "subtree":true});
-                    checkbox.check();
                 }
                 var increment = 0;
                 while(Priority.instances[this.urgency+increment] != undefined) {
