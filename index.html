@@ -157,7 +157,9 @@
                 });
                 if (lastFinished) {
                     function handler(mutations, observer) {
-                        console.log(mutations);
+                        mutations.forEach(function(mutation) {
+                            console.log(mutations.type);
+                        });
                         if (mutations.addedNodes) {
                             mutations.addedNodes.forEach(function(node) {
                                 if (node == checkbox) {
