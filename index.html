@@ -159,7 +159,7 @@
                     function handler(mutations, observer) {
                         mutations.forEach(function(mutation) {
                             mutation.addedNodes.forEach(function(node) {
-                                if (node == checkbox) {
+                                if (true) {
                                     checkbox.check();
                                     watcher.disconnect();
                                 }
