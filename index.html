@@ -156,6 +156,16 @@
                     }
                 });
                 if (lastFinished) {
+                    function handler(mutations, observer) {
+                        mutations.addedNodes.forEach(function(node) {
+                            if (node == checkbox) {
+                                checkbox.check();
+                                watcher.disconnect();
+                            }
+                        });
+                    }
+                    var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
+                    watcher.observe(getId("list"), {"childList":true, "subtree":true});
                     checkbox.check();
                 }
                 var increment = 0;
@@ -422,9 +432,5 @@
         <button id="remove">
             Remove
         </button>
-        <h2 style="display:none">
-            Past Due
-        </h2>
-        <ul id="pastDue"></ul>
     </body>
 </html>
