@@ -164,7 +164,7 @@
                                     watcher.disconnect();
                                 }
                             });
-                        }
+                        });
                     }
                     var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
                     watcher.observe(getId("list"), {"childList":true, "subtree":true});
