@@ -15,6 +15,7 @@
             var now = new Date();
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             var Priority = function(description, importance, date, recurrence, lastFinished) {
+                var priority = this;
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
                 function combine(array) {
@@ -142,6 +143,7 @@
                 this.elements = elements;
                 checkbox.addEventListener("click", function() {
                     if (checkbox.checked) {
+                        items[description].lastFinished = true;
                         label.style.textDecoration = "line-through";
                         label.style.color = "inherit";
                         label.style.fontWeight = "inherit";
@@ -149,9 +151,13 @@
                             label.children[0].style.background = "inherit";
                         }
                     } else {
+                        items[description].lastFinished = false;
                         refresh();
                     }
                 });
+                if (lastFinished) {
+                    checkbox.check();
+                }
                 var increment = 0;
                 while(Priority.instances[this.urgency+increment] != undefined) {
                     // while there's a target key value already taken, increase the target key by 1
@@ -199,7 +205,7 @@
                     date.trim();
                 }
                 date += "~" + time;
-                items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value};
+                items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value, "lastFinished":false};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 getId("description").value = "";
                 getId("importance").value = "";
@@ -221,7 +227,7 @@
                 getId("list").innerHTML = "";
                 Priority.instances = {};
                 items.forEach(function(value, key) {
-                    new Priority(key, value.importance, value.time, value.recurrence);
+                    new Priority(key, value.importance, value.time, value.recurrence, value.lastFinished||false);
                 });
                 Priority.instances.forEach(function(instance) {
                     getId("list").appendChild(instance.elements);
