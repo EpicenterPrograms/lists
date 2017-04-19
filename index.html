@@ -158,7 +158,7 @@
                 if (lastFinished) {
                     function handler(mutations, observer) {
                         mutations.forEach(function(mutation) {
-                            console.log(mutations.type);
+                            console.log(mutation.type);
                         });
                         if (mutations.addedNodes) {
                             mutations.addedNodes.forEach(function(node) {
