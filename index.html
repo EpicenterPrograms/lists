@@ -157,9 +157,10 @@
                 });
                 if (lastFinished) {
                     function handler(mutations, observer) {
+                        console.log(mutations);
                         if (mutations.addedNodes) {
                             mutations.addedNodes.forEach(function(node) {
-                                if (true) {
+                                if (node == checkbox) {
                                     checkbox.check();
                                     watcher.disconnect();
                                 }
