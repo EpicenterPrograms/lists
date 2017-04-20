@@ -110,6 +110,7 @@
                 this.date = date.trim().split("~").join(" ");
                 this.recurrence = recurrence;
                 this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+                this.lastFinished = lastFinished;
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -143,8 +144,7 @@
                 this.elements = elements;
                 function changeStyle() {
                     if (checkbox.checked) {
-                        items[description].lastFinished = true;
-                        localStorage.setItem("To-Do-List", JSON.stringify(items));
+                        priority.lastFinished = true;
                         label.style.textDecoration = "line-through";
                         label.style.color = "inherit";
                         label.style.fontWeight = "inherit";
@@ -152,15 +152,16 @@
                             label.children[0].style.background = "inherit";
                         }
                     } else {
-                        items[description].lastFinished = false;
-                        localStorage.setItem("To-Do-List", JSON.stringify(items));
+                        priority.lastFinished = false;
                         refresh();
                     }
+                    items[description].lastFinished = priority.lastFinished;
+                    localStorage.setItem("To-Do-List", JSON.stringify(items));
                 }
                 checkbox.addEventListener("click", function() {
                     changeStyle();
                 });
-                if (lastFinished) {
+                if (this.lastFinished) {
                     checkbox.checked = true;
                     changeStyle();
                 }
