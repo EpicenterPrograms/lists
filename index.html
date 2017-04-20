@@ -141,7 +141,7 @@
                 elements.appendChild(checkbox);
                 elements.appendChild(label);
                 this.elements = elements;
-                checkbox.addEventListener("click", function() {
+                function changeStyle() {
                     if (checkbox.checked) {
                         items[description].lastFinished = true;
                         label.style.textDecoration = "line-through";
@@ -154,12 +154,20 @@
                         items[description].lastFinished = false;
                         refresh();
                     }
+                }
+                checkbox.addEventListener("click", function() {
+                    changeStyle();
                 });
+                if (lastFinished) {
+                    checkbox.checked = true;
+                    changeStyle();
+                }
+                /*
                 if (lastFinished) {
                     function handler(mutations, observer) {
                         mutations.forEach(function(mutation) {
                             mutation.addedNodes.forEach(function(node) {
-                                if (true) {
+                                if (node == checkbox) {
                                     checkbox.check();
                                     watcher.disconnect();
                                 }
@@ -169,6 +177,7 @@
                     var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
                     watcher.observe(getId("list"), {"childList":true, "subtree":true});
                 }
+                */
                 var increment = 0;
                 while(Priority.instances[this.urgency+increment] != undefined) {
                     // while there's a target key value already taken, increase the target key by 1
