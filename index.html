@@ -153,10 +153,10 @@
                         }
                     } else {
                         priority.lastFinished = false;
-                        refresh();
                     }
                     items[description].lastFinished = priority.lastFinished;
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
+                    refresh();
                 }
                 checkbox.addEventListener("click", function() {
                     changeStyle();
