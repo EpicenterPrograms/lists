@@ -144,6 +144,7 @@
                 function changeStyle() {
                     if (checkbox.checked) {
                         items[description].lastFinished = true;
+                        localStorage.setItem("To-Do-List", JSON.stringify(items));
                         label.style.textDecoration = "line-through";
                         label.style.color = "inherit";
                         label.style.fontWeight = "inherit";
@@ -152,6 +153,7 @@
                         }
                     } else {
                         items[description].lastFinished = false;
+                        localStorage.setItem("To-Do-List", JSON.stringify(items));
                         refresh();
                     }
                 }
