@@ -156,10 +156,10 @@
                     }
                     items[description].lastFinished = priority.lastFinished;
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
-                    refresh();
                 }
                 checkbox.addEventListener("click", function() {
                     changeStyle();
+                    refresh();
                 });
                 if (this.lastFinished) {
                     checkbox.checked = true;
