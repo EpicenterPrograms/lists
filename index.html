@@ -252,8 +252,16 @@
                     new Priority(key, value.importance, value.time, value.recurrence, value.lastFinished);
                 });
                 Priority.instances.forEach(function(instance) {
-                    getId("list").appendChild(instance.elements);
-                    getId("list").appendChild(document.createElement("br"));
+                    if (!instance.lastFinished) {
+                        getId("list").appendChild(instance.elements);
+                        getId("list").appendChild(document.createElement("br"));
+                    }
+                });
+                Priority.instances.forEach(function(instance) {
+                    if (instance.lastFinished) {
+                        getId("list").appendChild(instance.elements);
+                        getId("list").appendChild(document.createElement("br"));
+                    }
                 });
                 if (getId("list").innerHTML == "") {
                     getId("list").innerHTML = "<p>Add some things to do.</p>";
