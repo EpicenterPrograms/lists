@@ -12,7 +12,7 @@
             }
             localStorage.setItem("To-Do-List", JSON.stringify(items));
             var itemNumber = 1;
-            var now = new Date();
+            var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             var Priority = function(description, importance, date, recurrence, lastFinished) {
                 var priority = this;
@@ -247,6 +247,7 @@
                 refresh();
             }
             function refresh() {
+                now = new Date();
                 getId("list").innerHTML = "";
                 Priority.instances = {};
                 items.forEach(function(value, key) {
