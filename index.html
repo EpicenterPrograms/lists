@@ -107,6 +107,7 @@
                         if (now.getTime() > then.getTime()) {
                             then = new Date(then.getTime()+86400000);
                         }
+                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                 }
                 this.importance = importance;
