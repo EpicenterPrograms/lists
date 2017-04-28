@@ -21,7 +21,7 @@
                 function combine(array) {
                     return new Date(array.join(" ") + time);
                 }
-                switch (recurrence) {
+                switch (recurrence) {  // sets the exact time of the (next) event
                     case "once":
                         then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
@@ -103,13 +103,20 @@
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                     case "daily":
-                        then = now;
+                        then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
+                        if (now.getTime() > then.getTime()) {
+                            then = new Date(then.getTime()+86400000);
+                        }
                         break;
                 }
                 this.importance = importance;
                 this.date = date.trim().split("~").join(" ");
                 this.recurrence = recurrence;
-                this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+                if (recurrence != "daily") {
+                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+                } else {
+                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/500*(10-importance));
+                }
                 this.lastFinished = lastFinished;
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
@@ -120,21 +127,29 @@
                 label.for = checkbox.id;
                 label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
                 label.innerHTML = description;
-                if (recurrence != "daily" && then.getTime()-now.getTime() > 0) {
+                if (then.getTime() >= now.getTime()) {
                     var later;
-                    if (now.getHours() < 8) {  // if the current time is before 8:00am
-                        later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
+                    if (recurrence != "daily") {
+                        if (now.getHours() < 8) {  // if the current time is before 8:00am
+                            later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
+                        } else {
+                            later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
+                        }
+                        if (then.getTime() < later.getTime()) {
+                            label.style.fontWeight = "bold";
+                            label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+                        } else if (then.getTime() < later.getTime() + 86400000) {
+                            label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
+                        }
                     } else {
-                        later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
+                        if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
+                            label.style.fontWeight = "bold";
+                            label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
+                        } else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
+                            label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
+                        }
                     }
-                    if (then.getTime() < later.getTime()) {
-                        label.style.fontWeight = "bold";
-                        label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
-                    } else if (then.getTime() < later.getTime() + 86400000) {
-                        label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
-                    }
-                }
-                if (then.getTime() - now.getTime() < 0) {
+                } else {
                     label.style.fontWeight = "bold";
                     label.style.color = "red";
                 }
@@ -316,7 +331,7 @@
                     getId("description").value = "";
                     refresh();
                 });
-                setInterval(refresh, 1000000);
+                setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
             });
         </script>
     </head>
@@ -362,7 +377,7 @@
             <option value="weekly">
                 Weekly
             </option>
-            <option value="daily" disabled>
+            <option value="daily">
                 Daily
             </option>
         </select>
