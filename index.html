@@ -115,7 +115,7 @@
                 if (recurrence != "daily") {
                     this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
                 } else {
-                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/500*(10-importance));
+                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
                 }
                 this.lastFinished = lastFinished;
                 var checkbox = document.createElement("input");
