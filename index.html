@@ -211,55 +211,66 @@
                 var description = getId("description").value.trim();
                 var date;
                 var time = getId("time").value.trim() + (getId("timeFormat").value!="24-hour" ? " "+getId("timeFormat").value : "");
-                if (getId("fullDate").value) {
-                    if (getId("fullDate").value.includes("/")) {
-                        date = getId("fullDate").value;
-                    } else {  // if it's a day of the week
-                        var then = getId("fullDate").value;
-                        then = week.indexOf(then.toLowerCase());
-                        if (now.getDay() == then) {
-                           if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
-                                date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
+                switch (getId("recurrence").value) {
+                    case "indefinite":
+                        switch (getId("timeframe").value) {
+                            case "immediately":
+                                break;
+                            case "soon":
+                                break;
+                            case "later":
+                                break;
+                            case "somePoint":
+                                break;
+                        }
+                        break;
+                    case "once":
+                        if (getId("fullDate").value.includes("/")) {
+                            date = getId("fullDate").value;
+                        } else {  // if it's a day of the week
+                            var then = getId("fullDate").value;
+                            then = week.indexOf(then.toLowerCase());
+                            if (now.getDay() == then) {
+                               if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
+                                    date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
+                                } else {
+                                    then = new Date(now.getTime() + 604800000);
+                                    date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+                                }
+                            } else if (now.getDay() < then) {
+                                then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                                date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                             } else {
-                                then = new Date(now.getTime() + 604800000);
+                                then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
                                 date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                             }
-                        } else if (now.getDay() < then) {
-                            then = new Date(now.getTime() + (then-now.getDay())*86400000);
-                            date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-                        } else {
-                            then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                            date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                         }
-                    }
-                } else if (getId("day").value) {
-                    date = getId("day").value;
-                } else {
-                    date = "";
-                    week.forEach(function(ID) {
-                        if (getId(ID).checked) {
-                            date += ID + " ";
-                        }
-                    });
-                    date.trim();
+                        break;
+                    case "monthly":
+                        date = getId("day").value;
+                        break;
+                    case "weekly":
+                        date = "";
+                        week.forEach(function(ID) {
+                            if (getId(ID).checked) {
+                                date += ID + " ";
+                            }
+                        });
+                        date.trim();
+                        break;
                 }
                 date += "~" + time;
                 items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value, "lastFinished":false};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
-                getId("description").value = "";
-                getId("importance").value = "";
-                getId("recurrence").value = "";
-                getId("fullDate").value = "";
-                getId("quickSelect").value = "";
-                getId("day").value = "";
+                ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
+                    getId(ID).value = "";
+                });
                 week.forEach(function(ID) {
                     getId(ID).checked = false;
                 });
-                getId("time").value = "";
-                getId("timeFormat").value = "";
-                getId("once").style.display = "none";
-                getId("monthly").style.display = "none";
-                getId("weekly").style.display = "none";
+                ["indefinite", "once", "monthly", "weekly"].forEach(function(ID) {
+                    getId(ID).style.display = "none";
+                });
                 refresh();
             }
             function refresh() {
@@ -290,22 +301,32 @@
                 refresh();
                 getId("recurrence").addEventListener("change", function() {
                     switch (this.value) {
+                        case "indefinite":
+                            getId("once").style.display = "none";
+                            getId("weekly").style.display = "none";
+                            getId("monthly").style.display = "none";
+                            getId("indefinite").style.display = "inline-block";
+                            break;
                         case "once":
+                            getId("indefinite").style.display = "none";
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "none";
                             getId("once").style.display = "inline-block";
                             break;
                         case "monthly":
+                            getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("weekly").style.display = "none";
                             getId("monthly").style.display = "inline-block";
                             break;
                         case "weekly":
+                            getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "inline-block";
                             break;
                         case "daily":
+                            getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "none";
@@ -369,6 +390,9 @@
             <option value="" disabled selected>
                 Recurrence
             </option>
+            <option value="indefinite" disabled>
+                Indefinite
+            </option>
             <option value="once">
                 One time
             </option>
@@ -383,6 +407,28 @@
             </option>
         </select>
         <br>
+        <div id="indefinite" style="display:none">
+            <br>
+            <select id="timeframe">
+                <option value="" disabled selected>
+                    Timeframe
+                </option>
+                <option value="immediately">
+                    Immediately
+                </option>
+                <option value="soon">
+                    Soon
+                </option>
+                <option value="later">
+                    Later
+                </option>
+                <option value="somePoint">
+                    At some point
+                </option>
+            </select>
+            <br>
+            <br>
+        </div>
         <div id="once" style="display:none">
             <br>
             <input type="text" id="fullDate" placeholder="Date (month/day/year)">
