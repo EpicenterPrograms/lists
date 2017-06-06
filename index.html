@@ -22,6 +22,10 @@
                     return new Date(array.join(" ") + time);
                 }
                 switch (recurrence) {  // sets the exact time of the (next) event
+                    case "indefinite":
+                        then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
+                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+                        break;
                     case "once":
                         then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
@@ -130,7 +134,21 @@
                 label.innerHTML = description;
                 if (then.getTime() >= now.getTime()) {
                     var later;
-                    if (recurrence != "daily") {
+                    if (recurrence == "indefinite") {
+                        if (then.getTime() - now.getTime() < 00) {
+                            label.style.fontWeight = "bold";
+                            label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
+                        } else if (then.getTime() - now.getTime() < 00) {
+                            label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
+                        }
+                    } else if (recurrence == "daily") {
+                        if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
+                            label.style.fontWeight = "bold";
+                            label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
+                        } else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
+                            label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
+                        }
+                    } else {
                         if (now.getHours() < 8) {  // if the current time is before 8:00am
                             later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
                         } else {
@@ -141,13 +159,6 @@
                             label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
                         } else if (then.getTime() < later.getTime() + 86400000) {
                             label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
-                        }
-                    } else {
-                        if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
-                            label.style.fontWeight = "bold";
-                            label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
-                            label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
                         }
                     }
                 } else {
@@ -274,6 +285,7 @@
                 refresh();
             }
             function refresh() {
+                console.log(items);
                 now = new Date();
                 getId("list").innerHTML = "";
                 Priority.instances = {};
