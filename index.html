@@ -23,7 +23,7 @@
                 }
                 switch (recurrence) {  // sets the exact time of the (next) event
                     case "indefinite":
-                        then = new Date(then);
+                        then = new Date(Number(then));  // Number() is needed because "then" is a string
                         date = then.getTime() - now.getTime();
                         if (date <= 0) {
                             date = "Immediately";
@@ -148,13 +148,13 @@
                     label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
                 }
                 label.innerHTML = description;
-                if (then.getTime() >= now.getTime()) {
+                if (then.getTime() >= now.getTime() || this.recurrence == "indefinite") {
                     var later;
-                    if (recurrence == "indefinite") {
-                        if (then.getTime() - now.getTime() < 00) {
+                    if (this.recurrence == "indefinite") {
+                        if (then.getTime() - now.getTime() < (then.getTime()-this.lastFinished) / 8) {
                             label.style.fontWeight = "bold";
                             label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() - now.getTime() < 00) {
+                        } else if (then.getTime() - now.getTime() < (then.getTime()-this.lastFinished) / 4) {
                             label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
                         }
                     } else if (recurrence == "daily") {
@@ -337,6 +337,7 @@
                             getId("once").style.display = "none";
                             getId("weekly").style.display = "none";
                             getId("monthly").style.display = "none";
+                            getId("timeSection").style.display = "none";
                             getId("indefinite").style.display = "inline-block";
                             break;
                         case "once":
@@ -344,24 +345,28 @@
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "none";
                             getId("once").style.display = "inline-block";
+                            getId("timeSection").style.display = "inline-block";
                             break;
                         case "monthly":
                             getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("weekly").style.display = "none";
                             getId("monthly").style.display = "inline-block";
+                            getId("timeSection").style.display = "inline-block";
                             break;
                         case "weekly":
                             getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "inline-block";
+                            getId("timeSection").style.display = "inline-block";
                             break;
                         case "daily":
                             getId("indefinite").style.display = "none";
                             getId("once").style.display = "none";
                             getId("monthly").style.display = "none";
                             getId("weekly").style.display = "none";
+                            getId("timeSection").style.display = "inline-block";
                             break;
                     }
                 });
@@ -524,25 +529,27 @@
             <br>
             <br>
         </div>
-        <br>
-        <input type="text" id="time" placeholder="Time (hour:minute)">
-        <span>&nbsp;</span>
-        <select id="timeFormat">
-            <option value="" disabled selected>
-                Time format
-            </option>
-            <option value="am">
-                am
-            </option>
-            <option value="pm">
-                pm
-            </option>
-            <option value="24-hour">
-                24-hour
-            </option>
-        </select>
-        <br>
-        <br>
+        <div id="timeSection" style="display:none">
+            <br>
+            <input type="text" id="time" placeholder="Time (hour:minute)">
+            <span>&nbsp;</span>
+            <select id="timeFormat">
+                <option value="" disabled selected>
+                    Time format
+                </option>
+                <option value="am">
+                    am
+                </option>
+                <option value="pm">
+                    pm
+                </option>
+                <option value="24-hour">
+                    24-hour
+                </option>
+            </select>
+            <br>
+            <br>
+        </div>
         <button onclick="include()">
             Add to list
         </button>
