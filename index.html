@@ -313,13 +313,13 @@
                     new Priority(key, value.importance, value.time, value.recurrence, value.lastFinished, value.done);
                 });
                 Priority.instances.forEach(function(instance) {
-                    if (!instance.lastFinished) {
+                    if (!instance.done) {
                         getId("list").appendChild(instance.elements);
                         getId("list").appendChild(document.createElement("br"));
                     }
                 });
                 Priority.instances.forEach(function(instance) {
-                    if (instance.lastFinished) {
+                    if (instance.done) {
                         getId("list").appendChild(instance.elements);
                         getId("list").appendChild(document.createElement("br"));
                     }
@@ -547,6 +547,7 @@
             <br>
             <br>
         </div>
+        <br>
         <button onclick="include()">
             Add to list
         </button>
