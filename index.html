@@ -14,8 +14,7 @@
             var itemNumber = 1;
             var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-            var Priority = function(description, importance, date, recurrence, lastFinished) {
-                console.log(date);
+            var Priority = function(description, importance, date, recurrence, lastFinished, done) {
                 var priority = this;
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
@@ -24,8 +23,17 @@
                 }
                 switch (recurrence) {  // sets the exact time of the (next) event
                     case "indefinite":
-                        then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
-                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+                        then = new Date(then);
+                        date = then.getTime() - now.getTime();
+                        if (date <= 0) {
+                            date = "Immediately";
+                        } else if (date <= 250000000) {
+                            date = "Soon";
+                        } else if (date <= 800000000) {
+                            date = "Later";
+                        } else {
+                            date = "At some point";
+                        }
                         break;
                     case "once":
                         then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
@@ -116,14 +124,17 @@
                         break;
                 }
                 this.importance = importance;
-                this.date = date.trim().split("~").join(" ");
+                this.date = date;
                 this.recurrence = recurrence;
-                if (recurrence != "daily") {
-                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
-                } else {
+                if (this.recurrence == "indefinite") {
+                    this.urgency = Math.round((then.getTime()-now.getTime())/1000*(10-importance));
+                } else if (this.recurrence == "daily") {
                     this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
+                } else {
+                    this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
                 }
                 this.lastFinished = lastFinished;
+                this.done = done;
                 var checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -131,7 +142,11 @@
                 itemNumber++;
                 var label = document.createElement("label");
                 label.for = checkbox.id;
-                label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
+                if (this.recurrence == "indefinite") {
+                    label.title = "Due: {0}\nImportance: {1}".format(this.date, this.importance);
+                } else {
+                    label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
+                }
                 label.innerHTML = description;
                 if (then.getTime() >= now.getTime()) {
                     var later;
@@ -172,7 +187,7 @@
                 this.elements = elements;
                 function changeStyle() {
                     if (checkbox.checked) {
-                        priority.lastFinished = true;
+                        priority.done = true;
                         label.style.textDecoration = "line-through";
                         label.style.color = "inherit";
                         label.style.fontWeight = "inherit";
@@ -180,16 +195,16 @@
                             label.children[0].style.background = "inherit";
                         }
                     } else {
-                        priority.lastFinished = false;
+                        priority.done = false;
                     }
-                    items[description].lastFinished = priority.lastFinished;
+                    items[description].done = priority.done;
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                 }
                 checkbox.addEventListener("click", function() {
                     changeStyle();
                     refresh();
                 });
-                if (this.lastFinished) {
+                if (this.done) {
                     checkbox.checked = true;
                     changeStyle();
                 }
@@ -220,19 +235,24 @@
             Priority.instances = {};
             
             function include() {
+                now = new Date();
                 var description = getId("description").value.trim();
                 var date;
                 var time = getId("time").value.trim() + (getId("timeFormat").value!="24-hour" ? " "+getId("timeFormat").value : "");
                 switch (getId("recurrence").value) {
                     case "indefinite":
-                        switch (getId("timeframe").value) {
+                        switch (getId("timeframe").value) {  // sets when the highlight will become most apparent
                             case "immediately":
+                                date = now.getTime();  // now
                                 break;
                             case "soon":
+                                date = now.getTime() + 250000000;  // in a little less than 3 days
                                 break;
                             case "later":
+                                date = now.getTime() + 800000000;  // in a little more than 8 days
                                 break;
                             case "somePoint":
+                                date = now.getTime() + 3628800000;  // in exactly 42 days
                                 break;
                         }
                         break;
@@ -272,7 +292,7 @@
                         break;
                 }
                 date += "~" + time;
-                items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value, "lastFinished":false};
+                items[description] = {"importance":getId("importance").value, "time":date, "recurrence":getId("recurrence").value, "lastFinished":now.getTime(), "done":false};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
                 ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
                     getId(ID).value = "";
@@ -286,13 +306,11 @@
                 refresh();
             }
             function refresh() {
-                console.log(items);
                 now = new Date();
                 getId("list").innerHTML = "";
                 Priority.instances = {};
                 items.forEach(function(value, key) {
-                    console.log("ran");
-                    new Priority(key, value.importance, value.time, value.recurrence, value.lastFinished);
+                    new Priority(key, value.importance, value.time, value.recurrence, value.lastFinished, value.done);
                 });
                 Priority.instances.forEach(function(instance) {
                     if (!instance.lastFinished) {
@@ -404,7 +422,7 @@
             <option value="" disabled selected>
                 Recurrence
             </option>
-            <option value="indefinite" disabled>
+            <option value="indefinite">
                 Indefinite
             </option>
             <option value="once">
@@ -508,6 +526,7 @@
         </div>
         <br>
         <input type="text" id="time" placeholder="Time (hour:minute)">
+        <span>&nbsp;</span>
         <select id="timeFormat">
             <option value="" disabled selected>
                 Time format
@@ -527,6 +546,7 @@
         <button onclick="include()">
             Add to list
         </button>
+        <span>&nbsp;</span>
         <button id="remove">
             Remove
         </button>
