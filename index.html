@@ -156,10 +156,10 @@
                 if (then.getTime() >= now.getTime() || this.recurrence == "indefinite") {
                     var later;
                     if (this.recurrence == "indefinite") {
-                        if (then.getTime() - now.getTime() < (then.getTime()-this.lastFinished) / 8) {
+                        if (then.getTime() <= now.getTime()) {
                             label.style.fontWeight = "bold";
                             label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() - now.getTime() < (then.getTime()-this.lastFinished) / 4) {
+                        } else if (then.getTime() - now.getTime() < (then.getTime()-this.lastFinished) / 3) {
                             label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
                         }
                     } else if (recurrence == "daily") {
