@@ -300,7 +300,7 @@
                 week.forEach(function(ID) {
                     getId(ID).checked = false;
                 });
-                ["indefinite", "once", "monthly", "weekly"].forEach(function(ID) {
+                ["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
                     getId(ID).style.display = "none";
                 });
                 refresh();
@@ -444,8 +444,8 @@
             </option>
         </select>
         <br>
+        <br>
         <div id="indefinite" style="display:none">
-            <br>
             <select id="timeframe">
                 <option value="" disabled selected>
                     Timeframe
@@ -467,7 +467,6 @@
             <br>
         </div>
         <div id="once" style="display:none">
-            <br>
             <input type="text" id="fullDate" placeholder="Date (month/day/year)">
             <select id="quickSelect">
                 <option value="" disabled selected>
@@ -499,13 +498,11 @@
             <br>
         </div>
         <div id="monthly" style="display:none">
-            <br>
             <input type="text" id="day" placeholder="Day of the month">
             <br>
             <br>
         </div>
         <div id="weekly" class="list" style="display:none">
-            <br>
             <input type="checkbox" id="monday">
             <label for="monday">Monday</label>
             <br>
@@ -529,8 +526,8 @@
             <br>
             <br>
         </div>
+        <br>
         <div id="timeSection" style="display:none">
-            <br>
             <input type="text" id="time" placeholder="Time (hour:minute)">
             <span>&nbsp;</span>
             <select id="timeFormat">
