@@ -128,6 +128,9 @@
                 this.recurrence = recurrence;
                 if (this.recurrence == "indefinite") {
                     this.urgency = Math.round((then.getTime()-now.getTime())/1000*(10-importance));
+                    if (this.urgency < 0) {  // Negative numbers will put it at the end, not the top.
+                        this.urgency = 0;
+                    }
                 } else if (this.recurrence == "daily") {
                     this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
                 } else {
