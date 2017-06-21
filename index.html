@@ -383,7 +383,8 @@
                     items.forEach(function(value, key) {
                         if (key == getId("description").value.trim()) {
                             delete items[key];
-                            return "break";
+                        } else if (value.done) {
+                            delete items[key];
                         }
                     });
                     Priority.instances.forEach(function(instance, index) {
