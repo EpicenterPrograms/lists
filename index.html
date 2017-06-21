@@ -149,10 +149,14 @@
                 label.for = checkbox.id;
                 if (this.recurrence == "indefinite") {
                     label.title = "Due: {0}\nImportance: {1}".format(this.date, this.importance);
-                } else if (this.recurrence == "daily") {
-                    label.title = "Due: {0}\nImportance: {1}".format(time.trim(), this.importance);
                 } else {
-                    label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
+                    if (then.getTime() - now.getTime() < 86400000) {
+                        label.title = "Due:{0}\nImportance: {1}".format(time, this.importance);
+                    } else if (then.getTime() - now.getTime() < 518400000) {
+                        label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+time, this.importance);
+                    } else {
+                        label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+this.date, this.importance);
+                    }
                 }
                 label.innerHTML = description;
                 if (then.getTime() >= now.getTime() || this.recurrence == "indefinite") {
