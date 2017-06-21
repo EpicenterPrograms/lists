@@ -29,8 +29,10 @@
                             date = "Immediately";
                         } else if (date <= 250000000) {
                             date = "Soon";
-                        } else if (date <= 800000000) {
+                        } else if (date <= 700000000) {
                             date = "Later";
+                        } else if (date <= 1600000000) {
+                            date = "In a while";
                         } else {
                             date = "At some point";
                         }
@@ -255,7 +257,10 @@
                                 date = now.getTime() + 250000000;  // in a little less than 3 days
                                 break;
                             case "later":
-                                date = now.getTime() + 800000000;  // in a little more than 8 days
+                                date = now.getTime() + 700000000;  // in a little more than 8 days
+                                break;
+                            case "aWhile":
+                                date = now.getTime() + 1600000000;  // in about 18.5 days
                                 break;
                             case "somePoint":
                                 date = now.getTime() + 3628800000;  // in exactly 42 days
@@ -465,6 +470,9 @@
                 </option>
                 <option value="later">
                     Later
+                </option>
+                <option value="aWhile">
+                    In a while
                 </option>
                 <option value="somePoint">
                     At some point
