@@ -129,10 +129,11 @@
                 this.date = date;
                 this.recurrence = recurrence;
                 if (this.recurrence == "indefinite") {
-                    this.urgency = Math.round((then.getTime()-now.getTime())/1000*(10-importance));
-                    if (this.urgency < 0) {  // Negative numbers will put it at the end, not the top.
-                        this.urgency = 0;
+                    this.urgency = (then.getTime()-now.getTime())/1000;
+                    if (this.urgency < 43200) {  // Negative numbers will put it at the end, not the top.
+                        this.urgency = 43200;  // This causes indefinite items to effectively never be any closer than 12 hours away.
                     }
+                    this.urgency = Math.round(this.urgency * (10-importance))
                 } else if (this.recurrence == "daily") {
                     this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
                 } else {
@@ -191,6 +192,7 @@
                 } else {
                     label.style.fontWeight = "bold";
                     label.style.color = "red";
+                    label.title = "Past due";
                 }
                 var elements = document.createElement("div");
                 elements.appendChild(checkbox);
@@ -392,7 +394,7 @@
                     items.forEach(function(value, key) {
                         if (key == getId("description").value.trim()) {
                             delete items[key];
-                        } else if (value.done) {
+                        } else if (value.done && (value.recurrence == "indefinite" || value.recurrence == "once")) {
                             delete items[key];
                         }
                     });
