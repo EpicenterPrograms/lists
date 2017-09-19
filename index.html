@@ -22,6 +22,7 @@
                 function combine(array) {
                     return new Date(array.join(" ") + time);
                 }
+                now = new Date(Number(lastFinished));  //// This should use a different variable than "now", but I used "now" too many times in the following part.
                 switch (recurrence) {  // sets the exact time of the (next) event
                     case "indefinite":
                         then = new Date(Number(then));  // Number() is needed because "then" is a string
@@ -126,6 +127,7 @@
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                 }
+                now = new Date();  //// This sets "now" back to representing what it's supposed to.
                 this.importance = importance;
                 this.date = date;
                 this.recurrence = recurrence;
@@ -216,6 +218,9 @@
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                 }
                 checkbox.addEventListener("click", function() {
+                    if (this.checked) {
+                        items[description].lastFinished = now.getTime();
+                    }
                     changeStyle();
                     refresh();
                 });
