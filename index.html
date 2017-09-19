@@ -225,6 +225,11 @@
                     refresh();
                 });
                 if (this.done) {
+                    if (this.recurrence != "indefinite" && this.recurrence != "once") {
+                        this.lastFinished = then.getTime() + 1;
+                        items[description].lastFinished = this.lastFinished;
+                        localStorage.setItem("To-Do-List", JSON.stringify(items));
+                    }
                     checkbox.checked = true;
                     changeStyle();
                 }
@@ -354,6 +359,7 @@
             
             window.addEventListener("finished", function() {
                 refresh();
+                refresh();  // This is called a second time for recurring items that are crossed off but ready to be considered again.
                 S.getId("recurrence").addEventListener("change", function() {
                     switch (this.value) {
                         case "indefinite":
@@ -583,7 +589,6 @@
             <button onclick="include()">
                 Add to list
             </button>
-            <span>&nbsp;</span>
             <button id="remove">
                 Remove
             </button>
