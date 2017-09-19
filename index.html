@@ -225,9 +225,11 @@
                     refresh();
                 });
                 if (this.done) {
-                    if (this.recurrence != "indefinite" && this.recurrence != "once") {
+                    if (this.recurrence != "indefinite" && this.recurrence != "once" && now.getTime() > then.getTime()) {
                         this.lastFinished = then.getTime() + 1;
+                        this.done = false;
                         items[description].lastFinished = this.lastFinished;
+                        items[description].done = this.done;
                         localStorage.setItem("To-Do-List", JSON.stringify(items));
                     }
                     checkbox.checked = true;
