@@ -26,18 +26,7 @@
                 switch (recurrence) {  // sets the exact time of the (next) event
                     case "indefinite":
                         then = new Date(Number(then));  // Number() is needed because "then" is a string
-                        date = then.getTime() - now.getTime();
-                        if (date <= 0) {
-                            date = "Immediately";
-                        } else if (date <= 250000000) {
-                            date = "Soon";
-                        } else if (date <= 700000000) {
-                            date = "Later";
-                        } else if (date <= 1600000000) {
-                            date = "In a while";
-                        } else {
-                            date = "At some point";
-                        }
+                        // "date" can't also be set here because it causes the due time displayed to always be what it was originally
                         break;
                     case "once":
                         then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
@@ -129,9 +118,20 @@
                 }
                 now = new Date();  //// This sets "now" back to representing what it's supposed to.
                 this.importance = importance;
-                this.date = date;
                 this.recurrence = recurrence;
                 if (this.recurrence == "indefinite") {
+                    date = then.getTime() - now.getTime();
+                    if (date <= 0) {
+                        date = "Immediately";
+                    } else if (date <= 250000000) {
+                        date = "Soon";
+                    } else if (date <= 700000000) {
+                        date = "Later";
+                    } else if (date <= 1600000000) {
+                        date = "In a while";
+                    } else {
+                        date = "At some point";
+                    }
                     this.urgency = (then.getTime()-now.getTime())/1000;
                     if (this.urgency < 43200) {  // Negative numbers will put it at the end, not the top.
                         this.urgency = 43200;  // This causes indefinite items to effectively never be any closer than 12 hours away.
@@ -142,6 +142,7 @@
                 } else {
                     this.urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
                 }
+                this.date = date;
                 this.lastFinished = lastFinished;
                 this.done = done;
                 var checkbox = document.createElement("input");
@@ -222,6 +223,7 @@
                         items[description].lastFinished = now.getTime();
                     }
                     changeStyle();
+                    refresh();
                     refresh();
                 });
                 if (this.done) {
@@ -334,6 +336,7 @@
                     S.getId(ID).style.display = "none";
                 });
                 refresh();
+                refresh();
             }
             function refresh() {
                 now = new Date();
@@ -421,8 +424,10 @@
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                     S.getId("description").value = "";
                     refresh();
+                    refresh();
                 });
                 setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
+                setInterval(refresh, 1000000);
             });
         </script>
         <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting.css">
