@@ -7,11 +7,14 @@
         <script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
         <script>
             var S = Standards;
+            S.storage.local.defaultLocation = "To-Do-List/list items";
+            /*
             var items = {};
             if (localStorage.getItem("To-Do-List")) {
                 items = JSON.parse(localStorage.getItem("To-Do-List"));
             }
             localStorage.setItem("To-Do-List", JSON.stringify(items));
+            */
             var itemNumber = 1;
             var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -222,9 +225,15 @@
                     if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
                         lastFinished = then.getTime() + 1;
                         done = false;
+                        let item = S.storage.local.recall(description);
+                        item.lastFinished = lastFinished;
+                        item.done = done;
+                        S.storage.local.store(description, item);
+                        /*
                         items[description].lastFinished = lastFinished;
                         items[description].done = done;
                         localStorage.setItem("To-Do-List", JSON.stringify(items));
+                        */
                     }
                 }
                 /*
@@ -320,8 +329,11 @@
                         break;
                 }
                 date += "~" + time;
+                S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
+                /*
                 items[description] = {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false};
                 localStorage.setItem("To-Do-List", JSON.stringify(items));
+                */
                 ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
                     S.getId(ID).value = "";
                 });
@@ -338,8 +350,9 @@
                 S.getId("list").innerHTML = "";
                 Priority.instances = {};
                 // fills Priority.instances
-                items.forEach(function(value, key) {
-                    makePriority(key, value.importance, value.time, value.recurrence, value.lastFinished, value.done);
+                S.storage.local.list().forEach(function(key) {
+                    let item = S.storage.local.recall(key);
+                    makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
                 });
                 // declares necessary variables
                 let list = [],
@@ -376,14 +389,15 @@
                     S.getId("list").innerHTML = "<p>Add some things to do.</p>";
                 } else {
                     // makes the checkboxes listen for when their clicked on
-                    list.forEach(function(item, index) {
+                    list.forEach(function(listItem, index) {
                         S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
+                            let item = S.storage.local.recall(this.nextSibling.textContent);
                             if (this.checked) {
-                                items[this.nextSibling.textContent].done = true;
+                                item.done = true;
                             } else {
-                                items[this.nextSibling.textContent].done = false;
+                                item.done = false;
                             }
-                            localStorage.setItem("To-Do-List", JSON.stringify(items));
+                            S.storage.local.store(item);
                             refresh();
                         });
                     });
@@ -435,11 +449,12 @@
                     S.getId("fullDate").value = this.value;
                 });
                 S.getId("remove").addEventListener("click", function() {
-                    items.forEach(function(value, key) {
+                    S.storage.local.list().forEach(function(key) {
+                        let item = S.storage.local.recall(key);
                         if (key == S.getId("description").value.trim()) {
-                            delete items[key];
-                        } else if (value.done && (value.recurrence == "indefinite" || value.recurrence == "once")) {
-                            delete items[key];
+                            S.storage.local.forget(key);
+                        } else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
+                            S.storage.local.forget(key);
                         }
                     });
                     Priority.instances.forEach(function(instance, index) {
@@ -448,17 +463,20 @@
                             return "break";
                         }
                     });
-                    localStorage.setItem("To-Do-List", JSON.stringify(items));
                     S.getId("description").value = "";
                     refresh();
                 });
-                S.listen("update", "click", function() {
-                    if (!this.disabled) {
-                        //// do updating
-                        this.innerHTML = "Updated";
-                    }
-                });
                 setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
+            });
+            S.listen("update", "click", function() {
+                if (!this.disabled) {
+                    let previousStorage = JSON.parse(localStorage.getItem("To-Do-List"));
+                    previousStorage.forEach(function(item, description) {
+                        S.storage.local.store(description, item);
+                    });
+                    refresh();
+                    this.innerHTML = "Updated";
+                }
             });
         </script>
         <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting.css">
@@ -632,7 +650,7 @@
             </button>
             <br>
             <br>
-            <button id="update" disabled>
+            <button id="update">
                 Update
             </button>
         </main>
