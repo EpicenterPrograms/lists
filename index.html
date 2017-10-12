@@ -460,6 +460,7 @@
             S.listen("update", "click", function() {
                 if (!this.disabled) {
                     let HTML = "";
+                    /*
                     S.storage.local.list(null).forEach(function(key1) {
                         let trueFalse = true;
                         S.storage.local.list().forEach(function(key2) {
@@ -471,6 +472,8 @@
                             HTML += key1 + "; ";
                         }
                     });
+                    */
+                    HTML = S.storage.local.recall("To-Do-List", null);
                     this.innerHTML = HTML;
                 }
             });
