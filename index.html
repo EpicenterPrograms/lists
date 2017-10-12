@@ -477,7 +477,11 @@
                     });
                     refresh();
                     */
-                    S.getId("list").innerHTML = S.storage.local.list().join(";  ");
+                    S.storage.local.list().forEach(function(key) {
+                        let item = S.storage.local.recall(key);
+                        console.log(key + ": " + JSON.stringify(item));
+                        makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+                    });
                     this.innerHTML = "Updated";
                 }
             });
