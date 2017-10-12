@@ -371,9 +371,9 @@
                     list.forEach(function(item, index) {
                         S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
                             if (this.checked) {
-                                items[this.nextSibling.innerHTML].done = true;
+                                items[this.nextSibling.textContent].done = true;
                             } else {
-                                items[this.nextSibling.innerHTML].done = false;
+                                items[this.nextSibling.textContent].done = false;
                             }
                             localStorage.setItem("To-Do-List", JSON.stringify(items));
                             refresh();
