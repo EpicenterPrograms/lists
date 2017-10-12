@@ -211,12 +211,11 @@
                 
                 // crosses out finished items
                 if (done) {
-                    checkbox.checked = true;
                     label.style.textDecoration = "line-through";
                     label.title = "Finished";
                     label.style.color = "inherit";
                     label.style.fontWeight = "inherit";
-                    if (label.children.length > 0) {
+                    if (label.children.length > 0) {  // if there's a <mark> tag
                         label.children[0].style.background = "inherit";
                     }
                     if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
@@ -245,7 +244,7 @@
                 */
                 
                 // adds the item to the priority list or runs the function again
-                if (done && recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
+                if (!done && recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
                     makePriority(description, importance, date, recurrence, lastFinished, done);
                 } else {
                     let increment = 0;
@@ -361,6 +360,12 @@
                 // inserts the items onto the page
                 list.forEach(function(instance) {
                     S.getId("list").innerHTML += instance.elements + "<br>";
+                });
+                // checks off finished checkboxes
+                list.forEach(function(instance, index) {
+                    if (instance.done) {
+                        S.getId("list").getElementsByTagName("input")[index].checked = true;
+                    }
                 });
                 
                 if (S.getId("list").innerHTML == "") {
