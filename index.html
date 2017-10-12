@@ -8,13 +8,6 @@
         <script>
             var S = Standards;
             S.storage.local.defaultLocation = "To-Do-List/list items";
-            /*
-            var items = {};
-            if (localStorage.getItem("To-Do-List")) {
-                items = JSON.parse(localStorage.getItem("To-Do-List"));
-            }
-            localStorage.setItem("To-Do-List", JSON.stringify(items));
-            */
             var itemNumber = 1;
             var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -229,11 +222,6 @@
                         item.lastFinished = lastFinished;
                         item.done = done;
                         S.storage.local.store(description, item);
-                        /*
-                        items[description].lastFinished = lastFinished;
-                        items[description].done = done;
-                        localStorage.setItem("To-Do-List", JSON.stringify(items));
-                        */
                     }
                 }
                 /*
@@ -332,10 +320,6 @@
                     }
                     date += "~" + time;
                     S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
-                    /*
-                    items[description] = {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false};
-                    localStorage.setItem("To-Do-List", JSON.stringify(items));
-                    */
                     ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
                         S.getId(ID).value = "";
                     });
@@ -410,7 +394,7 @@
             }
             
             window.addEventListener("finished", function() {
-                //// refresh();
+                refresh();
                 S.getId("recurrence").addEventListener("change", function() {
                     switch (this.value) {
                         case "indefinite":
@@ -475,16 +459,19 @@
             });
             S.listen("update", "click", function() {
                 if (!this.disabled) {
-                    /*
-                    let previousStorage = JSON.parse(localStorage.getItem("To-Do-List"));
-                    previousStorage.forEach(function(item, description) {
-                        S.storage.local.store(description, item);
+                    let HTML = "";
+                    S.storage.local.list(null).forEach(function(key1) {
+                        let trueFalse = true;
+                        S.storage.local.list().forEach(function(key2) {
+                            if (key1 == S.storage.local.defaultLocation + "/" + key2) {
+                                trueFalse = false;
+                            }
+                        });
+                        if (trueFalse) {
+                            HTML += key1 + "; ";
+                        }
                     });
-                    refresh();
-                    */
-                    S.storage.local.forget("", "To-Do-List/list items");
-                    refresh();
-                    this.innerHTML = "Updated";
+                    this.innerHTML = HTML;
                 }
             });
         </script>
