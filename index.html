@@ -257,7 +257,20 @@
             Priority = {instances: {}};
             
             function include() {
-                let enoughInformation = S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value && S.getId("time").trim();
+                let enoughInformation = true;
+                if (!(S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value)) {
+                    enoughInformation = false;
+                } else {
+                    if (S.getId("recurrence").value == "indefinite") {
+                        if (!S.getId("timeframe").value) {
+                            enoughInformation = false;
+                        }
+                    } else {
+                        if (!S.getId("time").value) {
+                            enoughInformation = false;
+                        }
+                    }
+                }
                 if (enoughInformation) {
                     now = new Date();
                     var description = S.getId("description").value.trim();
