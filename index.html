@@ -16,6 +16,11 @@
             var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             function makePriority(description, importance, date, recurrence, lastFinished, done) {
+                /**
+                adds a priority to Priority.instances
+                */
+                
+                // makes a Date object for the due date (assigned to "then")
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
                 function combine(array) {
@@ -115,6 +120,8 @@
                         date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
                         break;
                 }
+                
+                // sets the urgency of the item
                 now = new Date();  //// This sets "now" back to representing what it's supposed to.
                 if (recurrence == "indefinite") {
                     date = then.getTime() - now.getTime();
@@ -139,6 +146,8 @@
                 } else {
                     var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
                 }
+                
+                // creates the HTML objects to be displayed
                 let checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.id = "item" + itemNumber;
@@ -158,6 +167,8 @@
                     }
                 }
                 label.innerHTML = description;
+                
+                // sets label highlighting
                 if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
                     let later;
                     if (recurrence == "indefinite") {
@@ -192,36 +203,22 @@
                     label.style.color = "red";
                     label.title = "Past due";
                 }
+                
+                // puts the elements into a container
                 var elements = document.createElement("div");
                 elements.appendChild(checkbox);
                 elements.appendChild(label);
-                function changeStyle() {
-                    if (checkbox.checked) {
-                        done = true;
-                        label.style.textDecoration = "line-through";
-                        label.title = "Finished";
-                        label.style.color = "inherit";
-                        label.style.fontWeight = "inherit";
-                        if (label.children.length > 0) {
-                            label.children[0].style.background = "inherit";
-                        }
-                    } else {
-                        done = false;
-                    }
-                    items[description].done = done;
-                    localStorage.setItem("To-Do-List", JSON.stringify(items));
-                }
-                checkbox.addEventListener("click", function() {
-                    if (this.checked) {
-                        items[description].lastFinished = now.getTime();
-                    }
-                    changeStyle();
-                    refresh();
-                    refresh();
-                });
+                
+                // crosses out finished items
                 if (done) {
                     checkbox.checked = true;
-                    changeStyle();
+                    label.style.textDecoration = "line-through";
+                    label.title = "Finished";
+                    label.style.color = "inherit";
+                    label.style.fontWeight = "inherit";
+                    if (label.children.length > 0) {
+                        label.children[0].style.background = "inherit";
+                    }
                     if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
                         lastFinished = then.getTime() + 1;
                         done = false;
@@ -231,7 +228,7 @@
                     }
                 }
                 /*
-                if (lastFinished) {
+                if (done) {
                     function handler(mutations, observer) {
                         mutations.forEach(function(mutation) {
                             mutation.addedNodes.forEach(function(node) {
@@ -246,13 +243,19 @@
                     watcher.observe(getId("list"), {"childList":true, "subtree":true});
                 }
                 */
-                let increment = 0;
-                while(Priority.instances[urgency+increment] != undefined) {
-                    // while there's a target key value already taken, increase the target key by 1
-                    // (prevents overwriting when things have the same due-date and importance)
-                    increment++;
+                
+                // adds the item to the priority list or runs the function again
+                if (done && recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
+                    makePriority(description, importance, date, recurrence, lastFinished, done);
+                } else {
+                    let increment = 0;
+                    while(Priority.instances[urgency+increment] != undefined) {
+                        // while there's a target key value already taken, increase the target key by 1
+                        // (prevents overwriting when things have the same due-date and importance)
+                        increment++;
+                    }
+                    Priority.instances[urgency+increment] = {description: description, done: done, elements: elements.innerHTML};
                 }
-                Priority.instances[urgency+increment] = {description: description, done: done, elements: elements.innerHTML};
             }
             Priority = {instances: {}};
             
@@ -329,33 +332,58 @@
                     S.getId(ID).style.display = "none";
                 });
                 refresh();
-                refresh();
             }
             function refresh() {
                 now = new Date();
                 S.getId("list").innerHTML = "";
                 Priority.instances = {};
+                // fills Priority.instances
                 items.forEach(function(value, key) {
                     makePriority(key, value.importance, value.time, value.recurrence, value.lastFinished, value.done);
                 });
-                Priority.instances.forEach(function(instance) {
-                    if (!instance.done) {
-                        S.getId("list").innerHTML += instance.elements + "<br>";
-                    }
+                // declares necessary variables
+                let list = [],
+                    currentIndex = 0,
+                    alreadyCounted = [];
+                // puts items from the Priority.instances object into an array
+                Priority.instances.forEach(function(item) {
+                    list.push(item);
                 });
-                Priority.instances.forEach(function(instance) {
-                    if (instance.done) {
-                        S.getId("list").innerHTML += instance.elements + "<br>";
+                // moves finished items to the end
+                while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
+                    if (list[currentIndex].done) {
+                        alreadyCounted.push(list[currentIndex].description);
+                        list.move(currentIndex);
+                    } else {
+                        currentIndex++;
                     }
+                }
+                // inserts the items onto the page
+                list.forEach(function(instance) {
+                    S.getId("list").innerHTML += instance.elements + "<br>";
                 });
+                
                 if (S.getId("list").innerHTML == "") {
+                    // adds a prompt if there's no items saved
                     S.getId("list").innerHTML = "<p>Add some things to do.</p>";
+                } else {
+                    // makes the checkboxes listen for when their clicked on
+                    list.forEach(function(item, index) {
+                        S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
+                            if (this.checked) {
+                                items[this.nextSibling.innerHTML].done = true;
+                            } else {
+                                items[this.nextSibling.innerHTML].done = false;
+                            }
+                            localStorage.setItem("To-Do-List", JSON.stringify(items));
+                            refresh();
+                        });
+                    });
                 }
             }
             
             window.addEventListener("finished", function() {
                 refresh();
-                refresh();  // This is called a second time for recurring items that are crossed off but ready to be considered again.
                 S.getId("recurrence").addEventListener("change", function() {
                     switch (this.value) {
                         case "indefinite":
@@ -415,7 +443,6 @@
                     localStorage.setItem("To-Do-List", JSON.stringify(items));
                     S.getId("description").value = "";
                     refresh();
-                    refresh();
                 });
                 S.listen("update", "click", function() {
                     if (!this.disabled) {
@@ -424,7 +451,6 @@
                     }
                 });
                 setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
-                setInterval(refresh, 1000000);
             });
         </script>
         <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting.css">
