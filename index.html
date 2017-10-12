@@ -269,81 +269,86 @@
             Priority = {instances: {}};
             
             function include() {
-                now = new Date();
-                var description = S.getId("description").value.trim();
-                var date;
-                var time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
-                switch (S.getId("recurrence").value) {
-                    case "indefinite":
-                        switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
-                            case "immediately":
-                                date = now.getTime();  // now
-                                break;
-                            case "soon":
-                                date = now.getTime() + 250000000;  // in a little less than 3 days
-                                break;
-                            case "later":
-                                date = now.getTime() + 700000000;  // in a little more than 8 days
-                                break;
-                            case "aWhile":
-                                date = now.getTime() + 1600000000;  // in about 18.5 days
-                                break;
-                            case "somePoint":
-                                date = now.getTime() + 3628800000;  // in exactly 42 days
-                                break;
-                        }
-                        break;
-                    case "once":
-                        if (S.getId("fullDate").value.includes("/")) {
-                            date = S.getId("fullDate").value;
-                        } else {  // if it's a day of the week
-                            var then = S.getId("fullDate").value;
-                            then = week.indexOf(then.toLowerCase());
-                            if (now.getDay() == then) {
-                               if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
-                                    date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
+                let enoughInformation = S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value && S.getId("time").trim();
+                if (enoughInformation) {
+                    now = new Date();
+                    var description = S.getId("description").value.trim();
+                    var date;
+                    var time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
+                    switch (S.getId("recurrence").value) {
+                        case "indefinite":
+                            switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
+                                case "immediately":
+                                    date = now.getTime();  // now
+                                    break;
+                                case "soon":
+                                    date = now.getTime() + 250000000;  // in a little less than 3 days
+                                    break;
+                                case "later":
+                                    date = now.getTime() + 700000000;  // in a little more than 8 days
+                                    break;
+                                case "aWhile":
+                                    date = now.getTime() + 1600000000;  // in about 18.5 days
+                                    break;
+                                case "somePoint":
+                                    date = now.getTime() + 3628800000;  // in exactly 42 days
+                                    break;
+                            }
+                            break;
+                        case "once":
+                            if (S.getId("fullDate").value.includes("/")) {
+                                date = S.getId("fullDate").value;
+                            } else {  // if it's a day of the week
+                                var then = S.getId("fullDate").value;
+                                then = week.indexOf(then.toLowerCase());
+                                if (now.getDay() == then) {
+                                   if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
+                                        date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
+                                    } else {
+                                        then = new Date(now.getTime() + 604800000);
+                                        date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+                                    }
+                                } else if (now.getDay() < then) {
+                                    then = new Date(now.getTime() + (then-now.getDay())*86400000);
+                                    date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                                 } else {
-                                    then = new Date(now.getTime() + 604800000);
+                                    then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
                                     date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                                 }
-                            } else if (now.getDay() < then) {
-                                then = new Date(now.getTime() + (then-now.getDay())*86400000);
-                                date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-                            } else {
-                                then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                                date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
                             }
-                        }
-                        break;
-                    case "monthly":
-                        date = S.getId("day").value;
-                        break;
-                    case "weekly":
-                        date = "";
-                        week.forEach(function(ID) {
-                            if (S.getId(ID).checked) {
-                                date += ID + " ";
-                            }
-                        });
-                        date.trim();
-                        break;
+                            break;
+                        case "monthly":
+                            date = S.getId("day").value;
+                            break;
+                        case "weekly":
+                            date = "";
+                            week.forEach(function(ID) {
+                                if (S.getId(ID).checked) {
+                                    date += ID + " ";
+                                }
+                            });
+                            date.trim();
+                            break;
+                    }
+                    date += "~" + time;
+                    S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
+                    /*
+                    items[description] = {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false};
+                    localStorage.setItem("To-Do-List", JSON.stringify(items));
+                    */
+                    ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
+                        S.getId(ID).value = "";
+                    });
+                    week.forEach(function(ID) {
+                        S.getId(ID).checked = false;
+                    });
+                    ["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
+                        S.getId(ID).style.display = "none";
+                    });
+                    refresh();
+                } else {
+                    alert("You left out at least one field.");
                 }
-                date += "~" + time;
-                S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
-                /*
-                items[description] = {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false};
-                localStorage.setItem("To-Do-List", JSON.stringify(items));
-                */
-                ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
-                    S.getId(ID).value = "";
-                });
-                week.forEach(function(ID) {
-                    S.getId(ID).checked = false;
-                });
-                ["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
-                    S.getId(ID).style.display = "none";
-                });
-                refresh();
             }
             function refresh() {
                 now = new Date();
@@ -477,11 +482,8 @@
                     });
                     refresh();
                     */
-                    S.storage.local.list().forEach(function(key) {
-                        let item = S.storage.local.recall(key);
-                        console.log(key + ": " + JSON.stringify(item));
-                        makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
-                    });
+                    S.storage.local.forget("To-Do-List/list items/");
+                    refresh();
                     this.innerHTML = "Updated";
                 }
             });
