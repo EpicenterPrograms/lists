@@ -473,7 +473,7 @@
                         }
                     });
                     */
-                    HTML = S.storage.local.recall("To-Do-List", null);
+                    HTML = localStorage.getItem("To-Do-List");
                     this.innerHTML = HTML;
                 }
             });
