@@ -358,9 +358,11 @@
                     }
                 }
                 // inserts the items onto the page
+                let HTML = "";
                 list.forEach(function(instance) {
-                    S.getId("list").innerHTML += instance.elements + "<br>";
+                    HTML += instance.elements + "<br>";
                 });
+                S.getId("list").innerHTML = HTML;
                 // checks off finished checkboxes
                 list.forEach(function(instance, index) {
                     if (instance.done) {
