@@ -21,6 +21,7 @@
                 */
                 
                 // makes a Date object for the due date (assigned to "then")
+                var originalDate = date;
                 var then = date.split("~")[0].trim();
                 var time = " " + date.split("~")[1].trim();
                 function combine(array) {
@@ -245,7 +246,7 @@
                 
                 // adds the item to the priority list or runs the function again
                 if (!done && recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
-                    makePriority(description, importance, date, recurrence, lastFinished, done);
+                    makePriority(description, importance, originalDate, recurrence, lastFinished, done);
                 } else {
                     let increment = 0;
                     while(Priority.instances[urgency+increment] != undefined) {
