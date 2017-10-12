@@ -470,11 +470,14 @@
             });
             S.listen("update", "click", function() {
                 if (!this.disabled) {
+                    /*
                     let previousStorage = JSON.parse(localStorage.getItem("To-Do-List"));
                     previousStorage.forEach(function(item, description) {
                         S.storage.local.store(description, item);
                     });
                     refresh();
+                    */
+                    S.getId("list").innerHTML = S.storage.local.list().join(";  ");
                     this.innerHTML = "Updated";
                 }
             });
