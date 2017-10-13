@@ -399,7 +399,7 @@
                             } else {
                                 item.done = false;
                             }
-                            S.storage.local.store(item);
+                            S.storage.local.store(this.nextSibling.textContent, item);
                             refresh();
                         });
                     });
