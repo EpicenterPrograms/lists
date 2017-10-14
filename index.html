@@ -222,6 +222,7 @@
                         item.lastFinished = lastFinished;
                         item.done = done;
                         S.storage.local.store(description, item);
+                        var needsToRunFunctionAgain = true;
                     }
                 }
                 /*
@@ -242,7 +243,7 @@
                 */
                 
                 // adds the item to the priority list or runs the function again
-                if (!done && recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
+                if (needsToRunFunctionAgain) {
                     makePriority(description, importance, originalDate, recurrence, lastFinished, done);
                 } else {
                     let increment = 0;
@@ -457,12 +458,6 @@
                             S.storage.local.forget(key);
                         } else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
                             S.storage.local.forget(key);
-                        }
-                    });
-                    Priority.instances.forEach(function(instance, index) {
-                        if (instance.description == S.getId("description").value.trim()) {
-                            Priority.instances.splice(index, 1);
-                            return "break";
                         }
                     });
                     S.getId("description").value = "";
