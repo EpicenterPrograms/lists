@@ -408,8 +408,15 @@
                             S.storage.local.store(this.nextSibling.textContent.replace(/</g, "&lt;").replace(/>/g, "&gt;"), item);
                             refresh();
                         });
-                        S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function(event) {
-                            event.preventDefault();  // prevents highlighting the text when you double click
+                        S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
+                            // prevents highlighting the text when double-clicking
+                            // event.preventDefault() would only work with onmousedown
+                            if (document.selection && document.selection.empty) {
+                                document.selection.empty();
+                            } else if (window.getSelection) {
+                                window.getSelection().removeAllRanges();
+                            }
+                            
                             let popUp = this.getElementsByClassName("pop-up")[0];
                             popUp.className = "pop-up active";
                             S.listen(this.getElementsByClassName("save")[0], "click", function() {
