@@ -333,7 +333,6 @@
                             break;
                     }
                     date += "~" + time;
-                    console.log(description);
                     S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
                     ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
                         S.getId(ID).value = "";
@@ -395,8 +394,7 @@
                     // makes the checkboxes listen for when they're clicked on
                     list.forEach(function(listItem, index) {
                         S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
-                            console.log(this.nextSibling.textContent);
-                            let item = S.storage.local.recall(this.nextSibling.textContent);
+                            let item = S.storage.local.recall(this.nextSibling.textContent.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
                             if (this.checked) {
                                 item.done = true;
                             } else {
