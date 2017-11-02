@@ -274,9 +274,11 @@
                 }
                 if (enoughInformation) {
                     now = new Date();
-                    var description = S.getId("description").value.trim();
-                    var date;
-                    var time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
+                    let description = S.getId("description").value.trim();
+                    description.replace(/</g, "&lt;");
+                    description.replace(/>/g, "&gt;");
+                    let date;
+                    let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
                     switch (S.getId("recurrence").value) {
                         case "indefinite":
                             switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
@@ -333,6 +335,7 @@
                             break;
                     }
                     date += "~" + time;
+                    console.log(description);
                     S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
                     ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
                         S.getId(ID).value = "";
@@ -391,9 +394,10 @@
                     // adds a prompt if there's no items saved
                     S.getId("list").innerHTML = "<p>Add some things to do.</p>";
                 } else {
-                    // makes the checkboxes listen for when their clicked on
+                    // makes the checkboxes listen for when they're clicked on
                     list.forEach(function(listItem, index) {
                         S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
+                            console.log(this.nextSibling.textContent);
                             let item = S.storage.local.recall(this.nextSibling.textContent);
                             if (this.checked) {
                                 item.done = true;
