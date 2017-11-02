@@ -150,8 +150,8 @@
                 checkbox.id = "item" + itemNumber;
                 checkbox.style.margin = ".5em";
                 itemNumber++;
-                let label = document.createElement("label");
-                label.for = checkbox.id;
+                let label = document.createElement("span");
+                label.className = "description";
                 if (recurrence == "indefinite") {
                     label.title = "Due: {0}\nImportance: {1}".format(date, importance);
                 } else {
@@ -202,9 +202,10 @@
                 }
                 
                 // puts the elements into a container
-                var elements = document.createElement("div");
-                elements.appendChild(checkbox);
-                elements.appendChild(label);
+                let section = document.createElement("section");
+                section.appendChild(checkbox);
+                section.appendChild(label);
+                let elements = document.createElement("div").appendChild(section);
                 
                 // crosses out finished items
                 if (done) {
@@ -486,7 +487,7 @@
                 }
             });
         </script>
-        <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting.css">
+        <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
     </head>
     <body>
         <h1 class="main-title">
