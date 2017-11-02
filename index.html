@@ -274,9 +274,7 @@
                 }
                 if (enoughInformation) {
                     now = new Date();
-                    let description = S.getId("description").value.trim();
-                    description.replace(/</g, "&lt;");
-                    description.replace(/>/g, "&gt;");
+                    let description = S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     let date;
                     let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
                     switch (S.getId("recurrence").value) {
