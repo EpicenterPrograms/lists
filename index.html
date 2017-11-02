@@ -378,7 +378,7 @@
                 // inserts the items onto the page
                 let HTML = "";
                 list.forEach(function(instance) {
-                    HTML += instance.elements + "<br>";
+                    HTML += instance.elements;
                 });
                 S.getId("list").innerHTML = HTML;
                 // checks off finished checkboxes
