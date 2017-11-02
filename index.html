@@ -166,6 +166,7 @@
                 let popUp = document.createElement("div");
                 popUp.className = "pop-up";
                 popUp.innerHTML = '<div>This doesn\'t do anything yet.<br><button class="save">Save</button><button class="cancel">Cancel</button></div>';
+                label.appendChild(popUp);
                 
                 // sets label highlighting
                 if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
@@ -408,9 +409,9 @@
                             S.storage.local.store(this.nextSibling.textContent.replace(/</g, "&lt;").replace(/>/g, "&gt;"), item);
                             refresh();
                         });
-                        S.listen(S.getId("list").getElementsByClassName("pop-up")[index], "dblclick", function() {
-                            this.className = "pop-up active";
-                            let popUp = this;
+                        S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
+                            let popUp = this.getElementsByClassName("pop-up")[0];
+                            popUp.className = "pop-up active";
                             S.listen(this.getElementsByClassName("save")[0], "click", function() {
                                 popUp.className = "pop-up";
                                 this.removeEventListener("click", arguments.callee);
