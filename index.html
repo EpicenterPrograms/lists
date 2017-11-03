@@ -11,6 +11,7 @@
             var itemNumber = 1;
             var now;
             var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            var editor;
             function makePriority(description, importance, date, recurrence, lastFinished, done) {
                 /**
                 adds a priority to Priority.instances
@@ -165,7 +166,7 @@
                 label.innerHTML = description;
                 let popUp = document.createElement("div");
                 popUp.className = "pop-up";
-                popUp.innerHTML = '<div>This doesn\'t do anything yet.<br><button class="save">Save</button><button class="cancel">Cancel</button></div>';
+                popUp.innerHTML = '<div>This doesn\'t do anything yet.<br>' + editor.innerHTML + '<br><button class="save">Save</button><button class="cancel">Cancel</button></div>';
                 label.appendChild(popUp);
                 
                 // sets label highlighting
@@ -431,9 +432,24 @@
                     });
                 }
             }
+            function remove() {
+                S.storage.local.list().forEach(function(key) {
+                    let item = S.storage.local.recall(key);
+                    if (key == S.getId("description").value.trim()) {
+                        S.storage.local.forget(key);
+                    } else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
+                        S.storage.local.forget(key);
+                    }
+                });
+                S.getId("description").value = "";
+                refresh();
+            }
             
             window.addEventListener("finished", function() {
-                refresh();
+                S.getHTML("editor.html", function() {
+                    editor = this;
+                    refresh();
+                });
                 S.getId("recurrence").addEventListener("change", function() {
                     switch (this.value) {
                         case "indefinite":
@@ -475,18 +491,6 @@
                 });
                 S.getId("quickSelect").addEventListener("change", function() {
                     S.getId("fullDate").value = this.value;
-                });
-                S.getId("remove").addEventListener("click", function() {
-                    S.storage.local.list().forEach(function(key) {
-                        let item = S.storage.local.recall(key);
-                        if (key == S.getId("description").value.trim()) {
-                            S.storage.local.forget(key);
-                        } else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
-                            S.storage.local.forget(key);
-                        }
-                    });
-                    S.getId("description").value = "";
-                    refresh();
                 });
                 setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
             });
@@ -688,7 +692,7 @@
             <button onclick="include()">
                 Add to list
             </button>
-            <button id="remove">
+            <button onclick="remove()">
                 Remove
             </button>
             <br>
