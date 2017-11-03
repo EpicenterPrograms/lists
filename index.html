@@ -371,6 +371,7 @@
                 Priority.instances.forEach(function(item) {
                     list.push(item);
                 });
+                console.log(list);
                 // moves finished items to the end
                 while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
                     if (list[currentIndex].done) {
@@ -380,6 +381,7 @@
                         currentIndex++;
                     }
                 }
+                console.log(list);
                 // inserts the items onto the page
                 let HTML = "";
                 list.forEach(function(instance) {
