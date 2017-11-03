@@ -1,7 +1,7 @@
-<input type="text" id="description" placeholder="Thing to do">
+<input type="text" class="item-description" placeholder="Thing to do">
 <br>
 <br>
-<select id="importance">
+<select class="item-importance">
 	<option value="" disabled selected>
 		Importance
 	</option>
@@ -23,7 +23,7 @@
 </select>
 <br>
 <br>
-<select id="recurrence">
+<select class="item-recurrence">
 	<option value="" disabled selected>
 		Recurrence
 	</option>
@@ -45,8 +45,8 @@
 </select>
 <br>
 <br>
-<div id="indefinite" style="display:none">
-	<select id="timeframe">
+<div class="indefinite-section" style="display:none">
+	<select class="item-timeframe">
 		<option value="" disabled selected>
 			Timeframe
 		</option>
@@ -69,9 +69,9 @@
 	<br>
 	<br>
 </div>
-<div id="once" style="display:none">
-	<input type="text" id="fullDate" placeholder="Date (month/day/year)">
-	<select id="quickSelect">
+<div class="once-section" style="display:none">
+	<input type="text" class="item-full-date" placeholder="Date (month/day/year)">
+	<select class="item-quick-select">
 		<option value="" disabled selected>
 			Quick select
 		</option>
@@ -100,40 +100,40 @@
 	<br>
 	<br>
 </div>
-<div id="monthly" style="display:none">
-	<input type="text" id="day" placeholder="Day of the month">
+<div class="monthly-section" style="display:none">
+	<input type="text" class="item-day" placeholder="Day of the month">
 	<br>
 	<br>
 </div>
-<div id="weekly" class="list" style="display:none">
-	<input type="checkbox" id="monday">
-	<label for="monday">Monday</label>
+<div class="weekly-section" class="list" style="display:none">
+	<input type="checkbox" class="monday">
+	<label>Monday</label>
 	<br>
-	<input type="checkbox" id="tuesday">
-	<label for="tuesday">Tuesday</label>
+	<input type="checkbox" class="tuesday">
+	<label>Tuesday</label>
 	<br>
-	<input type="checkbox" id="wednesday">
-	<label for="wednesday">Wednesday</label>
+	<input type="checkbox" class="wednesday">
+	<label>Wednesday</label>
 	<br>
-	<input type="checkbox" id="thursday">
-	<label for="thursday">Thursday</label>
+	<input type="checkbox" class="thursday">
+	<label>Thursday</label>
 	<br>
-	<input type="checkbox" id="friday">
-	<label for="friday">Friday</label>
+	<input type="checkbox" class="friday">
+	<label>Friday</label>
 	<br>
-	<input type="checkbox" id="saturday">
-	<label for="saturday">Saturday</label>
+	<input type="checkbox" class="saturday">
+	<label>Saturday</label>
 	<br>
-	<input type="checkbox" id="sunday">
-	<label for="sunday">Sunday</label>
+	<input type="checkbox" class="sunday">
+	<label>Sunday</label>
 	<br>
 	<br>
 </div>
 <br>
-<div id="timeSection" style="display:none">
-	<input type="text" id="time" placeholder="Time (hour:minute)">
+<div class="time-section" style="display:none">
+	<input type="text" class="item-time" placeholder="Time (hour:minute)">
 	<span>&nbsp;</span>
-	<select id="timeFormat">
+	<select class="item-time-format">
 		<option value="" disabled selected>
 			Time format
 		</option>
@@ -154,6 +154,6 @@
 <button onclick="include()">
 	Add to list
 </button>
-<button id="remove">
+<button onclick="remove()">
 	Remove
 </button>
