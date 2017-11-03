@@ -400,13 +400,15 @@
                     // makes the checkboxes listen for when they're clicked on
                     list.forEach(function(listItem, index) {
                         S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
-                            let item = S.storage.local.recall(list[index].description);
+                            console.log(listItem);
+                            console.log(listItem.description);
+                            let item = S.storage.local.recall(listItem.description);
                             if (this.checked) {
                                 item.done = true;
                             } else {
                                 item.done = false;
                             }
-                            S.storage.local.store(list[index].description, item);
+                            S.storage.local.store(listItem.description, item);
                             refresh();
                         });
                         S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
