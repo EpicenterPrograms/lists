@@ -1,0 +1,159 @@
+<input type="text" id="description" placeholder="Thing to do">
+<br>
+<br>
+<select id="importance">
+	<option value="" disabled selected>
+		Importance
+	</option>
+	<option value="1">
+		1 (lowest)
+	</option>
+	<option value="2">
+		2
+	</option>
+	<option value="3">
+		3
+	</option>
+	<option value="4">
+		4
+	</option>
+	<option value="5">
+		5 (highest)
+	</option>
+</select>
+<br>
+<br>
+<select id="recurrence">
+	<option value="" disabled selected>
+		Recurrence
+	</option>
+	<option value="indefinite">
+		Indefinite
+	</option>
+	<option value="once">
+		One time
+	</option>
+	<option value="monthly">
+		Monthly
+	</option>
+	<option value="weekly">
+		Weekly
+	</option>
+	<option value="daily">
+		Daily
+	</option>
+</select>
+<br>
+<br>
+<div id="indefinite" style="display:none">
+	<select id="timeframe">
+		<option value="" disabled selected>
+			Timeframe
+		</option>
+		<option value="immediately">
+			Immediately
+		</option>
+		<option value="soon">
+			Soon
+		</option>
+		<option value="later">
+			Later
+		</option>
+		<option value="aWhile">
+			In a while
+		</option>
+		<option value="somePoint">
+			At some point
+		</option>
+	</select>
+	<br>
+	<br>
+</div>
+<div id="once" style="display:none">
+	<input type="text" id="fullDate" placeholder="Date (month/day/year)">
+	<select id="quickSelect">
+		<option value="" disabled selected>
+			Quick select
+		</option>
+		<option value="monday">
+			Monday
+		</option>
+		<option value="tuesday">
+			Tuesday
+		</option>
+		<option value="wednesday">
+			Wednesday
+		</option>
+		<option value="thursday">
+			Thursday
+		</option>
+		<option value="friday">
+			Friday
+		</option>
+		<option value="saturday">
+			Saturday
+		</option>
+		<option value="sunday">
+			Sunday
+		</option>
+	</select>
+	<br>
+	<br>
+</div>
+<div id="monthly" style="display:none">
+	<input type="text" id="day" placeholder="Day of the month">
+	<br>
+	<br>
+</div>
+<div id="weekly" class="list" style="display:none">
+	<input type="checkbox" id="monday">
+	<label for="monday">Monday</label>
+	<br>
+	<input type="checkbox" id="tuesday">
+	<label for="tuesday">Tuesday</label>
+	<br>
+	<input type="checkbox" id="wednesday">
+	<label for="wednesday">Wednesday</label>
+	<br>
+	<input type="checkbox" id="thursday">
+	<label for="thursday">Thursday</label>
+	<br>
+	<input type="checkbox" id="friday">
+	<label for="friday">Friday</label>
+	<br>
+	<input type="checkbox" id="saturday">
+	<label for="saturday">Saturday</label>
+	<br>
+	<input type="checkbox" id="sunday">
+	<label for="sunday">Sunday</label>
+	<br>
+	<br>
+</div>
+<br>
+<div id="timeSection" style="display:none">
+	<input type="text" id="time" placeholder="Time (hour:minute)">
+	<span>&nbsp;</span>
+	<select id="timeFormat">
+		<option value="" disabled selected>
+			Time format
+		</option>
+		<option value="am">
+			am
+		</option>
+		<option value="pm">
+			pm
+		</option>
+		<option value="24-hour">
+			24-hour
+		</option>
+	</select>
+	<br>
+	<br>
+</div>
+<br>
+<button onclick="include()">
+	Add to list
+</button>
+<button id="remove">
+	Remove
+</button>
