@@ -150,7 +150,6 @@
                 checkbox.id = "item" + itemNumber;
                 itemNumber++;
                 let label = document.createElement("span");
-                label.className = "description";
                 if (recurrence == "indefinite") {
                     label.title = "Due: {0}\nImportance: {1}".format(date, importance);
                 } else {
@@ -512,11 +511,8 @@
             section {
                 margin: .5em 0em;
             }
-            .description {
-                position: relative;
-            }
-            .pop-up {
-                font-weight: normal;
+            nav.top-nav div.drop-down div {
+                padding: .5em;
             }
         </style>
     </head>
