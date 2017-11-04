@@ -201,6 +201,7 @@
                 
                 // puts the elements into a container
                 let section = document.createElement("section");
+                section.className = "list-item";
                 section.appendChild(checkbox);
                 section.appendChild(label);
                 let elements = document.createElement("div");
@@ -508,11 +509,26 @@
         </script>
         <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
         <style>
-            section {
-                margin: .5em 0em;
+            nav {
+                background: darkblue;
+            }
+            nav.top-nav div.drop-down div:first-child {
+                background: darkblue;
+                color: steelblue;
             }
             nav.top-nav div.drop-down div {
                 padding: .5em;
+                background: steelblue;
+            }
+            nav.top-nav div.drop-down:hover div:first-child, nav.top-nav div.drop-down:focus div:first-child, nav.top-nav div.drop-down:focus-within div:first-child {
+                background: lightsteelblue;
+            }
+            .list-item {
+                margin: .5em 0em;
+            }
+            .block {
+                display: block;
+                margin: 1em auto;
             }
         </style>
     </head>
@@ -526,10 +542,8 @@
                     Editor
                 </div>
                 <div>
-                    <input type="text" id="description" placeholder="Thing to do">
-                    <br>
-                    <br>
-                    <select id="importance">
+                    <input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
+                    <select class="block" id="importance">
                         <option value="" disabled selected>
                             Importance
                         </option>
@@ -549,9 +563,7 @@
                             5 (highest)
                         </option>
                     </select>
-                    <br>
-                    <br>
-                    <select id="recurrence">
+                    <select class="block" id="recurrence">
                         <option value="" disabled selected>
                             Recurrence
                         </option>
@@ -571,9 +583,7 @@
                             Daily
                         </option>
                     </select>
-                    <br>
-                    <br>
-                    <div id="indefinite" style="display:none">
+                    <section id="indefinite" style="display:none">
                         <select id="timeframe">
                             <option value="" disabled selected>
                                 Timeframe
@@ -594,10 +604,8 @@
                                 At some point
                             </option>
                         </select>
-                        <br>
-                        <br>
-                    </div>
-                    <div id="once" style="display:none">
+                    </section>
+                    <section id="once" style="display:none">
                         <input type="text" id="fullDate" placeholder="Date (month/day/year)">
                         <select id="quickSelect">
                             <option value="" disabled selected>
@@ -625,15 +633,11 @@
                                 Sunday
                             </option>
                         </select>
-                        <br>
-                        <br>
-                    </div>
-                    <div id="monthly" style="display:none">
+                    </section>
+                    <section id="monthly" style="display:none">
                         <input type="text" id="day" placeholder="Day of the month">
-                        <br>
-                        <br>
-                    </div>
-                    <div id="weekly" class="list" style="display:none">
+                    </section>
+                    <section id="weekly" class="list" style="display:none">
                         <input type="checkbox" id="monday">
                         <label for="monday">Monday</label>
                         <br>
@@ -654,11 +658,8 @@
                         <br>
                         <input type="checkbox" id="sunday">
                         <label for="sunday">Sunday</label>
-                        <br>
-                        <br>
-                    </div>
-                    <br>
-                    <div id="timeSection" style="display:none">
+                    </section>
+                    <section id="timeSection" style="display:none">
                         <input type="text" id="time" placeholder="Time (hour:minute)">
                         <span>&nbsp;</span>
                         <select id="timeFormat">
@@ -675,18 +676,15 @@
                                 24-hour
                             </option>
                         </select>
-                        <br>
-                        <br>
-                    </div>
-                    <br>
-                    <button onclick="include()">
-                        Add to list
-                    </button>
-                    <button onclick="remove()">
-                        Remove
-                    </button>
-                    <br>
-                    <br>
+                    </section>
+                    <section>
+                        <button onclick="include()">
+                            Add to list
+                        </button>
+                        <button onclick="remove()">
+                            Remove
+                        </button>
+                    </section>
                     <button id="update" disabled>
                         Update
                     </button>
