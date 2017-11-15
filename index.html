@@ -483,6 +483,9 @@
                                     S.getId("day").value = item.time.split("~")[0];
                                     break;
                                 case "weekly":
+                                    week.forEach(function(ID) {
+                                        S.getId(ID).checked = false;
+                                    });
                                     item.time.split("~")[0].trim().split(" ").forEach(function(ID) {
                                         S.getId(ID).checked = true;
                                     });
