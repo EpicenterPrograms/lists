@@ -324,12 +324,17 @@
                             date = S.getId("day").value;
                             break;
                         case "weekly":
-                            date = "";
+                            let numberChecked = 0;
                             week.forEach(function(ID) {
                                 if (S.getId(ID).checked) {
                                     date += ID + " ";
+                                    numberChecked++;
                                 }
                             });
+                            if (numberChecked == 0) {  //// This checking should integrate with enoughInformation.
+                                alert("You need to check at least one day of the week.");
+                                return;
+                            }
                             date.trim();
                             break;
                     }
@@ -478,6 +483,7 @@
                                     S.getId("day").value = item.time.split("~")[0];
                                     break;
                                 case "weekly":
+                                    console.log(item.time);
                                     item.time.split("~")[0].split(" ").forEach(function(ID) {
                                         S.getId(ID).checked = true;
                                     });
