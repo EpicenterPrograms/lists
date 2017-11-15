@@ -349,6 +349,45 @@
                     alert("You left out at least one field.");
                 }
             }
+            function showHide() {
+                switch (S.getId("recurrence").value) {
+                    case "indefinite":
+                        S.getId("once").style.display = "none";
+                        S.getId("weekly").style.display = "none";
+                        S.getId("monthly").style.display = "none";
+                        S.getId("timeSection").style.display = "none";
+                        S.getId("indefinite").style.display = "block";
+                        break;
+                    case "once":
+                        S.getId("indefinite").style.display = "none";
+                        S.getId("monthly").style.display = "none";
+                        S.getId("weekly").style.display = "none";
+                        S.getId("once").style.display = "block";
+                        S.getId("timeSection").style.display = "block";
+                        break;
+                    case "monthly":
+                        S.getId("indefinite").style.display = "none";
+                        S.getId("once").style.display = "none";
+                        S.getId("weekly").style.display = "none";
+                        S.getId("monthly").style.display = "block";
+                        S.getId("timeSection").style.display = "block";
+                        break;
+                    case "weekly":
+                        S.getId("indefinite").style.display = "none";
+                        S.getId("once").style.display = "none";
+                        S.getId("monthly").style.display = "none";
+                        S.getId("weekly").style.display = "table";
+                        S.getId("timeSection").style.display = "block";
+                        break;
+                    case "daily":
+                        S.getId("indefinite").style.display = "none";
+                        S.getId("once").style.display = "none";
+                        S.getId("monthly").style.display = "none";
+                        S.getId("weekly").style.display = "none";
+                        S.getId("timeSection").style.display = "block";
+                        break;
+                }
+            }
             function refresh() {
                 now = new Date();
                 S.getId("list").innerHTML = "";
@@ -413,7 +452,7 @@
                                 window.getSelection().removeAllRanges();
                             }
                             let item = S.storage.local.recall(listItem.description);
-                            S.getId("description").value = item.description;
+                            S.getId("description").value = listItem.description;
                             S.getId("importance").value = item.importance;
                             S.getId("recurrence").value = item.recurrence;
                             switch (item.recurrence) {
@@ -453,6 +492,7 @@
                                     S.getId("timeFormat").value = "24-hour";
                                 }
                             }
+                            showHide();
                             S.getClass("drop-down")[0].focus();
                         });
                     });
@@ -473,45 +513,7 @@
             
             window.addEventListener("finished", function() {
                 refresh();
-                S.getId("recurrence").addEventListener("change", function() {
-                    switch (this.value) {
-                        case "indefinite":
-                            S.getId("once").style.display = "none";
-                            S.getId("weekly").style.display = "none";
-                            S.getId("monthly").style.display = "none";
-                            S.getId("timeSection").style.display = "none";
-                            S.getId("indefinite").style.display = "block";
-                            break;
-                        case "once":
-                            S.getId("indefinite").style.display = "none";
-                            S.getId("monthly").style.display = "none";
-                            S.getId("weekly").style.display = "none";
-                            S.getId("once").style.display = "block";
-                            S.getId("timeSection").style.display = "block";
-                            break;
-                        case "monthly":
-                            S.getId("indefinite").style.display = "none";
-                            S.getId("once").style.display = "none";
-                            S.getId("weekly").style.display = "none";
-                            S.getId("monthly").style.display = "block";
-                            S.getId("timeSection").style.display = "block";
-                            break;
-                        case "weekly":
-                            S.getId("indefinite").style.display = "none";
-                            S.getId("once").style.display = "none";
-                            S.getId("monthly").style.display = "none";
-                            S.getId("weekly").style.display = "table";
-                            S.getId("timeSection").style.display = "block";
-                            break;
-                        case "daily":
-                            S.getId("indefinite").style.display = "none";
-                            S.getId("once").style.display = "none";
-                            S.getId("monthly").style.display = "none";
-                            S.getId("weekly").style.display = "none";
-                            S.getId("timeSection").style.display = "block";
-                            break;
-                    }
-                });
+                S.getId("recurrence").addEventListener("change", showHide);
                 S.getId("quickSelect").addEventListener("change", function() {
                     S.getId("fullDate").value = this.value;
                 });
