@@ -407,7 +407,7 @@
                     currentIndex = 0,
                     alreadyCounted = [];
                 // puts items from the Priority.instances object into an array
-                Priority.instances.forEach(function(item) {
+                S.forEach(Priority.instances, function(item) {
                     list.push(item);
                 });
                 // moves finished items to the end
