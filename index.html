@@ -1,744 +1,795 @@
 <!DOCTYPE html>
 <html class="html-class">
-    <head>
-        <title>
-            To-do List
-        </title>
-        <script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
-        <script>
-            var S = Standards;
-            S.storage.local.defaultLocation = "To-Do-List/list items";
-            var itemNumber = 1;
-            var now;
-            var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-            function makePriority(description, importance, date, recurrence, lastFinished, done) {
-                /**
-                adds a priority to Priority.instances
-                */
-                
-                // makes a Date object for the due date (assigned to "then")
-                var originalDate = date;
-                var then = date.split("~")[0].trim();
-                var time = " " + date.split("~")[1].trim();
-                function combine(array) {
-                    return new Date(array.join(" ") + time);
-                }
-                now = new Date(Number(lastFinished));  //// This should use a different variable than "now", but I used "now" too many times in the following part.
-                switch (recurrence) {  // sets the exact time of the (next) event
-                    case "indefinite":
-                        then = new Date(Number(then));  // Number() is needed because "then" is a string
-                        // "date" can't also be set here because it causes the due time displayed to always be what it was originally
-                        break;
-                    case "once":
-                        then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
-                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
-                        break;
-                    case "monthly":
-                        if (now.getDate() == then) {
-                            if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, then]).getTime()) {
-                                then = combine([now.getFullYear(), now.getMonth()+1, then]);
-                            } else {
-                                if (now.getMonth() + 2 <= 12) {
-                                    then = combine([now.getFullYear(), now.getMonth()+2, then]);
-                                } else {
-                                    then = combine([now.getFullYear()+1, 1, then]);
-                                }
-                            }
-                        } else if (now.getDate() < then) {
-                            then = new Date(now.getTime() + (then-now.getDate())*86400000);
-                        } else {
-                            if (now.getMonth() + 2 <= 12) {
-                                then = combine([now.getFullYear(), now.getMonth()+2, then]);
-                            } else {
-                                then = combine([now.getFullYear()+1, 1, then]);
-                            }
-                        }
-                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
-                        break;
-                    case "weekly":
-                        let closest = Infinity;
-                        then.split(" ").forEach(function(weekday) {
-                            let number = week.indexOf(weekday);
-                            if (now.getDay() > number) {
-                                number = 7 + number - now.getDay();
-                            } else {
-                                number -= now.getDay();
-                            }
-                            if (number < closest) {
-                                closest = number;
-                            }
-                        });
-                        closest += now.getDay();
-                        if (closest > 6) {
-                            closest -= 7;
-                        }
-                        if (now.getDay() == closest) {
-                            if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, now.getDate()]).getTime()) {
-                                then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
-                            } else {
-                                closest = Infinity;
-                                then.split(" ").forEach(function(weekday) {
-                                    let number = week.indexOf(weekday);
-                                    if (now.getDay() + 1 > number) {
-                                        number = 6 + number - now.getDay();
-                                    } else {
-                                        number -= now.getDay() + 1;
-                                    }
-                                    if (number < closest) {
-                                        closest = number;
-                                    }
-                                });
-                                closest += now.getDay() + 1;
-                                if (closest > 6) {
-                                    closest -= 7;
-                                }
-                                if (now.getDay() < closest) {
-                                    then = new Date(now.getTime() + (closest-now.getDay())*86400000);
-                                    then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
-                                } else {
-                                    then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
-                                    then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
-                                }
-                            }
-                        } else if (now.getDay() < closest) {
-                            then = new Date(now.getTime() + (closest-now.getDay())*86400000);
-                            then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
-                        } else {
-                            then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
-                            then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
-                        }
-                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
-                        break;
-                    case "daily":
-                        then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
-                        if (now.getTime() > then.getTime()) {
-                            then = new Date(then.getTime()+86400000);
-                        }
-                        date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
-                        break;
-                }
-                
-                // sets the urgency of the item
-                now = new Date();  //// This sets "now" back to representing what it's supposed to.
-                if (recurrence == "indefinite") {
-                    date = then.getTime() - now.getTime();
-                    if (date <= 0) {
-                        date = "Immediately";
-                    } else if (date <= 250000000) {
-                        date = "Soon";
-                    } else if (date <= 700000000) {
-                        date = "Later";
-                    } else if (date <= 1600000000) {
-                        date = "In a while";
-                    } else {
-                        date = "At some point";
-                    }
-                    var urgency = (then.getTime()-now.getTime())/1000;
-                    if (urgency < 43200) {  // Negative numbers will put it at the end, not the top.
-                        urgency = 43200;  // This causes indefinite items to effectively never be any closer than 12 hours away.
-                    }
-                    urgency = Math.round(urgency * (10-importance))
-                } else if (recurrence == "daily") {
-                    var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
-                } else {
-                    var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
-                }
-                
-                // creates the HTML objects to be displayed
-                let checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.id = "item" + itemNumber;
-                itemNumber++;
-                let label = document.createElement("span");
-                if (recurrence == "indefinite") {
-                    label.title = "Due: {0}\nImportance: {1}".format(date, importance);
-                } else {
-                    if (then.getTime() - now.getTime() < 86400000) {
-                        label.title = "Due:{0}\nImportance: {1}".format(time, importance);
-                    } else if (then.getTime() - now.getTime() < 518400000) {
-                        label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+time, importance);
-                    } else {
-                        label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+date, importance);
-                    }
-                }
-                label.innerHTML = description;
-                
-                // sets label highlighting
-                if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
-                    let later;
-                    if (recurrence == "indefinite") {
-                        if (then.getTime() <= now.getTime()) {
-                            label.style.fontWeight = "bold";
-                            label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
-                            label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
-                        }
-                    } else if (recurrence == "daily") {
-                        if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
-                            label.style.fontWeight = "bold";
-                            label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
-                            label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
-                        }
-                    } else {
-                        if (now.getHours() < 8) {  // if the current time is before 8:00am
-                            later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
-                        } else {
-                            later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
-                        }
-                        if (then.getTime() < later.getTime()) {
-                            label.style.fontWeight = "bold";
-                            label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
-                        } else if (then.getTime() < later.getTime() + 86400000) {
-                            label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
-                        }
-                    }
-                } else {
-                    label.style.fontWeight = "bold";
-                    label.style.color = "red";
-                    label.title = "Past due";
-                }
-                
-                // puts the elements into a container
-                let section = document.createElement("section");
-                section.className = "list-item";
-                section.appendChild(checkbox);
-                section.appendChild(label);
-                let elements = document.createElement("div");
-                elements.appendChild(section);
-                
-                // crosses out finished items
-                if (done) {
-                    label.style.textDecoration = "line-through";
-                    label.title = "Finished";
-                    label.style.color = "inherit";
-                    label.style.fontWeight = "inherit";
-                    if (label.children.length > 0) {  // if there's a <mark> tag
-                        label.children[0].style.background = "inherit";
-                    }
-                    if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
-                        lastFinished = then.getTime() + 1;
-                        done = false;
-                        let item = S.storage.local.recall(description);
-                        item.lastFinished = lastFinished;
-                        item.done = done;
-                        S.storage.local.store(description, item);
-                        var needsToRunFunctionAgain = true;
-                    }
-                }
-                /*
-                if (done) {
-                    function handler(mutations, observer) {
-                        mutations.forEach(function(mutation) {
-                            mutation.addedNodes.forEach(function(node) {
-                                if (node == checkbox) {
-                                    checkbox.check();
-                                    watcher.disconnect();
-                                }
-                            });
-                        });
-                    }
-                    var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
-                    watcher.observe(getId("list"), {"childList":true, "subtree":true});
-                }
-                */
-                
-                // adds the item to the priority list or runs the function again
-                if (needsToRunFunctionAgain) {
-                    makePriority(description, importance, originalDate, recurrence, lastFinished, done);
-                } else {
-                    let increment = 0;
-                    while(Priority.instances[urgency+increment] != undefined) {
-                        // while there's a target key value already taken, increase the target key by 1
-                        // (prevents overwriting when things have the same due-date and importance)
-                        increment++;
-                    }
-                    Priority.instances[urgency+increment] = {description: description, done: done, elements: elements.innerHTML};
-                }
-            }
-            Priority = {instances: {}};
-            
-            function include() {
-                let enoughInformation = true;
-                if (!(S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value)) {
-                    enoughInformation = false;
-                } else {
-                    if (S.getId("recurrence").value == "indefinite") {
-                        if (!S.getId("timeframe").value) {
-                            enoughInformation = false;
-                        }
-                    } else {
-                        if (!S.getId("time").value) {
-                            enoughInformation = false;
-                        }
-                    }
-                }
-                if (enoughInformation) {
-                    now = new Date();
-                    let description = S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    let date = "";
-                    let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
-                    switch (S.getId("recurrence").value) {
-                        case "indefinite":
-                            switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
-                                case "immediately":
-                                    date = now.getTime();  // now
-                                    break;
-                                case "soon":
-                                    date = now.getTime() + 250000000;  // in a little less than 3 days
-                                    break;
-                                case "later":
-                                    date = now.getTime() + 700000000;  // in a little more than 8 days
-                                    break;
-                                case "aWhile":
-                                    date = now.getTime() + 1600000000;  // in about 18.5 days
-                                    break;
-                                case "somePoint":
-                                    date = now.getTime() + 3628800000;  // in exactly 42 days
-                                    break;
-                            }
-                            break;
-                        case "once":
-                            if (S.getId("fullDate").value.includes("/")) {
-                                date = S.getId("fullDate").value;
-                            } else {  // if it's a day of the week
-                                var then = S.getId("fullDate").value;
-                                then = week.indexOf(then.toLowerCase());
-                                if (now.getDay() == then) {
-                                   if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
-                                        date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
-                                    } else {
-                                        then = new Date(now.getTime() + 604800000);
-                                        date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-                                    }
-                                } else if (now.getDay() < then) {
-                                    then = new Date(now.getTime() + (then-now.getDay())*86400000);
-                                    date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-                                } else {
-                                    then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
-                                    date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-                                }
-                            }
-                            break;
-                        case "monthly":
-                            date = S.getId("day").value;
-                            break;
-                        case "weekly":
-                            let numberChecked = 0;
-                            week.forEach(function(ID) {
-                                if (S.getId(ID).checked) {
-                                    date += ID + " ";
-                                    numberChecked++;
-                                }
-                            });
-                            if (numberChecked == 0) {  //// This checking should integrate with enoughInformation.
-                                alert("You need to check at least one day of the week.");
-                                return;
-                            }
-                            date.trim();
-                            break;
-                    }
-                    date += "~" + time;
-                    S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
-                    ["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
-                        S.getId(ID).value = "";
-                    });
-                    week.forEach(function(ID) {
-                        S.getId(ID).checked = false;
-                    });
-                    ["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
-                        S.getId(ID).style.display = "none";
-                    });
-                    refresh();
-                } else {
-                    alert("You left out at least one field.");
-                }
-            }
-            function showHide() {
-                switch (S.getId("recurrence").value) {
-                    case "indefinite":
-                        S.getId("once").style.display = "none";
-                        S.getId("weekly").style.display = "none";
-                        S.getId("monthly").style.display = "none";
-                        S.getId("timeSection").style.display = "none";
-                        S.getId("indefinite").style.display = "block";
-                        break;
-                    case "once":
-                        S.getId("indefinite").style.display = "none";
-                        S.getId("monthly").style.display = "none";
-                        S.getId("weekly").style.display = "none";
-                        S.getId("once").style.display = "block";
-                        S.getId("timeSection").style.display = "block";
-                        break;
-                    case "monthly":
-                        S.getId("indefinite").style.display = "none";
-                        S.getId("once").style.display = "none";
-                        S.getId("weekly").style.display = "none";
-                        S.getId("monthly").style.display = "block";
-                        S.getId("timeSection").style.display = "block";
-                        break;
-                    case "weekly":
-                        S.getId("indefinite").style.display = "none";
-                        S.getId("once").style.display = "none";
-                        S.getId("monthly").style.display = "none";
-                        S.getId("weekly").style.display = "table";
-                        S.getId("timeSection").style.display = "block";
-                        break;
-                    case "daily":
-                        S.getId("indefinite").style.display = "none";
-                        S.getId("once").style.display = "none";
-                        S.getId("monthly").style.display = "none";
-                        S.getId("weekly").style.display = "none";
-                        S.getId("timeSection").style.display = "block";
-                        break;
-                }
-            }
-            function refresh() {
-                now = new Date();
-                S.getId("list").innerHTML = "";
-                Priority.instances = {};
-                // fills Priority.instances
-                S.storage.local.list().forEach(function(key) {
-                    let item = S.storage.local.recall(key);
-                    makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
-                });
-                // declares necessary variables
-                let list = [],
-                    currentIndex = 0,
-                    alreadyCounted = [];
-                // puts items from the Priority.instances object into an array
-                S.forEach(Priority.instances, function(item) {
-                    list.push(item);
-                });
-                // moves finished items to the end
-                while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
-                    if (list[currentIndex].done) {
-                        alreadyCounted.push(list[currentIndex].description);
-                        list.move(currentIndex);
-                    } else {
-                        currentIndex++;
-                    }
-                }
-                // inserts the items onto the page
-                let HTML = "";
-                list.forEach(function(instance) {
-                    HTML += instance.elements;
-                });
-                S.getId("list").innerHTML = HTML;
-                // checks off finished checkboxes
-                list.forEach(function(instance, index) {
-                    if (instance.done) {
-                        S.getId("list").getElementsByTagName("input")[index].checked = true;
-                    }
-                });
-                
-                if (S.getId("list").innerHTML == "") {
-                    // adds a prompt if there's no items saved
-                    S.getId("list").innerHTML = "<p>Add some things to do.</p>";
-                } else {
-                    // makes the checkboxes listen for when they're clicked on
-                    list.forEach(function(listItem, index) {
-                        S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
-                            let item = S.storage.local.recall(listItem.description);
-                            if (this.checked) {
-                                item.done = true;
-                            } else {
-                                item.done = false;
-                            }
-                            S.storage.local.store(listItem.description, item);
-                            refresh();
-                        });
-                        S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
-                            // prevents highlighting the text when double-clicking
-                            // event.preventDefault() would only work with onmousedown
-                            if (document.selection && document.selection.empty) {
-                                document.selection.empty();
-                            } else if (window.getSelection) {
-                                window.getSelection().removeAllRanges();
-                            }
-                            let item = S.storage.local.recall(listItem.description);
-                            S.getId("description").value = listItem.description;
-                            S.getId("importance").value = item.importance;
-                            S.getId("recurrence").value = item.recurrence;
-                            switch (item.recurrence) {
-                                case "indefinite":
-                                    let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
-                                    if (indefiniteTime <= 0) {
-                                        indefiniteTime = "immediately";
-                                    } else if (indefiniteTime <= 250000000) {
-                                        indefiniteTime = "soon";
-                                    } else if (indefiniteTime <= 700000000) {
-                                        indefiniteTime = "later";
-                                    } else if (indefiniteTime <= 1600000000) {
-                                        indefiniteTime = "aWhile";
-                                    } else {
-                                        indefiniteTime = "somePoint";
-                                    }
-                                    S.getId("timeframe").value = indefiniteTime;
-                                    break;
-                                case "once":
-                                    S.getId("fullDate").value = item.time.split("~")[0];
-                                    break;
-                                case "monthly":
-                                    S.getId("day").value = item.time.split("~")[0];
-                                    break;
-                                case "weekly":
-                                    week.forEach(function(ID) {
-                                        S.getId(ID).checked = false;
-                                    });
-                                    item.time.split("~")[0].trim().split(" ").forEach(function(ID) {
-                                        S.getId(ID).checked = true;
-                                    });
-                                    break;
-                            }
-                            if (item.recurrence != "indefinite") {
-                                if (item.time.split("~")[1].includes(" ")) {
-                                    S.getId("time").value = item.time.split("~")[1].split(" ")[0];
-                                    S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
-                                } else {
-                                    S.getId("time").value = item.time.split("~")[1];
-                                    S.getId("timeFormat").value = "24-hour";
-                                }
-                            }
-                            showHide();
-                            S.getClass("drop-down")[0].focus();
-                        });
-                    });
-                }
-            }
-            function remove() {
-                S.storage.local.list().forEach(function(key) {
-                    let item = S.storage.local.recall(key);
-                    if (key == S.getId("description").value.trim()) {
-                        S.storage.local.forget(key);
-                    } else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
-                        S.storage.local.forget(key);
-                    }
-                });
-                S.getId("description").value = "";
-                refresh();
-            }
-            
-            window.addEventListener("finished", function() {
-                refresh();
-                S.getId("recurrence").addEventListener("change", showHide);
-                S.getId("quickSelect").addEventListener("change", function() {
-                    S.getId("fullDate").value = this.value;
-                });
-                setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
-            });
-            S.listen("update", "click", function() {
-                if (!this.disabled) {
-                    let HTML = "";
-                    /*
-                    S.storage.local.list(null).forEach(function(key1) {
-                        let trueFalse = true;
-                        S.storage.local.list().forEach(function(key2) {
-                            if (key1 == S.storage.local.defaultLocation + "/" + key2) {
-                                trueFalse = false;
-                            }
-                        });
-                        if (trueFalse) {
-                            HTML += key1 + "; ";
-                        }
-                    });
-                    */
-                    HTML = localStorage.getItem("To-Do-List");
-                    this.innerHTML = HTML;
-                }
-            });
-        </script>
-        <link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
-        <style>
-            main {
-                margin-top: 0em;
-            }
-            nav.top-nav {
-                margin: auto;
-                background: darkblue;
-                width: 90%;
-            }
-            nav.top-nav div.drop-down div:first-child {
-                background: darkblue;
-                color: steelblue;
-            }
-            nav.top-nav div.drop-down div {
-                padding: .5em;
-                background: steelblue;
-            }
-            nav.top-nav div.drop-down:hover div:first-child, nav.top-nav div.drop-down:focus div:first-child, nav.top-nav div.drop-down:focus-within div:first-child {
-                background: lightsteelblue;
-            }
-            .list-item {
-                margin: .5em 0em;
-            }
-            .block {
-                display: block;
-                margin: 1em auto;
-            }
-        </style>
-    </head>
-    <body>
-        <h1 class="main-title">
-            To-do List
-        </h1>
-        <nav class="top-nav">
-            <div class="drop-down" tabindex="0">
-                <div>
-                    Editor
-                </div>
-                <div>
-                    <input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
-                    <select class="block" id="importance">
-                        <option value="" disabled selected>
-                            Importance
-                        </option>
-                        <option value="1">
-                            1 (lowest)
-                        </option>
-                        <option value="2">
-                            2
-                        </option>
-                        <option value="3">
-                            3
-                        </option>
-                        <option value="4">
-                            4
-                        </option>
-                        <option value="5">
-                            5 (highest)
-                        </option>
-                    </select>
-                    <select class="block" id="recurrence">
-                        <option value="" disabled selected>
-                            Recurrence
-                        </option>
-                        <option value="indefinite">
-                            Indefinite
-                        </option>
-                        <option value="once">
-                            One time
-                        </option>
-                        <option value="monthly">
-                            Monthly
-                        </option>
-                        <option value="weekly">
-                            Weekly
-                        </option>
-                        <option value="daily">
-                            Daily
-                        </option>
-                    </select>
-                    <section id="indefinite" style="display:none">
-                        <select id="timeframe">
-                            <option value="" disabled selected>
-                                Timeframe
-                            </option>
-                            <option value="immediately">
-                                Immediately
-                            </option>
-                            <option value="soon">
-                                Soon
-                            </option>
-                            <option value="later">
-                                Later
-                            </option>
-                            <option value="aWhile">
-                                In a while
-                            </option>
-                            <option value="somePoint">
-                                At some point
-                            </option>
-                        </select>
-                    </section>
-                    <section id="once" style="display:none">
-                        <input type="text" id="fullDate" placeholder="Date (month/day/year)">
-                        <select id="quickSelect">
-                            <option value="" disabled selected>
-                                Quick select
-                            </option>
-                            <option value="monday">
-                                Monday
-                            </option>
-                            <option value="tuesday">
-                                Tuesday
-                            </option>
-                            <option value="wednesday">
-                                Wednesday
-                            </option>
-                            <option value="thursday">
-                                Thursday
-                            </option>
-                            <option value="friday">
-                                Friday
-                            </option>
-                            <option value="saturday">
-                                Saturday
-                            </option>
-                            <option value="sunday">
-                                Sunday
-                            </option>
-                        </select>
-                    </section>
-                    <section id="monthly" style="display:none">
-                        <input type="text" id="day" placeholder="Day of the month">
-                    </section>
-                    <section id="weekly" class="list" style="display:none">
-                        <input type="checkbox" id="monday">
-                        <label for="monday">Monday</label>
-                        <br>
-                        <input type="checkbox" id="tuesday">
-                        <label for="tuesday">Tuesday</label>
-                        <br>
-                        <input type="checkbox" id="wednesday">
-                        <label for="wednesday">Wednesday</label>
-                        <br>
-                        <input type="checkbox" id="thursday">
-                        <label for="thursday">Thursday</label>
-                        <br>
-                        <input type="checkbox" id="friday">
-                        <label for="friday">Friday</label>
-                        <br>
-                        <input type="checkbox" id="saturday">
-                        <label for="saturday">Saturday</label>
-                        <br>
-                        <input type="checkbox" id="sunday">
-                        <label for="sunday">Sunday</label>
-                    </section>
-                    <section id="timeSection" style="display:none">
-                        <input type="text" id="time" placeholder="Time (hour:minute)">
-                        <span>&nbsp;</span>
-                        <select id="timeFormat">
-                            <option value="" disabled selected>
-                                Time format
-                            </option>
-                            <option value="am">
-                                am
-                            </option>
-                            <option value="pm">
-                                pm
-                            </option>
-                            <option value="24-hour">
-                                24-hour
-                            </option>
-                        </select>
-                    </section>
-                    <section>
-                        <button onclick="include()">
-                            Add to list
-                        </button>
-                        <button onclick="remove()">
-                            Remove
-                        </button>
-                    </section>
-                    <button id="update" disabled>
-                        Update
-                    </button>
-                </div>
-            </div>
-        </nav>
-        <main>
-            <div id="list" class="list"></div>
-        </main>
-    </body>
+	<head>
+		<title>
+			To-do List
+		</title>
+		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
+		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
+		<script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
+		<script>
+			var S = Standards;
+			S.storage.local.defaultLocation = "To-Do-List/list items";
+			S.storage.server.defaultLocation = "lists/default";
+			var itemNumber = 1;
+			var now;
+			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+			function makePriority(description, importance, date, recurrence, lastFinished, done) {
+				/**
+				adds a priority to Priority.instances
+				*/
+				
+				// makes a Date object for the due date (assigned to "then")
+				var originalDate = date;
+				var then = date.split("~")[0].trim();
+				var time = " " + date.split("~")[1].trim();
+				function combine(array) {
+					return new Date(array.join(" ") + time);
+				}
+				now = new Date(Number(lastFinished));  //// This should use a different variable than "now", but I used "now" too many times in the following part.
+				switch (recurrence) {  // sets the exact time of the (next) event
+					case "indefinite":
+						then = new Date(Number(then));  // Number() is needed because "then" is a string
+						// "date" can't also be set here because it causes the due time displayed to always be what it was originally
+						break;
+					case "once":
+						then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
+						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						break;
+					case "monthly":
+						if (now.getDate() == then) {
+							if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, then]).getTime()) {
+								then = combine([now.getFullYear(), now.getMonth()+1, then]);
+							} else {
+								if (now.getMonth() + 2 <= 12) {
+									then = combine([now.getFullYear(), now.getMonth()+2, then]);
+								} else {
+									then = combine([now.getFullYear()+1, 1, then]);
+								}
+							}
+						} else if (now.getDate() < then) {
+							then = new Date(now.getTime() + (then-now.getDate())*86400000);
+						} else {
+							if (now.getMonth() + 2 <= 12) {
+								then = combine([now.getFullYear(), now.getMonth()+2, then]);
+							} else {
+								then = combine([now.getFullYear()+1, 1, then]);
+							}
+						}
+						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						break;
+					case "weekly":
+						let closest = Infinity;
+						then.split(" ").forEach(function(weekday) {
+							let number = week.indexOf(weekday);
+							if (now.getDay() > number) {
+								number = 7 + number - now.getDay();
+							} else {
+								number -= now.getDay();
+							}
+							if (number < closest) {
+								closest = number;
+							}
+						});
+						closest += now.getDay();
+						if (closest > 6) {
+							closest -= 7;
+						}
+						if (now.getDay() == closest) {
+							if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, now.getDate()]).getTime()) {
+								then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
+							} else {
+								closest = Infinity;
+								then.split(" ").forEach(function(weekday) {
+									let number = week.indexOf(weekday);
+									if (now.getDay() + 1 > number) {
+										number = 6 + number - now.getDay();
+									} else {
+										number -= now.getDay() + 1;
+									}
+									if (number < closest) {
+										closest = number;
+									}
+								});
+								closest += now.getDay() + 1;
+								if (closest > 6) {
+									closest -= 7;
+								}
+								if (now.getDay() < closest) {
+									then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+								} else {
+									then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+								}
+							}
+						} else if (now.getDay() < closest) {
+							then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+						} else {
+							then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+						}
+						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						break;
+					case "daily":
+						then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
+						if (now.getTime() > then.getTime()) {
+							then = new Date(then.getTime()+86400000);
+						}
+						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						break;
+				}
+				
+				// sets the urgency of the item
+				now = new Date();  //// This sets "now" back to representing what it's supposed to.
+				if (recurrence == "indefinite") {
+					date = then.getTime() - now.getTime();
+					if (date <= 0) {
+						date = "Immediately";
+					} else if (date <= 250000000) {
+						date = "Soon";
+					} else if (date <= 700000000) {
+						date = "Later";
+					} else if (date <= 1600000000) {
+						date = "In a while";
+					} else {
+						date = "At some point";
+					}
+					var urgency = (then.getTime()-now.getTime())/1000;
+					if (urgency < 43200) {  // Negative numbers will put it at the end, not the top.
+						urgency = 43200;  // This causes indefinite items to effectively never be any closer than 12 hours away.
+					}
+					urgency = Math.round(urgency * (10-importance))
+				} else if (recurrence == "daily") {
+					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
+				} else {
+					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+				}
+				
+				// creates the HTML objects to be displayed
+				let checkbox = document.createElement("input");
+				checkbox.type = "checkbox";
+				checkbox.id = "item" + itemNumber;
+				itemNumber++;
+				let label = document.createElement("span");
+				if (recurrence == "indefinite") {
+					label.title = "Due: {0}\nImportance: {1}".format(date, importance);
+				} else {
+					if (then.getTime() - now.getTime() < 86400000) {
+						label.title = "Due:{0}\nImportance: {1}".format(time, importance);
+					} else if (then.getTime() - now.getTime() < 518400000) {
+						label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+time, importance);
+					} else {
+						label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+date, importance);
+					}
+				}
+				label.innerHTML = description;
+				
+				// sets label highlighting
+				if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
+					let later;
+					if (recurrence == "indefinite") {
+						if (then.getTime() <= now.getTime()) {
+							label.style.fontWeight = "bold";
+							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
+						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
+							label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
+						}
+					} else if (recurrence == "daily") {
+						if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
+							label.style.fontWeight = "bold";
+							label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
+						} else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
+							label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
+						}
+					} else {
+						if (now.getHours() < 8) {  // if the current time is before 8:00am
+							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
+						} else {
+							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
+						}
+						if (then.getTime() < later.getTime()) {
+							label.style.fontWeight = "bold";
+							label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+						} else if (then.getTime() < later.getTime() + 86400000) {
+							label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
+						}
+					}
+				} else {
+					label.style.fontWeight = "bold";
+					label.style.color = "red";
+					label.title = "Past due";
+				}
+				
+				// puts the elements into a container
+				let section = document.createElement("section");
+				section.className = "list-item";
+				section.appendChild(checkbox);
+				section.appendChild(label);
+				let elements = document.createElement("div");
+				elements.appendChild(section);
+				
+				// crosses out finished items
+				if (done) {
+					label.style.textDecoration = "line-through";
+					label.title = "Finished";
+					label.style.color = "inherit";
+					label.style.fontWeight = "inherit";
+					if (label.children.length > 0) {  // if there's a <mark> tag
+						label.children[0].style.background = "inherit";
+					}
+					if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
+						lastFinished = then.getTime() + 1;
+						done = false;
+						let item = S.storage.local.recall(description);
+						item.lastFinished = lastFinished;
+						item.done = done;
+						S.storage.local.store(description, item);
+						var needsToRunFunctionAgain = true;
+					}
+				}
+				/*
+				if (done) {
+					function handler(mutations, observer) {
+						mutations.forEach(function(mutation) {
+							mutation.addedNodes.forEach(function(node) {
+								if (node == checkbox) {
+									checkbox.check();
+									watcher.disconnect();
+								}
+							});
+						});
+					}
+					var watcher = new MutationObserver(handler) || webkitMutationObserver(handler);
+					watcher.observe(getId("list"), {"childList":true, "subtree":true});
+				}
+				*/
+				
+				// adds the item to the priority list or runs the function again
+				if (needsToRunFunctionAgain) {
+					makePriority(description, importance, originalDate, recurrence, lastFinished, done);
+				} else {
+					let increment = 0;
+					while(Priority.instances[urgency+increment] != undefined) {
+						// while there's a target key value already taken, increase the target key by 1
+						// (prevents overwriting when things have the same due-date and importance)
+						increment++;
+					}
+					Priority.instances[urgency+increment] = {description: description, done: done, elements: elements.innerHTML};
+				}
+			}
+			Priority = {instances: {}};
+			
+			function include() {
+				let enoughInformation = true;
+				if (!(S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value)) {
+					enoughInformation = false;
+				} else {
+					if (S.getId("recurrence").value == "indefinite") {
+						if (!S.getId("timeframe").value) {
+							enoughInformation = false;
+						}
+					} else {
+						if (!S.getId("time").value) {
+							enoughInformation = false;
+						}
+					}
+				}
+				if (enoughInformation) {
+					now = new Date();
+					let description = S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+					let date = "";
+					let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
+					switch (S.getId("recurrence").value) {
+						case "indefinite":
+							switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
+								case "immediately":
+									date = now.getTime();  // now
+									break;
+								case "soon":
+									date = now.getTime() + 250000000;  // in a little less than 3 days
+									break;
+								case "later":
+									date = now.getTime() + 700000000;  // in a little more than 8 days
+									break;
+								case "aWhile":
+									date = now.getTime() + 1600000000;  // in about 18.5 days
+									break;
+								case "somePoint":
+									date = now.getTime() + 3628800000;  // in exactly 42 days
+									break;
+							}
+							break;
+						case "once":
+							if (S.getId("fullDate").value.includes("/")) {
+								date = S.getId("fullDate").value;
+							} else {  // if it's a day of the week
+								var then = S.getId("fullDate").value;
+								then = week.indexOf(then.toLowerCase());
+								if (now.getDay() == then) {
+								   if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
+										date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
+									} else {
+										then = new Date(now.getTime() + 604800000);
+										date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+									}
+								} else if (now.getDay() < then) {
+									then = new Date(now.getTime() + (then-now.getDay())*86400000);
+									date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+								} else {
+									then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+									date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+								}
+							}
+							break;
+						case "monthly":
+							date = S.getId("day").value;
+							break;
+						case "weekly":
+							let numberChecked = 0;
+							week.forEach(function(ID) {
+								if (S.getId(ID).checked) {
+									date += ID + " ";
+									numberChecked++;
+								}
+							});
+							if (numberChecked == 0) {  //// This checking should integrate with enoughInformation.
+								alert("You need to check at least one day of the week.");
+								return;
+							}
+							date.trim();
+							break;
+					}
+					date += "~" + time;
+					S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
+					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
+						S.getId(ID).value = "";
+					});
+					week.forEach(function(ID) {
+						S.getId(ID).checked = false;
+					});
+					["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
+						S.getId(ID).style.display = "none";
+					});
+					refresh();
+				} else {
+					alert("You left out at least one field.");
+				}
+			}
+			function showHide() {
+				switch (S.getId("recurrence").value) {
+					case "indefinite":
+						S.getId("once").style.display = "none";
+						S.getId("weekly").style.display = "none";
+						S.getId("monthly").style.display = "none";
+						S.getId("timeSection").style.display = "none";
+						S.getId("indefinite").style.display = "block";
+						break;
+					case "once":
+						S.getId("indefinite").style.display = "none";
+						S.getId("monthly").style.display = "none";
+						S.getId("weekly").style.display = "none";
+						S.getId("once").style.display = "block";
+						S.getId("timeSection").style.display = "block";
+						break;
+					case "monthly":
+						S.getId("indefinite").style.display = "none";
+						S.getId("once").style.display = "none";
+						S.getId("weekly").style.display = "none";
+						S.getId("monthly").style.display = "block";
+						S.getId("timeSection").style.display = "block";
+						break;
+					case "weekly":
+						S.getId("indefinite").style.display = "none";
+						S.getId("once").style.display = "none";
+						S.getId("monthly").style.display = "none";
+						S.getId("weekly").style.display = "table";
+						S.getId("timeSection").style.display = "block";
+						break;
+					case "daily":
+						S.getId("indefinite").style.display = "none";
+						S.getId("once").style.display = "none";
+						S.getId("monthly").style.display = "none";
+						S.getId("weekly").style.display = "none";
+						S.getId("timeSection").style.display = "block";
+						break;
+				}
+			}
+			function refresh() {
+				now = new Date();
+				S.getId("list").innerHTML = "";
+				Priority.instances = {};
+				// syncs data if desired and possible
+				if (S.getId("syncData").checked && S.storage.server.user) {
+					if (S.storage.local.list().length > 0) {
+						S.forEach(S.storage.local.list(), function(key) {
+							S.forEach(S.storage.local.recall(key), function(value, property) {
+								S.storage.server.store(property, value, function() {}, "items/"+key);
+							});
+						});
+					} else {
+						S.forEach(S.storage.server.list(), function(key) {
+							let item = {};
+							S.forEach(S.storage.server.recall(key), function(value, property) {
+								item[property] = value;
+							});
+							S.storage.local.store(key, item);
+						});
+					}
+					let accountKeys = S.storage.server.list("items"),
+						localKeys = S.storage.local.list();
+					S.forEach(accountKeys, function(key) {
+						if (!localKeys.includes(key)) {
+							S.storage.server.forget(key, "items");
+						}
+					});
+				}
+				// fills Priority.instances
+				S.storage.local.list().forEach(function(key) {
+					let item = S.storage.local.recall(key);
+					makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+				});
+				// declares necessary variables
+				let list = [],
+					currentIndex = 0,
+					alreadyCounted = [];
+				// puts items from the Priority.instances object into an array
+				S.forEach(Priority.instances, function(item) {
+					list.push(item);
+				});
+				// moves finished items to the end
+				while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
+					if (list[currentIndex].done) {
+						alreadyCounted.push(list[currentIndex].description);
+						list.move(currentIndex);
+					} else {
+						currentIndex++;
+					}
+				}
+				// inserts the items onto the page
+				let HTML = "";
+				list.forEach(function(instance) {
+					HTML += instance.elements;
+				});
+				S.getId("list").innerHTML = HTML;
+				// checks off finished checkboxes
+				list.forEach(function(instance, index) {
+					if (instance.done) {
+						S.getId("list").getElementsByTagName("input")[index].checked = true;
+					}
+				});
+				
+				if (S.getId("list").innerHTML == "") {
+					// adds a prompt if there's no items saved
+					S.getId("list").innerHTML = "<p>Add some things to do.</p>";
+				} else {
+					// makes the checkboxes listen for when they're clicked on
+					list.forEach(function(listItem, index) {
+						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
+							let item = S.storage.local.recall(listItem.description);
+							if (this.checked) {
+								item.done = true;
+							} else {
+								item.done = false;
+							}
+							S.storage.local.store(listItem.description, item);
+							refresh();
+						});
+						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
+							// prevents highlighting the text when double-clicking
+							// event.preventDefault() would only work with onmousedown
+							if (document.selection && document.selection.empty) {
+								document.selection.empty();
+							} else if (window.getSelection) {
+								window.getSelection().removeAllRanges();
+							}
+							let item = S.storage.local.recall(listItem.description);
+							S.getId("description").value = listItem.description;
+							S.getId("importance").value = item.importance;
+							S.getId("recurrence").value = item.recurrence;
+							switch (item.recurrence) {
+								case "indefinite":
+									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
+									if (indefiniteTime <= 0) {
+										indefiniteTime = "immediately";
+									} else if (indefiniteTime <= 250000000) {
+										indefiniteTime = "soon";
+									} else if (indefiniteTime <= 700000000) {
+										indefiniteTime = "later";
+									} else if (indefiniteTime <= 1600000000) {
+										indefiniteTime = "aWhile";
+									} else {
+										indefiniteTime = "somePoint";
+									}
+									S.getId("timeframe").value = indefiniteTime;
+									break;
+								case "once":
+									S.getId("fullDate").value = item.time.split("~")[0];
+									break;
+								case "monthly":
+									S.getId("day").value = item.time.split("~")[0];
+									break;
+								case "weekly":
+									week.forEach(function(ID) {
+										S.getId(ID).checked = false;
+									});
+									item.time.split("~")[0].trim().split(" ").forEach(function(ID) {
+										S.getId(ID).checked = true;
+									});
+									break;
+							}
+							if (item.recurrence != "indefinite") {
+								if (item.time.split("~")[1].includes(" ")) {
+									S.getId("time").value = item.time.split("~")[1].split(" ")[0];
+									S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
+								} else {
+									S.getId("time").value = item.time.split("~")[1];
+									S.getId("timeFormat").value = "24-hour";
+								}
+							}
+							showHide();
+							S.getClass("drop-down")[0].focus();
+						});
+					});
+				}
+			}
+			function remove() {
+				S.storage.local.list().forEach(function(key) {
+					let item = S.storage.local.recall(key);
+					if (key == S.getId("description").value.trim()) {
+						S.storage.local.forget(key);
+					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
+						S.storage.local.forget(key);
+					}
+				});
+				S.getId("description").value = "";
+				refresh();
+			}
+			
+			window.addEventListener("finished", function() {
+				refresh();
+				S.getId("recurrence").addEventListener("change", showHide);
+				S.getId("quickSelect").addEventListener("change", function() {
+					S.getId("fullDate").value = this.value;
+				});
+				setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
+			});
+
+			S.listen("update", "click", function() {
+				if (!this.disabled) {
+					let HTML = "";
+					/*
+					S.storage.local.list(null).forEach(function(key1) {
+						let trueFalse = true;
+						S.storage.local.list().forEach(function(key2) {
+							if (key1 == S.storage.local.defaultLocation + "/" + key2) {
+								trueFalse = false;
+							}
+						});
+						if (trueFalse) {
+							HTML += key1 + "; ";
+						}
+					});
+					*/
+					HTML = localStorage.getItem("To-Do-List");
+					this.innerHTML = HTML;
+				}
+			});
+		</script>
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/thanksgiving.css">
+		<style>
+			main {
+				margin-top: 0em;
+			}
+			nav.top-nav {
+				margin: auto;
+				background: darkblue;
+				width: 90%;
+			}
+			nav.top-nav div.drop-down div:first-child {
+				background: darkblue;
+				color: steelblue;
+			}
+			nav.top-nav div.drop-down div {
+				padding: .5em;
+				background: steelblue;
+			}
+			nav.top-nav div.drop-down:hover div:first-child, nav.top-nav div.drop-down:focus div:first-child, nav.top-nav div.drop-down:focus-within div:first-child {
+				background: lightsteelblue;
+			}
+			.list-item {
+				margin: .5em 0em;
+			}
+			.block {
+				display: block;
+				margin: 1em auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="login-section">
+			<button id="signIn" onclick="signIn()">
+				Log in
+			</button>
+			<button id="signUp" onclick="signUp()">
+				Register
+			</button>
+			<button id="signOut" onclick="signOut()">
+				Log out
+			</button>
+		</div>
+		<h1 class="main-title">
+			To-do List
+		</h1>
+		<nav class="top-nav">
+			<div class="drop-down" tabindex="0">
+				<div>
+					Settings
+				</div>
+				<div>
+					<input type="checkbox" id="syncData">
+					<label for="syncData">Sync data with your account when possible</label>
+				</div>
+			</div>
+			<div class="drop-down" tabindex="0">
+				<div>
+					Editor
+				</div>
+				<div>
+					<input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
+					<select class="block" id="importance">
+						<option value="" disabled selected>
+							Importance
+						</option>
+						<option value="1">
+							1 (lowest)
+						</option>
+						<option value="2">
+							2
+						</option>
+						<option value="3">
+							3
+						</option>
+						<option value="4">
+							4
+						</option>
+						<option value="5">
+							5 (highest)
+						</option>
+					</select>
+					<select class="block" id="recurrence">
+						<option value="" disabled selected>
+							Recurrence
+						</option>
+						<option value="indefinite">
+							Indefinite
+						</option>
+						<option value="once">
+							One time
+						</option>
+						<option value="monthly">
+							Monthly
+						</option>
+						<option value="weekly">
+							Weekly
+						</option>
+						<option value="daily">
+							Daily
+						</option>
+					</select>
+					<section id="indefinite" style="display:none">
+						<select id="timeframe">
+							<option value="" disabled selected>
+								Timeframe
+							</option>
+							<option value="immediately">
+								Immediately
+							</option>
+							<option value="soon">
+								Soon
+							</option>
+							<option value="later">
+								Later
+							</option>
+							<option value="aWhile">
+								In a while
+							</option>
+							<option value="somePoint">
+								At some point
+							</option>
+						</select>
+					</section>
+					<section id="once" style="display:none">
+						<input type="text" id="fullDate" placeholder="Date (month/day/year)">
+						<select id="quickSelect">
+							<option value="" disabled selected>
+								Quick select
+							</option>
+							<option value="monday">
+								Monday
+							</option>
+							<option value="tuesday">
+								Tuesday
+							</option>
+							<option value="wednesday">
+								Wednesday
+							</option>
+							<option value="thursday">
+								Thursday
+							</option>
+							<option value="friday">
+								Friday
+							</option>
+							<option value="saturday">
+								Saturday
+							</option>
+							<option value="sunday">
+								Sunday
+							</option>
+						</select>
+					</section>
+					<section id="monthly" style="display:none">
+						<input type="text" id="day" placeholder="Day of the month">
+					</section>
+					<section id="weekly" class="list" style="display:none">
+						<input type="checkbox" id="monday">
+						<label for="monday">Monday</label>
+						<br>
+						<input type="checkbox" id="tuesday">
+						<label for="tuesday">Tuesday</label>
+						<br>
+						<input type="checkbox" id="wednesday">
+						<label for="wednesday">Wednesday</label>
+						<br>
+						<input type="checkbox" id="thursday">
+						<label for="thursday">Thursday</label>
+						<br>
+						<input type="checkbox" id="friday">
+						<label for="friday">Friday</label>
+						<br>
+						<input type="checkbox" id="saturday">
+						<label for="saturday">Saturday</label>
+						<br>
+						<input type="checkbox" id="sunday">
+						<label for="sunday">Sunday</label>
+					</section>
+					<section id="timeSection" style="display:none">
+						<input type="text" id="time" placeholder="Time (hour:minute)">
+						<span>&nbsp;</span>
+						<select id="timeFormat">
+							<option value="" disabled selected>
+								Time format
+							</option>
+							<option value="am">
+								am
+							</option>
+							<option value="pm">
+								pm
+							</option>
+							<option value="24-hour">
+								24-hour
+							</option>
+						</select>
+					</section>
+					<section>
+						<button onclick="include()">
+							Add to list
+						</button>
+						<button onclick="remove()">
+							Remove
+						</button>
+					</section>
+					<button id="update" disabled>
+						Update
+					</button>
+				</div>
+			</div>
+		</nav>
+		<main>
+			<div id="list" class="list"></div>
+		</main>
+	</body>
 </html>
