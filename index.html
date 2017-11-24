@@ -589,6 +589,12 @@
 				background: darkblue;
 				width: 90%;
 			}
+			nav.top-nav td {
+				padding: none;
+			}
+			nav.top-nav label {
+				white-space: nowrap;
+			}
 			nav.top-nav div.drop-down div:first-child {
 				background: darkblue;
 				color: steelblue;
@@ -610,14 +616,17 @@
 		</style>
 	</head>
 	<body>
-		<div class="login-section">
-			<button id="signIn" onclick="signIn()">
+		<div class="user-section">
+			<button id="signIn">
 				Log in
 			</button>
-			<button id="signUp" onclick="signUp()">
+			<button id="signUp">
 				Register
 			</button>
-			<button id="signOut" onclick="signOut()">
+			<button id="userSettings">
+				Settings
+			</button>
+			<button id="signOut">
 				Log out
 			</button>
 		</div>
@@ -630,8 +639,12 @@
 					Settings
 				</div>
 				<div>
-					<input type="checkbox" id="syncData">
-					<label for="syncData">Sync data with your account when possible</label>
+					<table class="organizational">
+						<tr>
+							<td><input type="checkbox" id="syncData"></td>
+							<td><label for="syncData">Sync data with your account when possible</label></td>
+						</tr>
+					</table>
 				</div>
 			</div>
 			<div class="drop-down" tabindex="0">
