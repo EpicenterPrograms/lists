@@ -488,13 +488,13 @@
 					// makes the checkboxes listen for when they're clicked on
 					list.forEach(function(listItem, index) {
 						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
-							let item = S.storage.local.recall(listItem.description);
+							let item = S.storage.local.recall(encodeURIComponent(listItem.description));
 							if (this.checked) {
 								item.done = true;
 							} else {
 								item.done = false;
 							}
-							S.storage.local.store(listItem.description, item);
+							S.storage.local.store(encodeURIComponent(listItem.description), item);
 							refresh();
 						});
 						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
@@ -505,7 +505,7 @@
 							} else if (window.getSelection) {
 								window.getSelection().removeAllRanges();
 							}
-							let item = S.storage.local.recall(listItem.description);
+							let item = S.storage.local.recall(encodeURIComponent(listItem.description));
 							S.getId("description").value = listItem.description;
 							S.getId("importance").value = item.importance;
 							S.getId("recurrence").value = item.recurrence;
