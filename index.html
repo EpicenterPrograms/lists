@@ -595,6 +595,12 @@
 							S.storage.local.forget(key);
 						}
 					});
+					S.forEach(S.storage.local.list(), function(key) {
+						if (key != encodeURIComponent(key)) {
+							S.storage.local.store(encodeURIComponent(key), S.storage.local.recall(key));
+							S.storage.local.forget(key);
+						}
+					});
 					refresh();
 				}
 			});
