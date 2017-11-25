@@ -10,6 +10,7 @@
 		<script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
 		<script>
 			var S = Standards;
+			S.storage.session.defaultLocation = "To-Do-List/list items";
 			S.storage.local.defaultLocation = "To-Do-List/list items";
 			S.storage.server.defaultLocation = "lists/default";
 			var itemNumber = 1;
@@ -401,36 +402,55 @@
 				now = new Date();
 				S.getId("list").innerHTML = "";
 				Priority.instances = {};
+				let useLocal = true;
 				// syncs data if desired and possible
 				if (S.getId("syncData").checked && S.storage.server.user) {
-					if (S.storage.local.list().length > 0) {
+					if (confirm("Merge this data with your account data?")) {
 						S.forEach(S.storage.local.list(), function(key) {
 							S.forEach(S.storage.local.recall(key), function(value, property) {
-								S.storage.server.store(property, value, function() {}, "items/"+key);
+								S.storage.server.store(property, value, "lists/default/items/"+key);
 							});
 						});
+						if (confirm("Delete account data not present here?")) {
+							let accountKeys = S.storage.server.list("lists/default/items"),
+								localKeys = S.storage.local.list();
+							S.forEach(accountKeys, function(key) {
+								if (!localKeys.includes(key)) {
+									S.storage.server.forget(key, "lists/default/items");
+								}
+							});
+						} else {
+							S.forEach(S.storage.server.list(), function(key) {
+								let item = {};
+								S.forEach(S.storage.server.recall(key), function(value, property) {
+									item[property] = value;
+								});
+								S.storage.local.store(key, item);
+							});
+						}
 					} else {
+						useLocal = false;
 						S.forEach(S.storage.server.list(), function(key) {
 							let item = {};
 							S.forEach(S.storage.server.recall(key), function(value, property) {
 								item[property] = value;
 							});
-							S.storage.local.store(key, item);
+							S.storage.session.store(key, item);
 						});
 					}
-					let accountKeys = S.storage.server.list("items"),
-						localKeys = S.storage.local.list();
-					S.forEach(accountKeys, function(key) {
-						if (!localKeys.includes(key)) {
-							S.storage.server.forget(key, "items");
-						}
-					});
 				}
 				// fills Priority.instances
-				S.storage.local.list().forEach(function(key) {
-					let item = S.storage.local.recall(key);
-					makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
-				});
+				if (useLocal) {
+					S.storage.local.list().forEach(function(key) {
+						let item = S.storage.local.recall(key);
+						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+					});
+				} else {
+					S.storage.session.list().forEach(function(key) {
+						let item = S.storage.session.recall(key);
+						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+					});
+				}
 				// declares necessary variables
 				let list = [],
 					currentIndex = 0,
@@ -547,6 +567,10 @@
 				S.getId("description").value = "";
 				refresh();
 			}
+
+			firebase.auth().onAuthStateChanged(function(user) {
+				refresh();
+			});
 			
 			window.addEventListener("finished", function() {
 				refresh();
