@@ -585,31 +585,17 @@
 				if (!this.disabled) {
 					S.storage.local.list().forEach(function(key) {
 						try {
-							S.storage.local.store(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))), S.storage.local.recall(key));
+							S.storage.local.store(decodeURIComponent(decodeURIComponent(key)), S.storage.local.recall(key));
 						} catch (error) {
 							console.log("single decode:\n" + key);
 						}
 					});
-					S.storage.local.list().forEach(function(key) {
-						try {
-							S.storage.local.store(decodeURIComponent(key), S.storage.local.recall(decodeURIComponent(key)));
-						} catch (error) {
-							console.log("double decode:\n" + key);
-						}
-					});
-					S.storage.local.list().forEach(function(key) {
-						try {
-							S.storage.local.store(decodeURIComponent(key), S.storage.local.recall(key));
-						} catch (error) {
-							console.log("final decode:\n" + key);
-						}
-					});
 					S.forEach(S.storage.local.list(), function(key) {
-						if (key != encodeURIComponent(key)) {
-							S.storage.local.store(encodeURIComponent(key), S.storage.local.recall(key));
+						if (key.includes("252525") || key.includes("%20")) {
 							S.storage.local.forget(key);
 						}
 					});
+					refresh();
 				}
 			});
 		</script>
