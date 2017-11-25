@@ -567,10 +567,6 @@
 				S.getId("description").value = "";
 				refresh();
 			}
-
-			firebase.auth().onAuthStateChanged(function(user) {
-				refresh();
-			});
 			
 			window.addEventListener("finished", function() {
 				refresh();
@@ -579,6 +575,10 @@
 					S.getId("fullDate").value = this.value;
 				});
 				setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
+
+				firebase.auth().onAuthStateChanged(function(user) {
+					refresh();
+				});
 			});
 
 			S.listen("update", "click", function() {
@@ -657,6 +657,13 @@
 						<tr>
 							<td><input type="checkbox" id="syncData"></td>
 							<td><label for="syncData">Sync data with your account when possible</label></td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<button id="update">
+									Update
+								</button>
+							</td>
 						</tr>
 					</table>
 				</div>
@@ -809,9 +816,6 @@
 							Remove
 						</button>
 					</section>
-					<button id="update">
-						Update
-					</button>
 				</div>
 			</div>
 		</nav>
