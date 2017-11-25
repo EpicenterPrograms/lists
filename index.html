@@ -139,8 +139,8 @@
 						date = "At some point";
 					}
 					var urgency = (then.getTime()-now.getTime())/1000;
-					if (urgency < 43200) {  // Negative numbers will put it at the end, not the top.
-						urgency = 43200;  // This causes indefinite items to effectively never be any closer than 12 hours away.
+					if (urgency < 64800) {  // Negative numbers will put it at the end, not the top.
+						urgency = 64800;  // This causes indefinite items to effectively never be any closer than 18 hours away.
 					}
 					urgency = Math.round(urgency * (10-importance))
 				} else if (recurrence == "daily") {
@@ -166,7 +166,7 @@
 						label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+date, importance);
 					}
 				}
-				label.innerHTML = description;
+				label.innerHTML = decodeURIComponent(description);
 				
 				// sets label highlighting
 				if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
@@ -258,7 +258,7 @@
 						// (prevents overwriting when things have the same due-date and importance)
 						increment++;
 					}
-					Priority.instances[urgency+increment] = {description: description, done: done, elements: elements.innerHTML};
+					Priority.instances[urgency+increment] = {description: decodeURIComponent(description), done: done, elements: elements.innerHTML};
 				}
 			}
 			Priority = {instances: {}};
@@ -443,12 +443,12 @@
 				if (useLocal) {
 					S.storage.local.list().forEach(function(key) {
 						let item = S.storage.local.recall(key);
-						makePriority(decodeURIComponent(key), item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
 					});
 				} else {
 					S.storage.session.list().forEach(function(key) {
 						let item = S.storage.session.recall(key);
-						makePriority(decodeURIComponent(key), item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
 					});
 				}
 				// declares necessary variables
@@ -550,7 +550,7 @@
 								}
 							}
 							showHide();
-							S.getClass("drop-down")[0].focus();
+							S.getClass("drop-down")[1].focus();
 						});
 					});
 				}
@@ -584,6 +584,27 @@
 			S.listen("update", "click", function() {
 				if (!this.disabled) {
 					S.storage.local.list().forEach(function(key) {
+						try {
+							S.storage.local.store(decodeURIComponent(key), S.storage.local.recall(key));
+						} catch (error) {
+							console.log("single decode:\n" + key);
+						}
+					});
+					S.storage.local.list().forEach(function(key) {
+						try {
+							S.storage.local.store(decodeURIComponent(key), S.storage.local.recall(decodeURIComponent(key)));
+						} catch (error) {
+							console.log("double decode:\n" + key);
+						}
+					});
+					S.storage.local.list().forEach(function(key) {
+						try {
+							S.storage.local.store(decodeURIComponent(key), S.storage.local.recall(key));
+						} catch (error) {
+							console.log("final decode:\n" + key);
+						}
+					});
+					S.forEach(S.storage.local.list(), function(key) {
 						if (key != encodeURIComponent(key)) {
 							S.storage.local.store(encodeURIComponent(key), S.storage.local.recall(key));
 							S.storage.local.forget(key);
