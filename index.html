@@ -12,10 +12,121 @@
 			var S = Standards;
 			S.storage.session.defaultLocation = "To-Do-List/list items";
 			S.storage.local.defaultLocation = "To-Do-List/list items";
-			S.storage.server.defaultLocation = "lists/default";
+			S.storage.server.defaultLocation = "lists/default/items";
 			var itemNumber = 1;
 			var now;
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+			var mergeData = false;
+			var deleteData = false;
+			var useLocal = true;
+			var listenable1 = {
+				internalValue: undefined,
+				callbacks: [],
+				get value() {
+					let self = this;
+					setTimeout(function () {
+						let index = 0;
+						while (index < self.callbacks.length) {
+							if (self.callbacks[index][0] == "get") {
+								self.callbacks[index][1]();
+							}
+							if (self.callbacks[index][2]) {
+								self.callbacks.splice(index, 1);
+							} else {
+								index++;
+							}
+						}
+					}, 0);
+					/// Putting the running of callbacks in a timeout ensures that the value is returned first.
+					return this.internalValue;
+				},
+				set value(variable) {
+					let originalValue = this.internalValue;
+					this.internalValue = variable;
+					let index = 0;
+					while (index < this.callbacks.length) {
+						if (this.callbacks[index][0] == "set") {
+							this.callbacks[index][1](variable);
+						} else if (this.callbacks[index][0] == "change" && originalValue !== this.internalValue) {
+							this.callbacks[index][1](variable);
+						}
+						if (this.callbacks[index][2]) {
+							this.callbacks.splice(index, 1);
+						} else {
+							index++;
+						}
+					}
+				},
+				addEventListener: function (type, doStuff, listenOnce) {
+					this.callbacks.push([type, doStuff, listenOnce]);
+					//// add the ability to listen for adding listeners
+				},
+				removeEventListener: function (type, doStuff) {
+					let index = 0;
+					while (index < this.callbacks.length) {
+						if (this.callbacks[index][0] == type && this.callbacks[index][1] == doStuff) {
+							this.callbacks.splice(index, 1);
+						} else {
+							index++;
+						}
+					}
+					//// add the ability to listen for removing listeners
+				}
+			};
+			var listenable2 = {
+				internalValue: undefined,
+				callbacks: [],
+				get value() {
+					let self = this;
+					setTimeout(function () {
+						let index = 0;
+						while (index < self.callbacks.length) {
+							if (self.callbacks[index][0] == "get") {
+								self.callbacks[index][1]();
+							}
+							if (self.callbacks[index][2]) {
+								self.callbacks.splice(index, 1);
+							} else {
+								index++;
+							}
+						}
+					}, 0);
+					/// Putting the running of callbacks in a timeout ensures that the value is returned first.
+					return this.internalValue;
+				},
+				set value(variable) {
+					let originalValue = this.internalValue;
+					this.internalValue = variable;
+					let index = 0;
+					while (index < this.callbacks.length) {
+						if (this.callbacks[index][0] == "set") {
+							this.callbacks[index][1](variable);
+						} else if (this.callbacks[index][0] == "change" && originalValue !== this.internalValue) {
+							this.callbacks[index][1](variable);
+						}
+						if (this.callbacks[index][2]) {
+							this.callbacks.splice(index, 1);
+						} else {
+							index++;
+						}
+					}
+				},
+				addEventListener: function (type, doStuff, listenOnce) {
+					this.callbacks.push([type, doStuff, listenOnce]);
+					//// add the ability to listen for adding listeners
+				},
+				removeEventListener: function (type, doStuff) {
+					let index = 0;
+					while (index < this.callbacks.length) {
+						if (this.callbacks[index][0] == type && this.callbacks[index][1] == doStuff) {
+							this.callbacks.splice(index, 1);
+						} else {
+							index++;
+						}
+					}
+					//// add the ability to listen for removing listeners
+				}
+			};
 			function makePriority(description, importance, date, recurrence, lastFinished, done) {
 				/**
 				adds a priority to Priority.instances
@@ -139,8 +250,8 @@
 						date = "At some point";
 					}
 					var urgency = (then.getTime()-now.getTime())/1000;
-					if (urgency < 64800) {  // Negative numbers will put it at the end, not the top.
-						urgency = 64800;  // This causes indefinite items to effectively never be any closer than 18 hours away.
+					if (urgency < 54000) {  // Negative numbers will put it at the end, not the top.
+						urgency = 54000;  // This causes indefinite items to effectively never be any closer than 15 hours away.
 					}
 					urgency = Math.round(urgency * (10-importance))
 				} else if (recurrence == "daily") {
@@ -355,6 +466,9 @@
 						S.getId(ID).style.display = "none";
 					});
 					refresh();
+					setTimeout(function () {
+						refresh(true);
+					}, 0);
 				} else {
 					alert("You left out at least one field.");
 				}
@@ -398,55 +512,129 @@
 						break;
 				}
 			}
-			function refresh() {
+
+			function refresh(shouldSync) {
 				now = new Date();
 				S.getId("list").innerHTML = "";
 				Priority.instances = {};
-				let useLocal = true;
 				// syncs data if desired and possible
-				if (S.getId("syncData").checked && S.storage.server.user) {
-					if (confirm("Merge this data with your account data?")) {
-						S.forEach(S.storage.local.list(), function(key) {
-							S.forEach(S.storage.local.recall(key), function(value, property) {
-								S.storage.server.store(property, value, "lists/default/items/"+key);
+				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
+					if (mergeData) {  // if the existing data should be merged to the account data
+						listenable1.value = 0;
+						listenable1.addEventListener("change", function (value) {
+							if (value == list.length) {  // when all items have been stored
+								listenable1.removeEventListener("change", arguments.callee);
+								listenable1.value = undefined;
+								S.storage.server.list("", function (list) {
+									if (deleteData) {
+										let localKeys = S.storage.local.list();
+										listenable1.value = 0;
+										listenable1.addEventListener("change", function (itemsLeft) {
+											if (itemsleft == 0) {
+												listenable1.removeEventListener("change", arguments.callee);
+												window.dispatchEvent(new Event("readyToRefresh"));
+											}
+										});
+										// deletes account data not not present in the current data
+										S.forEach(list, function (key) {
+											if (!localKeys.includes(key)) {
+												listenable1++;
+												S.storage.server.forget(key, "", function () {
+													listenable1.value--;
+												});
+											}
+										});
+									} else {
+										// stores and replaces current data with account data
+										listenable1.addEventListener("change", function (index) {
+											let itemNumber = listenable.value + 1;
+											S.storage.server.list("/"+list[index], function (listItem) {
+												let item = {};
+												let listener = JSON.parse(JSON.stringify(listenable2));
+												listener.value = 0;
+												listener.addEventListener("change", function (propertiesStored) {
+													if (propertiesStored == listItem.length) {
+														S.storage.local.store(list[index], item);
+														listener.value = undefined;
+														if (itemNumber == list.length) {
+															listenable1.value = undefined;
+															window.dispatchEvent(new Event("readyToRefresh"));
+														}
+													}
+												});
+												S.forEach(listItem, function (property) {
+													S.storage.server.recall(property, "/"+list[index], function (data) {
+														item[property] = data;
+														listener.value++;
+													});
+												});
+											});
+											if (listenable1.value + 1 >= list.length) {
+												listenable1.removeEventListener("change", arguments.callee);
+											} else {
+												listenable1.value++;
+											}
+										});
+										listenable1.value = 0;
+									}
+								});
+							}
+						});
+						// stores and replaces account data with current data
+						S.forEach(S.storage.local.list(), function (key) {
+							S.forEach(S.storage.local.recall(key), function (value, property) {
+								S.storage.server.store(property, value, "/"+key, function () {
+									listenable1.value++;
+								});
 							});
 						});
-						if (confirm("Delete account data not present here?")) {
-							let accountKeys = S.storage.server.list("lists/default/items"),
-								localKeys = S.storage.local.list();
-							S.forEach(accountKeys, function(key) {
-								if (!localKeys.includes(key)) {
-									S.storage.server.forget(key, "lists/default/items");
-								}
-							});
-						} else {
-							S.forEach(S.storage.server.list(), function(key) {
-								let item = {};
-								S.forEach(S.storage.server.recall(key), function(value, property) {
-									item[property] = value;
-								});
-								S.storage.local.store(key, item);
-							});
-						}
 					} else {
 						useLocal = false;
-						S.forEach(S.storage.server.list(), function(key) {
-							let item = {};
-							S.forEach(S.storage.server.recall(key), function(value, property) {
-								item[property] = value;
+						// stores and replaces current session data with account data
+						listenable1.addEventListener("change", function (index) {
+							let itemNumber = listenable.value + 1;
+							S.storage.server.list("/" + list[index], function (listItem) {
+								let item = {};
+								let listener = JSON.parse(JSON.stringify(listenable2));
+								listener.value = 0;
+								listener.addEventListener("change", function (propertiesStored) {
+									if (propertiesStored == listItem.length) {
+										S.storage.session.store(list[index], item);
+										listener.value = undefined;
+										if (itemNumber == list.length) {
+											listenable1.value = undefined;
+											window.dispatchEvent(new Event("readyToRefresh"));
+										}
+									}
+								});
+								S.forEach(listItem, function (property) {
+									S.storage.server.recall(property, "/" + list[index], function (data) {
+										item[property] = data;
+										listener.value++;
+									});
+								});
 							});
-							S.storage.session.store(key, item);
+							if (listenable1.value + 1 >= list.length) {
+								listenable1.removeEventListener("change", arguments.callee);
+							} else {
+								listenable1.value++;
+							}
 						});
+						listenable1.value = 0;
 					}
+				} else {
+					window.dispatchEvent(new Event("readyToRefresh"));
 				}
+			}
+			S.listen(window, "readyToRefresh", function () {
 				// fills Priority.instances
-				if (useLocal) {
-					S.storage.local.list().forEach(function(key) {
+				if (useLocal) {  // if local storage should be used
+					S.storage.local.list().forEach(function (key) {
 						let item = S.storage.local.recall(key);
 						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
 					});
-				} else {
-					S.storage.session.list().forEach(function(key) {
+				} else {  // if session storage should be used
+					S.storage.session.list().forEach(function (key) {
 						let item = S.storage.session.recall(key);
 						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
 					});
@@ -456,7 +644,7 @@
 					currentIndex = 0,
 					alreadyCounted = [];
 				// puts items from the Priority.instances object into an array
-				S.forEach(Priority.instances, function(item) {
+				S.forEach(Priority.instances, function (item) {
 					list.push(item);
 				});
 				// moves finished items to the end
@@ -470,24 +658,24 @@
 				}
 				// inserts the items onto the page
 				let HTML = "";
-				list.forEach(function(instance) {
+				list.forEach(function (instance) {
 					HTML += instance.elements;
 				});
 				S.getId("list").innerHTML = HTML;
 				// checks off finished checkboxes
-				list.forEach(function(instance, index) {
+				list.forEach(function (instance, index) {
 					if (instance.done) {
 						S.getId("list").getElementsByTagName("input")[index].checked = true;
 					}
 				});
-				
+
 				if (S.getId("list").innerHTML == "") {
 					// adds a prompt if there's no items saved
 					S.getId("list").innerHTML = "<p>Add some things to do.</p>";
 				} else {
 					// makes the checkboxes listen for when they're clicked on
-					list.forEach(function(listItem, index) {
-						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function() {
+					list.forEach(function (listItem, index) {
+						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function () {
 							let item = S.storage.local.recall(encodeURIComponent(listItem.description));
 							if (this.checked) {
 								item.done = true;
@@ -497,7 +685,7 @@
 							S.storage.local.store(encodeURIComponent(listItem.description), item);
 							refresh();
 						});
-						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function() {
+						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {
 							// prevents highlighting the text when double-clicking
 							// event.preventDefault() would only work with onmousedown
 							if (document.selection && document.selection.empty) {
@@ -532,10 +720,10 @@
 									S.getId("day").value = item.time.split("~")[0];
 									break;
 								case "weekly":
-									week.forEach(function(ID) {
+									week.forEach(function (ID) {
 										S.getId(ID).checked = false;
 									});
-									item.time.split("~")[0].trim().split(" ").forEach(function(ID) {
+									item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
 										S.getId(ID).checked = true;
 									});
 									break;
@@ -554,7 +742,8 @@
 						});
 					});
 				}
-			}
+			});
+
 			function remove() {
 				S.storage.local.list().forEach(function(key) {
 					let item = S.storage.local.recall(key);
@@ -574,11 +763,27 @@
 				S.getId("quickSelect").addEventListener("change", function() {
 					S.getId("fullDate").value = this.value;
 				});
-				setInterval(refresh, 1000000);  // refreshes a little under every 17 minutes
+				setInterval(function () {
+					refresh(true);
+				}, 1000000);  // refreshes a little under every 17 minutes
 
-				firebase.auth().onAuthStateChanged(function(user) {
-					refresh();
+				firebase.auth().onAuthStateChanged(function (user) {
+					if (user) {
+						mergeData = confirm("Merge this data with your account data?");
+						deleteData = confirm("Delete account data not present here?");
+					}
+					refresh(true);
 				});
+			});
+
+			S.listen("syncData", "change", function () {
+				if (this.checked) {
+					mergeData = confirm("Merge this data with your account data?");
+					deleteData = confirm("Delete account data not present here?");
+					refresh(true);
+				} else {
+					refresh();
+				}
 			});
 
 			S.listen("update", "click", function() {
@@ -606,7 +811,6 @@
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
-		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/thanksgiving.css">
 		<style>
 			main {
 				margin-top: 0em;
@@ -673,7 +877,7 @@
 						</tr>
 						<tr>
 							<td colspan="2">
-								<button id="update">
+								<button id="update" disabled>
 									Update
 								</button>
 							</td>
