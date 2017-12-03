@@ -627,6 +627,7 @@
 				}
 			}
 			S.listen(window, "readyToRefresh", function () {
+				console.log("refreshing");
 				// fills Priority.instances
 				if (useLocal) {  // if local storage should be used
 					S.storage.local.list().forEach(function (key) {
