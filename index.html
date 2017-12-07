@@ -519,7 +519,9 @@
 				Priority.instances = {};
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
+					console.log("Syncing data");
 					if (mergeData) {  // if the existing data should be merged to the account data
+						console.log("Merging data");
 						listenable1.value = 0;
 						listenable1.addEventListener("change", function (value) {
 							if (value == list.length) {  // when all items have been stored
@@ -527,24 +529,32 @@
 								listenable1.value = undefined;
 								S.storage.server.list("", function (list) {
 									if (deleteData) {
+										console.log("Deleting data");
 										let localKeys = S.storage.local.list();
 										listenable1.value = 0;
 										listenable1.addEventListener("change", function (itemsLeft) {
 											if (itemsleft == 0) {
 												listenable1.removeEventListener("change", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
+												console.log("Event dispatched");
 											}
 										});
-										// deletes account data not not present in the current data
-										S.forEach(list, function (key) {
-											if (!localKeys.includes(key)) {
-												listenable1++;
-												S.storage.server.forget(key, "", function () {
-													listenable1.value--;
-												});
-											}
-										});
+										if (list.length > 0) {
+											// deletes account data not not present in the current data
+											S.forEach(list, function (key) {
+												if (!localKeys.includes(key)) {
+													listenable1++;
+													S.storage.server.forget(key, "", function () {
+														listenable1.value--;
+													});
+												}
+											});
+										} else {
+											window.dispatchEvent(new Event("readyToRefresh"));
+											console.log("Event dispatched");
+										}
 									} else {
+										console.log("Overwriting current data");
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
 											let itemNumber = listenable.value + 1;
@@ -559,15 +569,21 @@
 														if (itemNumber == list.length) {
 															listenable1.value = undefined;
 															window.dispatchEvent(new Event("readyToRefresh"));
+															console.log("Event dispatched");
 														}
 													}
 												});
-												S.forEach(listItem, function (property) {
-													S.storage.server.recall(property, "/"+list[index], function (data) {
-														item[property] = data;
-														listener.value++;
+												if (listItem.length > 0) {
+													S.forEach(listItem, function (property) {
+														S.storage.server.recall(property, "/" + list[index], function (data) {
+															item[property] = data;
+															listener.value++;
+														});
 													});
-												});
+												} else {
+													window.dispatchEvent(new Event("readyToRefresh"));
+													console.log("Event dispatched");
+												}
 											});
 											if (listenable1.value + 1 >= list.length) {
 												listenable1.removeEventListener("change", arguments.callee);
@@ -580,15 +596,21 @@
 								});
 							}
 						});
-						// stores and replaces account data with current data
-						S.forEach(S.storage.local.list(), function (key) {
-							S.forEach(S.storage.local.recall(key), function (value, property) {
-								S.storage.server.store(property, value, "/"+key, function () {
-									listenable1.value++;
+						if (S.storage.local.list().length > 0) {
+							// stores and replaces account data with current data
+							S.forEach(S.storage.local.list(), function (key) {
+								S.forEach(S.storage.local.recall(key), function (value, property) {
+									S.storage.server.store(property, value, "/" + key, function () {
+										listenable1.value++;
+									});
 								});
 							});
-						});
+						} else {
+							window.dispatchEvent(new Event("readyToRefresh"));
+							console.log("Event dispatched");
+						}
 					} else {
+						console.log("Creating a session list");
 						useLocal = false;
 						// stores and replaces current session data with account data
 						listenable1.addEventListener("change", function (index) {
@@ -604,15 +626,21 @@
 										if (itemNumber == list.length) {
 											listenable1.value = undefined;
 											window.dispatchEvent(new Event("readyToRefresh"));
+											console.log("Event dispatched");
 										}
 									}
 								});
-								S.forEach(listItem, function (property) {
-									S.storage.server.recall(property, "/" + list[index], function (data) {
-										item[property] = data;
-										listener.value++;
+								if (listItem.length > 0) {
+									S.forEach(listItem, function (property) {
+										S.storage.server.recall(property, "/" + list[index], function (data) {
+											item[property] = data;
+											listener.value++;
+										});
 									});
-								});
+								} else {
+									window.dispatchEvent(new Event("readyToRefresh"));
+									console.log("Event dispatched");
+								}
 							});
 							if (listenable1.value + 1 >= list.length) {
 								listenable1.removeEventListener("change", arguments.callee);
@@ -624,6 +652,7 @@
 					}
 				} else {
 					window.dispatchEvent(new Event("readyToRefresh"));
+					console.log("Event dispatched");
 				}
 			}
 			S.listen(window, "readyToRefresh", function () {
@@ -748,7 +777,7 @@
 			function remove() {
 				S.storage.local.list().forEach(function(key) {
 					let item = S.storage.local.recall(key);
-					if (key == S.getId("description").value.trim()) {
+					if (key == encodeURIComponent(S.getId("description").value.trim())) {
 						S.storage.local.forget(key);
 					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
 						S.storage.local.forget(key);
@@ -769,7 +798,7 @@
 				}, 1000000);  // refreshes a little under every 17 minutes
 
 				firebase.auth().onAuthStateChanged(function (user) {
-					if (user) {
+					if (user && S.getId("syncData").checked) {
 						mergeData = confirm("Merge this data with your account data?");
 						deleteData = confirm("Delete account data not present here?");
 					}
@@ -789,6 +818,7 @@
 
 			S.listen("update", "click", function() {
 				if (!this.disabled) {
+					/*
 					S.storage.local.list().forEach(function(key) {
 						try {
 							S.storage.local.store(decodeURIComponent(decodeURIComponent(key)), S.storage.local.recall(key));
@@ -808,6 +838,7 @@
 						}
 					});
 					refresh();
+					*/
 				}
 			});
 		</script>
