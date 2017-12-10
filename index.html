@@ -685,7 +685,7 @@
 				S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
 					section.getElementsByTagName("div")[0].addEventListener("touchend", function (event) {
 						event.preventDefault();
-						this.parentNode.focus();
+						this.parentNode.click();
 					});
 				});
 
