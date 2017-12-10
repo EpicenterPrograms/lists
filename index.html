@@ -524,7 +524,7 @@
 						console.log("Merging data");
 						listenable1.value = 0;
 						listenable1.addEventListener("change", function (value) {
-							if (value == list.length) {  // when all items have been stored
+							if (value == S.storage.local.list().length) {  // when all items have been stored
 								console.log("All items have been stored");
 								listenable1.removeEventListener("change", arguments.callee);
 								listenable1.value = undefined;
