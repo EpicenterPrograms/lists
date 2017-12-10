@@ -502,6 +502,7 @@
 								S.forEach(S.storage.local.recall(key), function (value, property) {
 									S.storage.server.store(property, value, "/"+key, function () {
 										listenable1.value++;
+										console.log("listenable1 incremented");
 									});
 								});
 							});
