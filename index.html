@@ -683,11 +683,12 @@
 			
 			window.addEventListener("finished", function () {
 				S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
-					section.getElementsByTagName("div")[0].addEventListener("click", function () {
-						if (window.getComputedStyle(this.nextSibling).display == "none") {
-							this.nextSibling.style.display = "block";
+					let elements = section.getElementsByTagName("div");
+					elements[0].addEventListener("click", function () {
+						if (window.getComputedStyle(elements[1]).display == "none") {
+							elements[1].style.display = "block";
 						} else {
-							this.nextSibling.style.display = "none";
+							elements[1].style.display = "none";
 						}
 					});
 				});
