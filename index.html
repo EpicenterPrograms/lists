@@ -451,43 +451,45 @@
 									} else {
 										console.log("Overwriting current data");
 										// stores and replaces current data with account data
-										listenable1.addEventListener("change", function (index) {
-											console.log(index);
-											console.log(list[index]);
-											S.storage.server.list("/"+list[index].id, function (listItem) {
-												let item = {};
-												let listener = new S.Listenable();
-												listener.value = 0;
-												listener.addEventListener("change", function (propertiesStored) {
-													if (propertiesStored == listItem.length) {
-														S.storage.local.store(list[index].id, item);
-														listener.value = undefined;
-														if (index + 1 == list.length) {
-															listenable1.value = undefined;
-															window.dispatchEvent(new Event("readyToRefresh"));
-															console.log("Event dispatched");
+										setTimeout(function () {
+											listenable1.addEventListener("change", function (index) {
+												console.log(index);
+												console.log(list[index]);
+												S.storage.server.list("/" + list[index].id, function (listItem) {
+													let item = {};
+													let listener = new S.Listenable();
+													listener.value = 0;
+													listener.addEventListener("change", function (propertiesStored) {
+														if (propertiesStored == listItem.length) {
+															S.storage.local.store(list[index].id, item);
+															listener.value = undefined;
+															if (index + 1 == list.length) {
+																listenable1.value = undefined;
+																window.dispatchEvent(new Event("readyToRefresh"));
+																console.log("Event dispatched");
+															}
 														}
+													});
+													if (listItem.length > 0) {
+														S.forEach(listItem, function (property) {
+															S.storage.server.recall(property, "/" + list[index].id, function (data) {
+																item[property] = data;
+																listener.value++;
+															});
+														});
+													} else {
+														window.dispatchEvent(new Event("readyToRefresh"));
+														console.log("Event dispatched");
 													}
 												});
-												if (listItem.length > 0) {
-													S.forEach(listItem, function (property) {
-														S.storage.server.recall(property, "/"+list[index].id, function (data) {
-															item[property] = data;
-															listener.value++;
-														});
-													});
+												if (index + 1 < list.length) {
+													listenable1.value++;
 												} else {
-													window.dispatchEvent(new Event("readyToRefresh"));
-													console.log("Event dispatched");
+													listenable1.removeEventListener("change", arguments.callee);
 												}
 											});
-											if (index + 1 < list.length) {
-												listenable1.value++;
-											} else {
-												listenable1.removeEventListener("change", arguments.callee);
-											}
-										});
-										listenable1.value = 0;
+											listenable1.value = 0;
+										}, 0);
 									}
 								});
 							}
