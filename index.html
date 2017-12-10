@@ -681,7 +681,13 @@
 				refresh();
 			}
 			
-			window.addEventListener("finished", function() {
+			window.addEventListener("finished", function () {
+				S.forEach(S.getTag("nav")[0].getElementsByTagName("div"), function (item) {  // allows mobile devices to access the drop-down menus
+					S.listen(item, "click", function () {
+						this.focus();
+					});
+				});
+
 				refresh();
 				S.getId("recurrence").addEventListener("change", showHide);
 				S.getId("quickSelect").addEventListener("change", function() {
@@ -794,6 +800,9 @@
 		</style>
 	</head>
 	<body>
+		<h1 class="main-title">
+			To-do List
+		</h1>
 		<div class="user-section">
 			<button id="signIn">
 				Log in
@@ -808,9 +817,6 @@
 				Log out
 			</button>
 		</div>
-		<h1 class="main-title">
-			To-do List
-		</h1>
 		<nav class="top-nav">
 			<div class="drop-down" tabindex="0">
 				<div>
