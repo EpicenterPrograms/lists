@@ -422,6 +422,7 @@
 								listenable1.removeEventListener("change", arguments.callee);
 								listenable1.value = undefined;
 								S.storage.server.list("", function (list) {
+									console.log(list);
 									if (deleteData) {
 										console.log("Deleting data");
 										let localKeys = S.storage.local.list();
