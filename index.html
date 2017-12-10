@@ -415,8 +415,10 @@
 					console.log("Syncing data");
 					if (mergeData) {  // if the existing data should be merged to the account data
 						console.log("Merging data");
+						console.log(S.storage.local.list().length);
 						listenable1.value = 0;
 						listenable1.addEventListener("change", function (value) {
+							console.log(value);
 							if (value == S.storage.local.list().length) {  // when all items have been stored
 								console.log("All items have been stored");
 								listenable1.removeEventListener("change", arguments.callee);
@@ -495,8 +497,8 @@
 						if (S.storage.local.list().length > 0) {
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
+								console.log("Storing " + key);
 								S.forEach(S.storage.local.recall(key), function (value, property) {
-									console.log("Storing " + key);
 									S.storage.server.store(property, value, "/"+key, function () {
 										listenable1.value++;
 									});
