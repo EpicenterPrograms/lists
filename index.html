@@ -684,10 +684,10 @@
 			window.addEventListener("finished", function () {
 				S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
 					section.getElementsByTagName("div")[0].addEventListener("click", function () {
-						if (window.getComputedStyle(this).display == "none") {
-							this.style.display = "block";
+						if (window.getComputedStyle(this.nextSibling).display == "none") {
+							this.nextSibling.style.display = "block";
 						} else {
-							this.style.display = "none";
+							this.nextSibling.style.display = "none";
 						}
 					});
 				});
