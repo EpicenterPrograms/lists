@@ -498,8 +498,9 @@
 						if (S.storage.local.list().length > 0) {
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
-								console.log("Storing " + key);
+								console.log("Storing " + S.storage.local.recall(key));
 								S.forEach(S.storage.local.recall(key), function (value, property) {
+									console.log("Setting property " + property);
 									S.storage.server.store(property, value, "/"+key, function () {
 										listenable1.value++;
 										console.log("listenable1 incremented");
