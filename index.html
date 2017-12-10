@@ -496,10 +496,9 @@
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
 								S.forEach(S.storage.local.recall(key), function (value, property) {
+									console.log("Storing " + key);
 									S.storage.server.store(property, value, "/"+key, function () {
-										setTimeout(function () {
-											listenable1.value++;
-										}, 0);
+										listenable1.value++;
 									});
 								});
 							});
