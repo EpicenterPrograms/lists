@@ -482,7 +482,9 @@
 												}
 											});
 											if (index + 1 < list.length) {
-												listenable1.value++;
+												setTimeout(function () {
+													listenable1.value++;
+												}, 0);
 											} else {
 												listenable1.removeEventListener("change", arguments.callee);
 											}
