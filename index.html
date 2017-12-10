@@ -683,7 +683,8 @@
 			
 			window.addEventListener("finished", function () {
 				S.forEach(S.getTag("nav")[0].getElementsByTagName("div"), function (item) {  // allows mobile devices to access the drop-down menus
-					item.addEventListener("click", function () {
+					item.addEventListener("click", function (event) {
+						event.preventDefault();
 						this.parentNode.focus();
 					});
 				});
