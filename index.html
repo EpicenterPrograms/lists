@@ -30,7 +30,7 @@
 							if (self.callbacks[index][0] == "get") {
 								self.callbacks[index][1]();
 							}
-							if (self.callbacks[index][2]) {
+							if (self.callbacks[index] !== undefined && self.callbacks[index][2]) {
 								self.callbacks.splice(index, 1);
 							} else {
 								index++;
@@ -50,7 +50,7 @@
 						} else if (this.callbacks[index][0] == "change" && originalValue !== this.internalValue) {
 							this.callbacks[index][1](variable);
 						}
-						if (this.callbacks[index][2]) {
+						if (this.callbacks[index][2] !== undefined && this.callbacks[index][2]) {
 							this.callbacks.splice(index, 1);
 						} else {
 							index++;
@@ -84,7 +84,7 @@
 							if (self.callbacks[index][0] == "get") {
 								self.callbacks[index][1]();
 							}
-							if (self.callbacks[index][2]) {
+							if (self.callbacks[index] !== undefined && self.callbacks[index][2]) {
 								self.callbacks.splice(index, 1);
 							} else {
 								index++;
@@ -104,7 +104,7 @@
 						} else if (this.callbacks[index][0] == "change" && originalValue !== this.internalValue) {
 							this.callbacks[index][1](variable);
 						}
-						if (this.callbacks[index][2]) {
+						if (this.callbacks[index][2] !== undefined && this.callbacks[index][2]) {
 							this.callbacks.splice(index, 1);
 						} else {
 							index++;
