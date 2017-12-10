@@ -481,7 +481,7 @@
 													console.log("Event dispatched");
 												}
 											});
-											if (index < list.length) {
+											if (index + 1 < list.length) {
 												listenable1.value++;
 											} else {
 												listenable1.removeEventListener("change", arguments.callee);
