@@ -435,10 +435,10 @@
 										});
 										if (list.length > 0) {
 											// deletes account data not not present in the current data
-											S.forEach(list, function (key) {
-												if (!localKeys.includes(key)) {
+											S.forEach(list, function (document) {
+												if (!localKeys.includes(document.id)) {
 													listenable1++;
-													S.storage.server.forget(key, "", function () {
+													S.storage.server.forget(document.id, "", function () {
 														listenable1.value--;
 													});
 												}
@@ -451,13 +451,13 @@
 										console.log("Overwriting current data");
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
-											S.storage.server.list("/"+list[index], function (listItem) {
+											S.storage.server.list("/"+list[index].id, function (listItem) {
 												let item = {};
 												let listener = new S.Listenable();
 												listener.value = 0;
 												listener.addEventListener("change", function (propertiesStored) {
 													if (propertiesStored == listItem.length) {
-														S.storage.local.store(list[index], item);
+														S.storage.local.store(list[index].id, item);
 														listener.value = undefined;
 														if (index + 1 == list.length) {
 															listenable1.value = undefined;
@@ -468,7 +468,7 @@
 												});
 												if (listItem.length > 0) {
 													S.forEach(listItem, function (property) {
-														S.storage.server.recall(property, "/" + list[index], function (data) {
+														S.storage.server.recall(property, "/"+list[index].id, function (data) {
 															item[property] = data;
 															listener.value++;
 														});
@@ -508,13 +508,13 @@
 						// stores and replaces current session data with account data
 						S.storage.server.list("", function (list) {
 							listenable1.addEventListener("change", function (index) {
-								S.storage.server.list("/" + list[index], function (listItem) {
+								S.storage.server.list("/"+list[index].id, function (listItem) {
 									let item = {};
 									let listener = new S.Listenable();
 									listener.value = 0;
 									listener.addEventListener("change", function (propertiesStored) {
 										if (propertiesStored == listItem.length) {
-											S.storage.session.store(list[index], item);
+											S.storage.session.store(list[index].id, item);
 											listener.value = undefined;
 											if (index + 1 == list.length) {
 												listenable1.value = undefined;
@@ -525,7 +525,7 @@
 									});
 									if (listItem.length > 0) {
 										S.forEach(listItem, function (property) {
-											S.storage.server.recall(property, "/" + list[index], function (data) {
+											S.storage.server.recall(property, "/"+list[index].id, function (data) {
 												item[property] = data;
 												listener.value++;
 											});
