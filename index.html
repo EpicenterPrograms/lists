@@ -408,7 +408,7 @@
 
 			function refresh(shouldSync) {
 				now = new Date();
-				S.getId("list").innerHTML = "";
+				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
@@ -422,7 +422,6 @@
 								listenable1.removeEventListener("change", arguments.callee);
 								listenable1.value = undefined;
 								S.storage.server.list("", function (list) {
-									console.log(list);
 									if (deleteData) {
 										console.log("Deleting data");
 										let localKeys = S.storage.local.list();
@@ -453,7 +452,6 @@
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
 											console.log(index);
-											console.log(list[index]);
 											S.storage.server.list("/"+list[index].id, function (listItem) {
 												let item = {};
 												let listener = new S.Listenable();
@@ -498,8 +496,10 @@
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
 								S.forEach(S.storage.local.recall(key), function (value, property) {
-									S.storage.server.store(property, value, "/" + key, function () {
-										listenable1.value++;
+									S.storage.server.store(property, value, "/"+key, function () {
+										setTimeout(function () {
+											listenable1.value++;
+										}, 0);
 									});
 								});
 							});
@@ -556,6 +556,7 @@
 			}
 			S.listen(window, "readyToRefresh", function () {
 				console.log("refreshing");
+				S.getId("list").innerHTML = "";
 				// fills Priority.instances
 				if (useLocal) {  // if local storage should be used
 					S.storage.local.list().forEach(function (key) {
