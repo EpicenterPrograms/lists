@@ -452,6 +452,8 @@
 										console.log("Overwriting current data");
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
+											console.log(index);
+											console.log(list[index]);
 											S.storage.server.list("/"+list[index].id, function (listItem) {
 												let item = {};
 												let listener = new S.Listenable();
