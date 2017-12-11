@@ -684,17 +684,11 @@
 
 			S.listen("update", "click", function() {
 				if (!this.disabled) {
-					/*
 					S.storage.local.list().forEach(function(key) {
 						try {
 							S.storage.local.store(decodeURIComponent(decodeURIComponent(key)), S.storage.local.recall(key));
 						} catch (error) {
-							console.log("single decode:\n" + key);
-						}
-					});
-					S.forEach(S.storage.local.list(), function(key) {
-						if (key.includes("252525") || key.includes("%20")) {
-							S.storage.local.forget(key);
+							console.error(error);
 						}
 					});
 					S.forEach(S.storage.local.list(), function(key) {
@@ -704,7 +698,6 @@
 						}
 					});
 					refresh();
-					*/
 				}
 			});
 		</script>
@@ -802,7 +795,7 @@
 						</tr>
 						<tr>
 							<td colspan="2">
-								<button id="update" disabled>
+								<button id="update">
 									Update
 								</button>
 							</td>
