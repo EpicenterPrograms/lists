@@ -685,11 +685,7 @@
 			S.listen("update", "click", function() {
 				if (!this.disabled) {
 					S.storage.local.list().forEach(function(key) {
-						try {
-							S.storage.local.store(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))), S.storage.local.recall(key));
-						} catch (error) {
-							console.error(error);
-						}
+						S.storage.local.move(key, decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))));
 					});
 					S.forEach(S.storage.local.list(), function(key) {
 						if (key != encodeURIComponent(key)) {
