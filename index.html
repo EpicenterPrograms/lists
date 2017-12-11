@@ -454,32 +454,8 @@
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
 											console.log(index);
-											S.storage.server.list("/"+list[index].id, function (listItem) {
-												let item = {};
-												let listener = new S.Listenable();
-												listener.value = 0;
-												listener.addEventListener("change", function (propertiesStored) {
-													if (propertiesStored == listItem.length) {
-														S.storage.local.store(list[index].id, item);
-														listener.value = undefined;
-														if (index + 1 == list.length) {
-															listenable1.value = undefined;
-															window.dispatchEvent(new Event("readyToRefresh"));
-															console.log("Event dispatched");
-														}
-													}
-												});
-												if (listItem.length > 0) {
-													S.forEach(listItem, function (property) {
-														S.storage.server.recall(property, "/"+list[index].id, function (data) {
-															item[property] = data;
-															listener.value++;
-														});
-													});
-												} else {
-													window.dispatchEvent(new Event("readyToRefresh"));
-													console.log("Event dispatched");
-												}
+											S.storage.server.recall(list[index].id, "", function (data) {
+												S.storage.local.store(list[index].id, data);
 											});
 											if (index + 1 < list.length) {
 												setTimeout(function () {
@@ -499,12 +475,9 @@
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
 								console.log("Storing " + S.storage.local.recall(key));
-								S.forEach(S.storage.local.recall(key), function (value, property) {
-									console.log("Setting property " + property);
-									S.storage.server.store(property, value, "/"+key, function () {
-										listenable1.value++;
-										console.log("listenable1 incremented");
-									});
+								S.storage.server.store(key, S.storage.local.recall(key), "", function () {
+									listenable1.value++;
+									console.log("listenable1 incremented");
 								});
 							});
 						} else {
@@ -517,35 +490,13 @@
 						// stores and replaces current session data with account data
 						S.storage.server.list("", function (list) {
 							listenable1.addEventListener("change", function (index) {
-								S.storage.server.list("/"+list[index].id, function (listItem) {
-									let item = {};
-									let listener = new S.Listenable();
-									listener.value = 0;
-									listener.addEventListener("change", function (propertiesStored) {
-										if (propertiesStored == listItem.length) {
-											S.storage.session.store(list[index].id, item);
-											listener.value = undefined;
-											if (index + 1 == list.length) {
-												listenable1.value = undefined;
-												window.dispatchEvent(new Event("readyToRefresh"));
-												console.log("Event dispatched");
-											}
-										}
-									});
-									if (listItem.length > 0) {
-										S.forEach(listItem, function (property) {
-											S.storage.server.recall(property, "/"+list[index].id, function (data) {
-												item[property] = data;
-												listener.value++;
-											});
-										});
-									} else {
-										window.dispatchEvent(new Event("readyToRefresh"));
-										console.log("Event dispatched");
-									}
+								S.storage.server.recall(list[index].id, "", function (data) {
+									S.storage.session.store(list[index].id, data);
 								});
 								if (index + 1 < list.length) {
-									listenable1.value++;
+									setTimeout(function () {
+										listenable1.value++;
+									}, 0);
 								} else {
 									listenable1.removeEventListener("change", arguments.callee);
 								}
