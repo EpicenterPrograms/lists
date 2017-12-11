@@ -686,7 +686,7 @@
 				if (!this.disabled) {
 					S.storage.local.list().forEach(function(key) {
 						try {
-							S.storage.local.store(decodeURIComponent(decodeURIComponent(key)), S.storage.local.recall(key));
+							S.storage.local.store(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))), S.storage.local.recall(key));
 						} catch (error) {
 							console.error(error);
 						}
