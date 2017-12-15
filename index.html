@@ -13,13 +13,99 @@
 			S.storage.session.defaultLocation = "To-Do-List/list items";
 			S.storage.local.defaultLocation = "To-Do-List/list items";
 			S.storage.server.defaultLocation = "lists/default/items";
+
 			var itemNumber = 1;
-			var now;
+			var now = new Date();
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 			var mergeData = false;
 			var deleteData = false;
 			var useLocal = true;
 			var listenable1 = new S.Listenable();
+			var pastDueNumber = 0;
+
+			var sampleList = [
+				{
+					description: "finish my math homework",
+					importance: 4,
+					recurrence: "weekly",
+					time: "monday wednesday friday~11:59 pm",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "go to work",
+					importance: 4,
+					recurrence: "weekly",
+					time: "monday tuesday wednesday thursday friday~4:00 pm",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "brush my teeth",
+					importance: 3,
+					recurrence: "daily",
+					time: "~10:30 pm",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "cut the grass",
+					importance: 1,
+					recurrence: "indefinite",
+					time: "later",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				},
+				{
+					description: "",
+					importance: 0,
+					recurrence: "",
+					time: "",
+					lastFinished: now.getTime(),
+					done: false
+				}
+			];
+
 			function makePriority(description, importance, date, recurrence, lastFinished, done) {
 				/**
 				adds a priority to Priority.instances
@@ -178,6 +264,9 @@
 					if (recurrence == "indefinite") {
 						if (then.getTime() <= now.getTime()) {
 							label.style.fontWeight = "bold";
+							if (importance == 5) {
+								label.style.textDecoration = "underline";
+							}
 							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
 							label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
@@ -185,6 +274,9 @@
 					} else if (recurrence == "daily") {
 						if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
 							label.style.fontWeight = "bold";
+							if (importance == 5) {
+								label.style.textDecoration = "underline";
+							}
 							label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
 							label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
@@ -197,6 +289,9 @@
 						}
 						if (then.getTime() < later.getTime()) {
 							label.style.fontWeight = "bold";
+							if (importance == 5) {
+								label.style.textDecoration = "underline";
+							}
 							label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() < later.getTime() + 86400000) {
 							label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
@@ -204,8 +299,12 @@
 					}
 				} else {
 					label.style.fontWeight = "bold";
+					if (importance == 5) {
+						label.style.textDecoration = "underline";
+					}
 					label.style.color = "red";
 					label.title = "Past due";
+					pastDueNumber++;
 				}
 				
 				// puts the elements into a container
@@ -410,6 +509,7 @@
 				now = new Date();
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
+				pastDueNumber = 0;
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
 					console.log("Syncing data");
@@ -553,6 +653,14 @@
 						S.getId("list").getElementsByTagName("input")[index].checked = true;
 					}
 				});
+				// adds a notification of past-due items
+				if (pastDueNumber > 0) {
+					S.getId("pastDueNotifier").textContent = pastDueNumber;
+					S.getId("pastDueNotifier").style.display = "inline-block";
+				} else {
+					S.getId("pastDueNotifier").style.display = "none";
+				}
+				S.getId("pastDueItems").textContent = pastDueNumber;
 
 				if (S.getId("list").innerHTML == "") {
 					// adds a prompt if there's no items saved
@@ -698,13 +806,16 @@
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/christmas.css">
 		<style>
 			main {
 				margin-top: 0em;
 			}
 			nav.top-nav {
 				margin: auto;
+				/*
 				background: darkblue;
+				*/
 				width: 90%;
 			}
 			nav.top-nav td {
@@ -713,17 +824,23 @@
 			nav.top-nav label {
 				white-space: nowrap;
 			}
+			/*
 			nav.top-nav div.drop-down div:first-child {
 				background: darkblue;
 				color: steelblue;
 			}
+			*/
 			nav.top-nav div.drop-down div {
 				padding: .5em;
+				/*
 				background: steelblue;
+				*/
 			}
+			/*
 			nav.top-nav div.drop-down:hover div:first-child, nav.top-nav div.drop-down:focus div:first-child, nav.top-nav div.drop-down:focus-within div:first-child {
 				background: lightsteelblue;
 			}
+			*/
 			.list-item {
 				margin: .5em 0em;
 			}
@@ -731,6 +848,15 @@
 				display: block;
 				margin: 1em auto;
 			}
+			#pastDueNotifier {
+				display: none;
+				border: .05em solid black;
+				border-radius: .5em;
+				width: 1em;
+				height: 1em;
+				background: red;
+			}
+
 			@media screen and (max-width: 1000px) {
 				body {
 					font-size: 1.5em;
@@ -947,6 +1073,17 @@
 							Remove
 						</button>
 					</section>
+				</div>
+			</div>
+			<div class="drop-down" tabindex="0">
+				<div>
+					Notifications
+					<div id="pastDueNotifier"></div>
+				</div>
+				<div>
+					There are
+					<div id="pastDueItems">0</div>
+					past-due items.
 				</div>
 			</div>
 		</nav>
