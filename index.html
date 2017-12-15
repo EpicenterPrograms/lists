@@ -4,10 +4,13 @@
 		<title>
 			To-do List
 		</title>
+		<!--
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
+		-->
+		<script src="file:///C:/Users/Robert/Documents/GitHub/standards/behavior.js"></script>
 		<script>
 			var S = Standards;
 			S.storage.session.defaultLocation = "To-Do-List/list items";
@@ -57,50 +60,50 @@
 					done: false
 				},
 				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
+					description: "go to Joe's party",
+					importance: 2,
+					recurrence: "once",
+					time: week[now.getDay()>2 ? now.getDay()-3 : now.getDay()+4] + "~8:00 pm",
 					lastFinished: now.getTime(),
 					done: false
 				},
 				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
+					description: "take out the trash",
+					importance: 3,
+					recurrence: "weekly",
+					time: "friday~7:00 pm",
+					lastFinished: now.getTime(),
+					done: true
+				},
+				{
+					description: "have game night",
+					importance: 2,
+					recurrence: "monthly",
+					time: "10~8:00 pm",
 					lastFinished: now.getTime(),
 					done: false
 				},
 				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
-					lastFinished: now.getTime(),
+					description: "sign up for the charity event",
+					importance: 2,
+					recurrence: "once",
+					time: week[now.getDay()<1 ? 6 : now.getDay()-1] + "~5:00 pm",
+					lastFinished: now.getTime()-172800000,
 					done: false
 				},
 				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
+					description: "find my keys",
+					importance: 5,
+					recurrence: "indefinite",
+					time: "immediately",
 					lastFinished: now.getTime(),
-					done: false
+					done: true
 				},
 				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
-					lastFinished: now.getTime(),
-					done: false
-				},
-				{
-					description: "",
-					importance: 0,
-					recurrence: "",
-					time: "",
+					description: "have breakfast with Sally",
+					importance: 3,
+					recurrence: "once",
+					time: (now.getMonth()>10 ? 0 : now.getMonth()+1) + "/" + (now.getDate()+1) + "/" + (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear()) + "~8:00 am",
 					lastFinished: now.getTime(),
 					done: false
 				}
@@ -267,6 +270,7 @@
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
 							} else if (importance == 4) {
+								label.style.WebkitTextDecorationStyle = "dotted";  // for Safari
 								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
@@ -279,6 +283,7 @@
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
 							} else if (importance == 4) {
+								label.style.WebkitTextDecorationStyle = "dotted";
 								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
@@ -296,6 +301,7 @@
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
 							} else if (importance == 4) {
+								label.style.WebkitTextDecorationStyle = "dotted";
 								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
@@ -308,6 +314,7 @@
 					if (importance == 5) {
 						label.style.textDecoration = "underline solid red";
 					} else if (importance == 4) {
+						label.style.WebkitTextDecorationStyle = "dotted";
 						label.style.textDecoration = "underline dotted red";
 					}
 					label.style.color = "red";
@@ -797,7 +804,24 @@
 				}
 			});
 
-			S.listen("update", "click", function() {
+			S.listen("loadSampleList", "click", function () {
+				if (this.textContent.trim() == "Load sample list") {
+					S.forEach(sampleList, function (item) {
+						S.storage.session.store(item.description, { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done });
+					});
+					useLocal = false;
+					this.textContent = "Remove sample list";
+				} else {
+					S.forEach(S.storage.session.list(), function (key) {
+						S.storage.session.forget(key);
+					});
+					useLocal = true;
+					this.textContent = "Load sample list";
+				}
+				refresh();
+			});
+
+			S.listen("update", "click", function () {
 				if (!this.disabled) {
 					S.storage.local.list().forEach(function(key) {
 						S.storage.local.move(key, decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))));
@@ -812,8 +836,12 @@
 				}
 			});
 		</script>
+		<!--
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/christmas.css">
+		-->
+		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
+		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/christmas.css">
 		<style>
 			main {
 				margin-top: 0em;
@@ -905,6 +933,11 @@
 						<tr>
 							<td><input type="checkbox" id="syncData"></td>
 							<td><label for="syncData">Sync data with your account when possible</label></td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<button id="loadSampleList">Load sample list</button>
+							</td>
 						</tr>
 						<tr>
 							<td colspan="2">
