@@ -266,6 +266,8 @@
 							label.style.fontWeight = "bold";
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
+							} else if (importance == 4) {
+								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
@@ -276,6 +278,8 @@
 							label.style.fontWeight = "bold";
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
+							} else if (importance == 4) {
+								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark style='background:#ff00ff'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
@@ -291,6 +295,8 @@
 							label.style.fontWeight = "bold";
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
+							} else if (importance == 4) {
+								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() < later.getTime() + 86400000) {
@@ -300,7 +306,9 @@
 				} else {
 					label.style.fontWeight = "bold";
 					if (importance == 5) {
-						label.style.textDecoration = "underline";
+						label.style.textDecoration = "underline solid red";
+					} else if (importance == 4) {
+						label.style.textDecoration = "underline dotted red";
 					}
 					label.style.color = "red";
 					label.title = "Past due";
