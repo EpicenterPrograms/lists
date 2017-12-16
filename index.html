@@ -4,13 +4,13 @@
 		<title>
 			To-do List
 		</title>
-		<!--
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior.js"></script>
-		-->
+		<!--
 		<script src="file:///C:/Users/Robert/Documents/GitHub/standards/behavior.js"></script>
+		-->
 		<script>
 			var S = Standards;
 			S.storage.session.defaultLocation = "To-Do-List/list items";
@@ -63,7 +63,10 @@
 					description: "go to Joe's party",
 					importance: 2,
 					recurrence: "once",
-					time: week[now.getDay()>2 ? now.getDay()-3 : now.getDay()+4] + "~8:00 pm",
+					time: function () {
+						let time = new Date(now.getTime() + 345600000);
+						return (time.getMonth()+1) + "/" + time.getDate() + "/" + time.getFullYear() + "~8:00 pm";
+					}(),
 					lastFinished: now.getTime(),
 					done: false
 				},
@@ -87,7 +90,10 @@
 					description: "sign up for the charity event",
 					importance: 2,
 					recurrence: "once",
-					time: week[now.getDay()<1 ? 6 : now.getDay()-1] + "~5:00 pm",
+					time: function () {
+						let time = new Date(now.getTime() - 86400000);
+						return (time.getMonth() + 1) + "/" + time.getDate() + "/" + time.getFullYear() + "~5:00 pm";
+					}(),
 					lastFinished: now.getTime()-172800000,
 					done: false
 				},
@@ -103,7 +109,7 @@
 					description: "have breakfast with Sally",
 					importance: 3,
 					recurrence: "once",
-					time: (now.getMonth()>10 ? 0 : now.getMonth()+1) + "/" + (now.getDate()+1) + "/" + (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear()) + "~8:00 am",
+					time: ((now.getMonth()>10 ? 0 : now.getMonth()+1)+1) + "/" + (now.getDate()+1) + "/" + (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear()) + "~8:00 am",
 					lastFinished: now.getTime(),
 					done: false
 				}
@@ -332,6 +338,9 @@
 				
 				// crosses out finished items
 				if (done) {
+					if (then.getTime() < now.getTime() && recurrence != "indefinite") {
+						pastDueNumber--;
+					}
 					label.style.textDecoration = "line-through";
 					label.title = "Finished";
 					label.style.color = "inherit";
@@ -342,10 +351,14 @@
 					if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
 						lastFinished = then.getTime() + 1;
 						done = false;
-						let item = S.storage.local.recall(description);
+						let item = useLocal ? S.storage.local.recall(description) : S.storage.session.recall(description);
 						item.lastFinished = lastFinished;
 						item.done = done;
-						S.storage.local.store(description, item);
+						if (useLocal) {
+							S.storage.local.store(description, item);
+						} else {
+							S.storage.session.store(description, item);
+						}
 						var needsToRunFunctionAgain = true;
 					}
 				}
@@ -370,8 +383,11 @@
 				if (needsToRunFunctionAgain) {
 					makePriority(description, importance, originalDate, recurrence, lastFinished, done);
 				} else {
+					if (isNaN(urgency) || S.getType(urgency) != "Number") {
+						throw 'The item with the description "' + decodeURIComponent(description) + '" has a non-number urgency.';
+					}
 					let increment = 0;
-					while(Priority.instances[urgency+increment] != undefined) {
+					while (Priority.instances[urgency + increment] != undefined) {
 						// while there's a target key value already taken, increase the target key by 1
 						// (prevents overwriting when things have the same due-date and importance)
 						increment++;
@@ -462,7 +478,11 @@
 							break;
 					}
 					date += "~" + time;
-					S.storage.local.store(description, {importance:S.getId("importance").value, time:date, recurrence:S.getId("recurrence").value, lastFinished:now.getTime(), done:false});
+					if (useLocal) {
+						S.storage.local.store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false });
+					} else {
+						S.storage.session.store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false });
+					}
 					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
 						S.getId(ID).value = "";
 					});
@@ -684,13 +704,17 @@
 					// makes the checkboxes listen for when they're clicked on
 					list.forEach(function (listItem, index) {
 						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function () {
-							let item = S.storage.local.recall(encodeURIComponent(listItem.description));
+							let item = useLocal ? S.storage.local.recall(encodeURIComponent(listItem.description)) : S.storage.session.recall(encodeURIComponent(listItem.description));
 							if (this.checked) {
 								item.done = true;
 							} else {
 								item.done = false;
 							}
-							S.storage.local.store(encodeURIComponent(listItem.description), item);
+							if (useLocal) {
+								S.storage.local.store(encodeURIComponent(listItem.description), item);
+							} else {
+								S.storage.session.store(encodeURIComponent(listItem.description), item);
+							}
 							refresh();
 						});
 						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {
@@ -701,7 +725,7 @@
 							} else if (window.getSelection) {
 								window.getSelection().removeAllRanges();
 							}
-							let item = S.storage.local.recall(encodeURIComponent(listItem.description));
+							let item = useLocal ? S.storage.local.recall(encodeURIComponent(listItem.description)) : S.storage.session.recall(encodeURIComponent(listItem.description));
 							S.getId("description").value = listItem.description;
 							S.getId("importance").value = item.importance;
 							S.getId("recurrence").value = item.recurrence;
@@ -753,12 +777,13 @@
 			});
 
 			function remove() {
-				S.storage.local.list().forEach(function(key) {
-					let item = S.storage.local.recall(key);
+				let location = useLocal ? S.storage.local : S.storage.session;
+				location.list().forEach(function(key) {
+					let item = location.recall(key);
 					if (key == encodeURIComponent(S.getId("description").value.trim())) {
-						S.storage.local.forget(key);
+						location.forget(key);
 					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
-						S.storage.local.forget(key);
+						location.forget(key);
 					}
 				});
 				S.getId("description").value = "";
@@ -807,7 +832,7 @@
 			S.listen("loadSampleList", "click", function () {
 				if (this.textContent.trim() == "Load sample list") {
 					S.forEach(sampleList, function (item) {
-						S.storage.session.store(item.description, { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done });
+						S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done });
 					});
 					useLocal = false;
 					this.textContent = "Remove sample list";
@@ -836,12 +861,12 @@
 				}
 			});
 		</script>
-		<!--
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/christmas.css">
-		-->
+		<!--
 		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
 		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/christmas.css">
+		-->
 		<style>
 			main {
 				margin-top: 0em;
@@ -869,11 +894,20 @@
 			#pastDueNotifier {
 				display: none;
 				border: 1px solid black;
-				border-radius: 8px;
-				width: 16px;
-				height: 16px;
+				border-radius: 12px;
+				padding: 1px;
+				width: 24px;
+				height: 24px;
 				background: red;
-				font-size: .9em;
+				font-size: 20px;
+				overflow: hidden;
+			}
+			#pastDueItems {
+				display: inline-block;
+				position: static;
+				padding: 0em;
+				height: 1em;
+				overflow: hidden;
 			}
 
 			@media screen and (max-width: 1000px) {
