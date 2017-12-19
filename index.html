@@ -564,6 +564,7 @@
 										let localKeys = S.storage.local.list();
 										listenable1.value = 0;
 										listenable1.addEventListener("change", function (itemsLeft) {
+											console.log(itemsLeft);
 											if (itemsleft == 0) {
 												listenable1.removeEventListener("change", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
@@ -576,6 +577,7 @@
 												if (!localKeys.includes(document.id)) {
 													listenable1++;
 													S.storage.server.forget(document.id, "", function () {
+														console.log("Decrementing listenable1");
 														listenable1.value--;
 													});
 												}
