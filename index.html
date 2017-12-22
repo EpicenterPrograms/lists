@@ -26,6 +26,10 @@
 			var listenable1 = new S.Listenable();
 			var pastDueNumber = 0;
 
+			listenable1.addEventListener("set", function (value) {
+				console.log(value);
+			});
+
 			var sampleList = [
 				{
 					description: "finish my math homework",
@@ -553,7 +557,6 @@
 						console.log(S.storage.local.list().length);
 						listenable1.value = 0;
 						listenable1.addEventListener("change", function (value) {
-							console.log(value);
 							if (value == S.storage.local.list().length) {  // when all items have been stored
 								console.log("All items have been stored");
 								listenable1.removeEventListener("change", arguments.callee);
@@ -564,7 +567,6 @@
 										let localKeys = S.storage.local.list();
 										listenable1.value = 0;
 										listenable1.addEventListener("change", function (itemsLeft) {
-											console.log(itemsLeft);
 											if (itemsleft == 0) {
 												listenable1.removeEventListener("change", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
@@ -590,7 +592,6 @@
 										console.log("Overwriting current data");
 										// stores and replaces current data with account data
 										listenable1.addEventListener("change", function (index) {
-											console.log(index);
 											S.storage.server.recall(list[index].id, "", function (data) {
 												S.storage.local.store(list[index].id, data);
 											});
