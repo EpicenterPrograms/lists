@@ -583,7 +583,7 @@
 												console.log(!localKeys.includes(document.id));
 												if (!localKeys.includes(document.id)) {
 													deleting = true;
-													listenable1++;
+													listenable1.value++;
 													S.storage.server.forget(document.id, "", function () {
 														console.log("Decrementing listenable1");
 														listenable1.value--;
@@ -593,7 +593,7 @@
 											console.log(deleting);
 											if (!deleting) {
 												console.log("Setting listenable to 0");
-												listenable1 = 0;
+												listenable1.value = 0;
 											}
 										} else {
 											window.dispatchEvent(new Event("readyToRefresh"));
