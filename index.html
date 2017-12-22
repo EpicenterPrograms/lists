@@ -568,7 +568,7 @@
 										listenable1.value = 0;
 										listenable1.addEventListener("set", function (itemsLeft) {
 											console.log("Running final listener");
-											if (itemsleft == 0) {
+											if (itemsLeft == 0) {
 												listenable1.removeEventListener("set", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
 												console.log("Event dispatched");
