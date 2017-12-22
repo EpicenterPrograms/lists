@@ -566,9 +566,9 @@
 										console.log("Deleting data");
 										let localKeys = S.storage.local.list();
 										listenable1.value = 0;
-										listenable1.addEventListener("change", function (itemsLeft) {
+										listenable1.addEventListener("set", function (itemsLeft) {
 											if (itemsleft == 0) {
-												listenable1.removeEventListener("change", arguments.callee);
+												listenable1.removeEventListener("set", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
 												console.log("Event dispatched");
 											}
@@ -577,9 +577,11 @@
 											// deletes account data not not present in the current data
 											console.log(localKeys);
 											console.log(list);
+											let deleting = false;
 											S.forEach(list, function (document) {
 												console.log(!localKeys.includes(document.id));
 												if (!localKeys.includes(document.id)) {
+													deleting = true;
 													listenable1++;
 													S.storage.server.forget(document.id, "", function () {
 														console.log("Decrementing listenable1");
@@ -587,6 +589,9 @@
 													});
 												}
 											});
+											if (!deleting) {
+												listenable1 = 0;
+											}
 										} else {
 											window.dispatchEvent(new Event("readyToRefresh"));
 											console.log("Event dispatched");
