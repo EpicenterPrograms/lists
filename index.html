@@ -567,6 +567,7 @@
 										let localKeys = S.storage.local.list();
 										listenable1.value = 0;
 										listenable1.addEventListener("set", function (itemsLeft) {
+											console.log("Running final listener");
 											if (itemsleft == 0) {
 												listenable1.removeEventListener("set", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
@@ -589,7 +590,9 @@
 													});
 												}
 											});
+											console.log(deleting);
 											if (!deleting) {
+												console.log("Setting listenable to 0");
 												listenable1 = 0;
 											}
 										} else {
