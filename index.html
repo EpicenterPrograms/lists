@@ -605,11 +605,13 @@
 										listenable1.addEventListener("change", function (index) {
 											S.storage.server.recall(list[index].id, "", function (data) {
 												S.storage.local.store(list[index].id, data);
+												if (index + 1 >= list.length) {
+													window.dispatchEvent(new Event("readyToRefresh"));
+													console.log("Event dispatched");
+												}
 											});
 											if (index + 1 < list.length) {
-												setTimeout(function () {
-													listenable1.value++;
-												}, 0);
+												listenable1.value++;
 											} else {
 												listenable1.removeEventListener("change", arguments.callee);
 											}
