@@ -575,7 +575,10 @@
 										});
 										if (list.length > 0) {
 											// deletes account data not not present in the current data
+											console.log(localKeys);
+											console.log(list);
 											S.forEach(list, function (document) {
+												console.log(!localKeys.includes(document.id));
 												if (!localKeys.includes(document.id)) {
 													listenable1++;
 													S.storage.server.forget(document.id, "", function () {
