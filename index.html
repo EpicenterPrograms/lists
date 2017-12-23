@@ -23,10 +23,10 @@
 			var mergeData = false;
 			var deleteData = false;
 			var useLocal = true;
-			var listenable1 = new S.Listenable();
+			var listenable = new S.Listenable();
 			var pastDueNumber = 0;
 
-			listenable1.addEventListener("set", function (value) {
+			listenable.addEventListener("set", function (value) {
 				console.log(value);
 			});
 
@@ -555,21 +555,21 @@
 					if (mergeData) {  // if the existing data should be merged to the account data
 						console.log("Merging data");
 						console.log(S.storage.local.list().length);
-						listenable1.value = 0;
-						listenable1.addEventListener("change", function (value) {
-							if (value == S.storage.local.list().length) {  // when all items have been stored
+						listenable.value = 0;
+						listenable.addEventListener("change", function (value) {
+							if (value >= S.storage.local.list().length) {  // when all items have been stored
 								console.log("All items have been stored");
-								listenable1.removeEventListener("change", arguments.callee);
-								listenable1.value = undefined;
+								listenable.removeEventListener("change", arguments.callee);
+								listenable.value = undefined;
 								S.storage.server.list("", function (list) {
 									if (deleteData) {
 										console.log("Deleting data");
 										let localKeys = S.storage.local.list();
-										listenable1.value = 0;
-										listenable1.addEventListener("set", function (itemsLeft) {
+										listenable.value = 0;
+										listenable.addEventListener("set", function (itemsLeft) {
 											console.log("Running final listener");
 											if (itemsLeft == 0) {
-												listenable1.removeEventListener("set", arguments.callee);
+												listenable.removeEventListener("set", arguments.callee);
 												window.dispatchEvent(new Event("readyToRefresh"));
 												console.log("Event dispatched");
 											}
@@ -583,17 +583,17 @@
 												console.log(!localKeys.includes(document.id));
 												if (!localKeys.includes(document.id)) {
 													deleting = true;
-													listenable1.value++;
+													listenable.value++;
 													S.storage.server.forget(document.id, "", function () {
-														console.log("Decrementing listenable1");
-														listenable1.value--;
+														console.log("Decrementing listenable");
+														listenable.value--;
 													});
 												}
 											});
 											console.log(deleting);
 											if (!deleting) {
 												console.log("Setting listenable to 0");
-												listenable1.value = 0;
+												listenable.value = 0;
 											}
 										} else {
 											window.dispatchEvent(new Event("readyToRefresh"));
@@ -602,7 +602,7 @@
 									} else {
 										console.log("Overwriting current data");
 										// stores and replaces current data with account data
-										listenable1.addEventListener("change", function (index) {
+										listenable.addEventListener("change", function (index) {
 											S.storage.server.recall(list[index].id, "", function (data) {
 												S.storage.local.store(list[index].id, data);
 												if (index + 1 >= list.length) {
@@ -611,48 +611,49 @@
 												}
 											});
 											if (index + 1 < list.length) {
-												listenable1.value++;
+												listenable.value++;
 											} else {
-												listenable1.removeEventListener("change", arguments.callee);
+												listenable.removeEventListener("change", arguments.callee);
 											}
 										});
-										listenable1.value = 0;
+										listenable.value = 0;
 									}
 								});
 							}
 						});
-						console.log(listenable1.callbacks);
+						console.log(listenable.callbacks);
 						if (S.storage.local.list().length > 0) {
 							// stores and replaces account data with current data
 							S.forEach(S.storage.local.list(), function (key) {
 								console.log("Storing " + S.storage.local.recall(key));
 								S.storage.server.store(key, S.storage.local.recall(key), "", function () {
-									listenable1.value++;
-									console.log("listenable1 incremented");
+									listenable.value++;
+									console.log("listenable incremented");
 								});
 							});
 						} else {
-							window.dispatchEvent(new Event("readyToRefresh"));
-							console.log("Event dispatched");
+							listenable.value++;
 						}
 					} else {
 						console.log("Creating a session list");
 						useLocal = false;
 						// stores and replaces current session data with account data
 						S.storage.server.list("", function (list) {
-							listenable1.addEventListener("change", function (index) {
+							listenable.addEventListener("change", function (index) {
 								S.storage.server.recall(list[index].id, "", function (data) {
 									S.storage.session.store(list[index].id, data);
+									if (index + 1 >= list.length) {
+										window.dispatchEvent(new Event("readyToRefresh"));
+										console.log("Event dispatched");
+									}
 								});
 								if (index + 1 < list.length) {
-									setTimeout(function () {
-										listenable1.value++;
-									}, 0);
+									listenable.value++;
 								} else {
-									listenable1.removeEventListener("change", arguments.callee);
+									listenable.removeEventListener("change", arguments.callee);
 								}
 							});
-							listenable1.value = 0;
+							listenable.value = 0;
 						});
 					}
 				} else {
