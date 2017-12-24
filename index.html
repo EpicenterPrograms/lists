@@ -840,8 +840,8 @@
 
 				firebase.auth().onAuthStateChanged(function (user) {
 					if (user) {
-						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = false;
-						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = false;
+						S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = false;
+						S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = false;
 						if (S.getId("syncData").checked) {
 							mergeData = confirm("Merge this data with your account data?");
 							if (mergeData) {  ////
@@ -854,8 +854,8 @@
 							}
 						}
 					} else {
-						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = true;
-						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = true;
+						S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = true;
+						S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = true;
 					}
 					refresh(true);
 				});
