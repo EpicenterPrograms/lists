@@ -22,9 +22,10 @@
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 			var mergeData = false;
 			var deleteData = false;
-			var useLocal = true;
 			var listenable = new S.Listenable();
 			var pastDueNumber = 0;
+			var dueTodayNumber = 0;
+			var storagePlace = "local";
 
 			listenable.addEventListener("set", function (value) {
 				console.log(value);
@@ -301,6 +302,7 @@
 							label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
 						}
 					} else {
+						////////////////////////////////////////// setting the due-today number should be done somewhere around here
 						if (now.getHours() < 8) {  // if the current time is before 8:00am
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
 						} else {
@@ -355,14 +357,10 @@
 					if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
 						lastFinished = then.getTime() + 1;
 						done = false;
-						let item = useLocal ? S.storage.local.recall(description) : S.storage.session.recall(description);
+						let item = S.storage[storagePlace].recall(description);
 						item.lastFinished = lastFinished;
 						item.done = done;
-						if (useLocal) {
-							S.storage.local.store(description, item);
-						} else {
-							S.storage.session.store(description, item);
-						}
+						S.storage[storagePlace].store(description, item);
 						var needsToRunFunctionAgain = true;
 					}
 				}
@@ -482,11 +480,7 @@
 							break;
 					}
 					date += "~" + time;
-					if (useLocal) {
-						S.storage.local.store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false });
-					} else {
-						S.storage.session.store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false });
-					}
+					S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false });
 					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat"].forEach(function(ID) {
 						S.getId(ID).value = "";
 					});
@@ -550,17 +544,18 @@
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
 				pastDueNumber = 0;
+				dueTodayNumber = 0;
 				////
 				if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
 					listenable.value = 0;
 					listenable.addEventListener("change", function (value) {
-						if (value >= S.storage.local.list().length) {  // when all items have been stored
+						if (value >= S.storage[storagePlace].list().length) {  // when all items have been stored
 							console.log("All items have been stored");
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
 							S.storage.server.list("", function (list) {
 								console.log("Deleting data");
-								let localKeys = S.storage.local.list();
+								let localKeys = S.storage[storagePlace].list();
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
 									console.log("Running final listener");
@@ -599,11 +594,11 @@
 						}
 					});
 					console.log(listenable.callbacks);
-					if (S.storage.local.list().length > 0) {
+					if (S.storage[storagePlace].list().length > 0) {
 						// stores and replaces account data with current data
-						S.forEach(S.storage.local.list(), function (key) {
-							console.log("Storing " + S.storage.local.recall(key));
-							S.storage.server.store(key, S.storage.local.recall(key), "", function () {
+						S.forEach(S.storage[storagePlace].list(), function (key) {
+							console.log("Storing " + S.storage[storagePlace].recall(key));
+							S.storage.server.store(key, S.storage[storagePlace].recall(key), "", function () {
 								listenable.value++;
 								console.log("listenable incremented");
 							});
@@ -615,15 +610,15 @@
 					S.storage.server.list("", function (list) {
 						listenable.addEventListener("change", function (index) {
 							S.storage.server.recall(list[index].id, "", function (data) {
-								S.storage.local.store(list[index].id, data);
+								S.storage[storagePlace].store(list[index].id, data);
 								if (index + 1 >= list.length) {
 									let idList = [];
 									S.forEach(list, function (document) {
 										idList.push(document.id);
 									});
-									S.forEach(S.storage.local.list(), function (key) {
+									S.forEach(S.storage[storagePlace].list(), function (key) {
 										if (!idList.includes(key)) {
-											S.storage.local.forget(key);
+											S.storage[storagePlace].forget(key);
 										}
 									});
 									window.dispatchEvent(new Event("readyToRefresh"));
@@ -646,6 +641,7 @@
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
 				pastDueNumber = 0;
+				dueTodayNumber = 0;
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
 					/*
@@ -686,17 +682,10 @@
 				console.log("refreshing");
 				S.getId("list").innerHTML = "";
 				// fills Priority.instances
-				if (useLocal) {  // if local storage should be used
-					S.storage.local.list().forEach(function (key) {
-						let item = S.storage.local.recall(key);
-						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
-					});
-				} else {  // if session storage should be used
-					S.storage.session.list().forEach(function (key) {
-						let item = S.storage.session.recall(key);
-						makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
-					});
-				}
+				S.storage[storagePlace].list().forEach(function (key) {
+					let item = S.storage[storagePlace].recall(key);
+					makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done);
+				});
 				// declares necessary variables
 				let list = [],
 					currentIndex = 0,
@@ -734,6 +723,8 @@
 					S.getId("pastDueNotifier").style.display = "none";
 				}
 				S.getId("pastDueItems").textContent = pastDueNumber;
+				// adds an indicator of what's due the same day
+				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
 
 				if (S.getId("list").innerHTML == "") {
 					// adds a prompt if there's no items saved
@@ -742,17 +733,13 @@
 					// makes the checkboxes listen for when they're clicked on
 					list.forEach(function (listItem, index) {
 						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function () {
-							let item = useLocal ? S.storage.local.recall(encodeURIComponent(listItem.description)) : S.storage.session.recall(encodeURIComponent(listItem.description));
+							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
 							if (this.checked) {
 								item.done = true;
 							} else {
 								item.done = false;
 							}
-							if (useLocal) {
-								S.storage.local.store(encodeURIComponent(listItem.description), item);
-							} else {
-								S.storage.session.store(encodeURIComponent(listItem.description), item);
-							}
+							S.storage[storagePlace].store(encodeURIComponent(listItem.description), item);
 							refresh();
 						});
 						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {
@@ -763,7 +750,7 @@
 							} else if (window.getSelection) {
 								window.getSelection().removeAllRanges();
 							}
-							let item = useLocal ? S.storage.local.recall(encodeURIComponent(listItem.description)) : S.storage.session.recall(encodeURIComponent(listItem.description));
+							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
 							S.getId("description").value = listItem.description;
 							S.getId("importance").value = item.importance;
 							S.getId("recurrence").value = item.recurrence;
@@ -815,7 +802,7 @@
 			});
 
 			function remove() {
-				let location = useLocal ? S.storage.local : S.storage.session;
+				let location = S.storage[storagePlace];
 				location.list().forEach(function(key) {
 					let item = location.recall(key);
 					if (key == encodeURIComponent(S.getId("description").value.trim())) {
@@ -852,16 +839,23 @@
 				}, 1000000);  // refreshes a little under every 17 minutes
 
 				firebase.auth().onAuthStateChanged(function (user) {
-					if (user && S.getId("syncData").checked) {
-						mergeData = confirm("Merge this data with your account data?");
-						if (mergeData) {
-							if (S.storage.session.list().length > 0) {
-								S.forEach(S.storage.session.list(), function (key) {
-									S.storage.local.store(key, S.storage.session.recall(key));
-								});
+					if (user) {
+						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = false;
+						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = false;
+						if (S.getId("syncData").checked) {
+							mergeData = confirm("Merge this data with your account data?");
+							if (mergeData) {  ////
+								if (S.storage.session.list().length > 0) {
+									S.forEach(S.storage.session.list(), function (key) {
+										S.storage.local.store(key, S.storage.session.recall(key));
+									});
+								}
+								deleteData = confirm("Delete account data not present here?");
 							}
-							deleteData = confirm("Delete account data not present here?");
 						}
+					} else {
+						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = true;
+						S.getTag("nav").getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = true;
 					}
 					refresh(true);
 				});
@@ -870,7 +864,7 @@
 			S.listen("syncData", "change", function () {
 				if (S.storage.server.user && this.checked) {
 					mergeData = confirm("Merge this data with your account data?");
-					if (mergeData) {
+					if (mergeData) {  ////
 						if (S.storage.session.list().length > 0) {
 							S.forEach(S.storage.session.list(), function (key) {
 								S.storage.local.store(key, S.storage.session.recall(key));
@@ -884,18 +878,36 @@
 				}
 			});
 
+			S.listen("useLocalStorage", "click", function () {
+				if (S.getName("storagePlace", true).id == "useLocalStorage") {
+					storagePlace = "local";
+				} else {
+					storagePlace = "session";
+				}
+			});
+
+			S.listen("useSessionStorage", "click", function () {
+				if (S.getName("storagePlace", true).id == "useLocalStorage") {
+					storagePlace = "local";
+				} else {
+					storagePlace = "session";
+				}
+			});
+
 			S.listen("loadSampleList", "click", function () {
 				if (this.textContent.trim() == "Load sample list") {
 					S.forEach(sampleList, function (item) {
 						S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done });
 					});
-					useLocal = false;
+					S.getId("useSessionStorage").checked = true;
+					storagePlace = "session";
 					this.textContent = "Remove sample list";
 				} else {
 					S.forEach(S.storage.session.list(), function (key) {
 						S.storage.session.forget(key);
 					});
-					useLocal = true;
+					S.getId("useLocalStorage").checked = true;
+					storagePlace = "local";
 					this.textContent = "Load sample list";
 				}
 				refresh();
@@ -903,6 +915,7 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					/*
 					S.storage.local.list().forEach(function(key) {
 						S.storage.local.move(key, decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))));
 					});
@@ -913,6 +926,7 @@
 						}
 					});
 					refresh();
+					*/
 				}
 			});
 		</script>
@@ -965,8 +979,15 @@
 				height: 1em;
 				overflow: hidden;
 			}
+			#dueTodayItems {
+				display: inline-block;
+				position: static;
+				padding: .15em 0em 0em;
+				height: 1em;
+				overflow: hidden;
+			}
 
-			@media screen and (max-width: 1000px) {
+			@media screen and (max-width: 800px) {
 				body {
 					font-size: 1.5em;
 				}
@@ -1026,12 +1047,30 @@
 						</tr>
 						<tr>
 							<td>
-								<button onclick="mergeInformation(true)">
+								<button onclick="mergeInformation(true)" disabled>
 									Copy local to server
 								</button>
-								<button onclick="mergeInformation()">
+							</td>
+							<td>
+								<button onclick="mergeInformation()" disabled>
 									Copy server to local
 								</button>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Store indefinitely
+							</td>
+							<td>
+								Store temporarily
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input type="radio" name="storagePlace" id="useLocalStorage" checked>
+							</td>
+							<td>
+								<input type="radio" name="storagePlace" id="useSessionStorage">
 							</td>
 						</tr>
 						<tr>
@@ -1041,8 +1080,8 @@
 						</tr>
 						<tr>
 							<td colspan="2">
-								<button id="update">
-									Update
+								<button id="update" disabled>
+									Run corrections
 								</button>
 							</td>
 						</tr>
@@ -1208,6 +1247,10 @@
 					There are
 					<div id="pastDueItems">0</div>
 					past-due items.
+					<br>
+					There are
+					<div id="dueTodayItems">0</div>
+					items due today.
 				</div>
 			</div>
 		</nav>
