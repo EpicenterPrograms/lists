@@ -13,8 +13,8 @@
 		-->
 		<script>
 			var S = Standards.general;
-			S.storage.session.defaultLocation = "lists/default";  //// "To-Do-List/list items";
-			S.storage.local.defaultLocation = "lists/default";  //// "To-Do-List/list items";
+			S.storage.session.defaultLocation = "lists/default";
+			S.storage.local.defaultLocation = "lists/default";
 			S.storage.server.defaultLocation = "lists/default/items";
 
 			var itemNumber = 1;
@@ -26,10 +26,6 @@
 			var pastDueNumber = 0;
 			var dueTodayNumber = 0;
 			var storagePlace = "local";
-
-			listenable.addEventListener("set", function (value) {
-				console.log(value);
-			});
 
 			var sampleList = [
 				{
@@ -550,57 +546,43 @@
 					listenable.value = 0;
 					listenable.addEventListener("change", function (value) {
 						if (value >= S.storage[storagePlace].list().length) {  // when all items have been stored
-							console.log("All items have been stored");
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
 							S.storage.server.list("", function (list) {
-								console.log("Deleting data");
 								let localKeys = S.storage[storagePlace].list();
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
-									console.log("Running final listener");
 									if (itemsLeft == 0) {
 										listenable.removeEventListener("set", arguments.callee);
 										window.dispatchEvent(new Event("readyToRefresh"));
-										console.log("Event dispatched");
 									}
 								});
 								if (list.length > 0) {
 									// deletes account data not not present in the current data
-									console.log(localKeys);
-									console.log(list);
 									let deleting = false;
 									S.forEach(list, function (document) {
-										console.log(!localKeys.includes(document.id));
 										if (!localKeys.includes(document.id)) {
 											deleting = true;
 											listenable.value++;
 											S.storage.server.forget(document.id, "", function () {
-												console.log("Decrementing listenable");
 												listenable.value--;
 											});
 										}
 									});
-									console.log(deleting);
 									if (!deleting) {
-										console.log("Setting listenable to 0");
 										listenable.value = 0;
 									}
 								} else {
 									window.dispatchEvent(new Event("readyToRefresh"));
-									console.log("Event dispatched");
 								}
 							});
 						}
 					});
-					console.log(listenable.callbacks);
 					if (S.storage[storagePlace].list().length > 0) {
 						// stores and replaces account data with current data
 						S.forEach(S.storage[storagePlace].list(), function (key) {
-							console.log("Storing " + S.storage[storagePlace].recall(key));
 							S.storage.server.store(key, S.storage[storagePlace].recall(key), "", function () {
 								listenable.value++;
-								console.log("listenable incremented");
 							});
 						});
 					} else {
@@ -622,7 +604,6 @@
 										}
 									});
 									window.dispatchEvent(new Event("readyToRefresh"));
-									console.log("Event dispatched");
 								}
 							});
 							if (index + 1 < list.length) {
@@ -645,13 +626,9 @@
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
 					/*
-					console.log("Syncing data");
 					if (mergeData) {  // if the existing data should be merged to the account data
-						console.log("Merging data");
-						console.log(S.storage.local.list().length);
 						mergeInformation(true);
 					} else {
-						console.log("Creating a session list");
 						useLocal = false;
 						// stores and replaces current session data with account data
 						S.storage.server.list("", function (list) {
@@ -660,7 +637,6 @@
 									S.storage.session.store(list[index].id, data);
 									if (index + 1 >= list.length) {
 										window.dispatchEvent(new Event("readyToRefresh"));
-										console.log("Event dispatched");
 									}
 								});
 								if (index + 1 < list.length) {
@@ -675,11 +651,9 @@
 					*/
 				} else {
 					window.dispatchEvent(new Event("readyToRefresh"));
-					console.log("Event dispatched");
 				}
 			}
 			S.listen(window, "readyToRefresh", function () {
-				console.log("refreshing");
 				S.getId("list").innerHTML = "";
 				// fills Priority.instances
 				S.storage[storagePlace].list().forEach(function (key) {
@@ -833,9 +807,11 @@
 				});
 				setInterval(function () {
 					refresh(true);
+					/*
 					if (Math.ceil(Math.random() * 3) == 3) {  // occasionally plays a part of "We Wish You a Merry Christmas"
 						(new S.Sound()).play("a4---d5- d5-e5-d5-Db5-b4- b4- b4---e5- e5-F#5-e5-d5-C#5- a4- a4---F#5- F#5-g5-F#5-e5-d5- b4- a4-a4-b4-- e5- Db5- d5---", { noteLength: 75, attack: 30, decay: 30 });
 					}
+					*/
 				}, 1000000);  // refreshes a little under every 17 minutes
 
 				firebase.auth().onAuthStateChanged(function (user) {
@@ -931,10 +907,8 @@
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
-		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/christmas.css">
 		<!--
 		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
-		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/christmas.css">
 		-->
 		<style>
 			main {
@@ -963,13 +937,13 @@
 			#pastDueNotifier {
 				display: none;
 				position: static;
-				border: 1px solid black;
-				border-radius: 12px;
-				padding: 1px;
-				width: 24px;
-				height: 24px;
+				border: .0625em solid black;
+				border-radius: 1.75em;
+				padding: .0625em;
+				width: 1.5em;
+				height: 1.5em;
 				background: red;
-				font-size: 20px;
+				font-size: 1.25em;
 				overflow: hidden;
 			}
 			#pastDueItems {
@@ -997,12 +971,14 @@
 					font-size: 3em;
 				}
 				button {
-					font-size: 1.5em;
+					font-size: 1.25em;
 				}
 				label {
 					font-size: 1.5em;
 				}
 				input {
+					-ms-transform: scale(1.5);
+					-webkit-transform: scale(1.5);
 					transform: scale(1.5);
 				}
 				nav.top-nav div.drop-down div:first-child {
