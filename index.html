@@ -531,6 +531,13 @@
 						S.getId("weekly").style.display = "none";
 						S.getId("timeSection").style.display = "block";
 						break;
+					default:
+						S.getId("indefinite").style.display = "none";
+						S.getId("once").style.display = "none";
+						S.getId("monthly").style.display = "none";
+						S.getId("weekly").style.display = "none";
+						S.getId("timeSection").style.display = "none";
+						break;
 				}
 			}
 
@@ -771,8 +778,64 @@
 							showHide();
 							S.getClass("drop-down")[1].children[1].style.display = "block";
 						});
+						S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {
+							if (document.selection && document.selection.empty) {
+								document.selection.empty();
+							} else if (window.getSelection) {
+								window.getSelection().removeAllRanges();
+							}
+							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+							S.getId("description").value = listItem.description;
+							S.getId("importance").value = item.importance;
+							S.getId("recurrence").value = item.recurrence;
+							switch (item.recurrence) {
+								case "indefinite":
+									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
+									if (indefiniteTime <= 0) {
+										indefiniteTime = "immediately";
+									} else if (indefiniteTime <= 250000000) {
+										indefiniteTime = "soon";
+									} else if (indefiniteTime <= 700000000) {
+										indefiniteTime = "later";
+									} else if (indefiniteTime <= 1600000000) {
+										indefiniteTime = "aWhile";
+									} else {
+										indefiniteTime = "somePoint";
+									}
+									S.getId("timeframe").value = indefiniteTime;
+									break;
+								case "once":
+									S.getId("fullDate").value = item.time.split("~")[0];
+									break;
+								case "monthly":
+									S.getId("day").value = item.time.split("~")[0];
+									break;
+								case "weekly":
+									week.forEach(function (ID) {
+										S.getId(ID).checked = false;
+									});
+									item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
+										S.getId(ID).checked = true;
+									});
+									break;
+							}
+							if (item.recurrence != "indefinite") {
+								if (item.time.split("~")[1].includes(" ")) {
+									S.getId("time").value = item.time.split("~")[1].split(" ")[0];
+									S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
+								} else {
+									S.getId("time").value = item.time.split("~")[1];
+									S.getId("timeFormat").value = "24-hour";
+								}
+							}
+							showHide();
+							S.getClass("drop-down")[1].children[1].style.display = "block";
+						}, true, 300);
 					});
 				}
+				S.getId("recurrence").value = "";
+				showHide();
+				S.getClass("drop-down")[1].children[1].style.display = "none";
 			});
 
 			function remove() {
@@ -938,6 +1001,7 @@
 				display: none;
 				position: relative;
 				top: .25em;
+				z-index: 1;
 				border: 1px solid black;
 				border-radius: .75em;
 				padding: 0em;
