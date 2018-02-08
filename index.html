@@ -852,6 +852,21 @@
 				S.getId("description").value = "";
 				refresh();
 			}
+
+			function cancel() {
+				S.forEach(S.getClass("drop-down")[1].children[1].getElementsByTagName("input"), function (input) {
+					if (input.type == "checkbox") {
+						input.checked = false;
+					} else {
+						input.value = "";
+					}
+				});
+				S.forEach(S.getClass("drop-down")[1].children[1].getElementsByTagName("select"), function (select) {
+					select.value = "";
+				});
+				showHide();
+				S.getClass("drop-down")[1].children[1].style.display = "none";
+			}
 			
 			window.addEventListener("finished", function () {
 				S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
@@ -950,6 +965,7 @@
 					storagePlace = "local";
 					this.textContent = "Load sample list";
 				}
+				S.getClass("drop-down")[0].children[1].style.display = "none";
 				refresh();
 			});
 
@@ -990,6 +1006,9 @@
 			}
 			nav.top-nav div.drop-down div {
 				padding: .5em;
+			}
+			section button {
+				margin: 0rem .5rem;
 			}
 			.list-item {
 				margin: .5em 0em;
@@ -1275,6 +1294,11 @@
 						</button>
 						<button onclick="remove()">
 							Remove
+						</button>
+					</section>
+					<section>
+						<button onclick="cancel()">
+							Cancel
 						</button>
 					</section>
 				</div>
