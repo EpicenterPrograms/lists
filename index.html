@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="html-class">
+<html>
 	<head>
 		<title>
 			To-do List
@@ -20,6 +20,7 @@
 			var itemNumber = 1;
 			var now = new Date();
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+			var dayThreshold = 8;
 			var mergeData = false;
 			var deleteData = false;
 			var listenable = new S.Listenable();
@@ -300,7 +301,7 @@
 						}
 					} else {
 						////////////////////////////////////////// setting the due-today number should be done somewhere around here
-						if (now.getHours() < 8) {  // if the current time is before 8:00am
+						if (now.getHours() < dayThreshold) {  // if the current time is before the day threshold (defaults to 8:00am)
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
 						} else {
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
@@ -888,33 +889,46 @@
 				setInterval(function () {
 					refresh(true);
 					let now = new Date();
-					if ((now.getHours() == 22 || now.getHours() == 23) && Math.floor(Math.random() * 2) == 0) {
+					let time = now.getHours();
+					if (new Date(now.getTime() - dayThreshold * 3600000).getDay() < 5) {  // if it's a week-night
+						time -= 1;
+						if (time == -1) {
+							time = 23;
+						}
+					}
+					if (time == 21 && Math.floor(Math.random() * 2) == 0) {
 						noisemaker.change("waveform", "sawtooth");
 						noisemaker.play("a5--");
-					} else if (now.getHours() == 0) {
+					} else if (time == 22) {
+						noisemaker.change("waveform", "sawtooth");
+						noisemaker.play("a5--");
+					} else if (time == 23) {
 						noisemaker.change("waveform", "sawtooth");
 						noisemaker.play("a5-a5-");
-						if (Math.floor(Math.random() * 1.5) == 0) {
-							setTimeout(function () {
-								noisemaker.change("waveform", "sawtooth");
-								noisemaker.play("a5-a5-");
-								noisemaker.change("waveform", "sine");
-							}, 500000);
-						}
-					} else if (now.getHours() == 1) {
+						setTimeout(function () {
+							noisemaker.change("waveform", "sawtooth");
+							noisemaker.play("a5-a5-");
+							noisemaker.change("waveform", "sine");
+						}, 500000);
+					} else if (time == 0) {
 						noisemaker.change("waveform", "sawtooth");
 						noisemaker.play("a4ssa5a4ssa5");
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a4ssa5a4ssa5");
 							noisemaker.change("waveform", "sine");
-						}, 333333);
+						}, 250000);
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a4ssa5a4ssa5");
 							noisemaker.change("waveform", "sine");
-						}, 666666);
-					} else if (now.getHours() >= 2 && now.getHours() < 8 && !noisemaker.playing) {
+						}, 500000);
+						setTimeout(function () {
+							noisemaker.change("waveform", "sawtooth");
+							noisemaker.play("a4ssa5a4ssa5");
+							noisemaker.change("waveform", "sine");
+						}, 750000);
+					} else if (time >= 1 && time < dayThreshold && !noisemaker.playing) {
 						noisemaker = new S.Sound({ frequency: 660, waveform: "square", changeWave: "sawtooth", modulation: 1, hertzChange: 220 });
 						noisemaker.start();
 						/*  This is too much fun to make me want to go to bed.
