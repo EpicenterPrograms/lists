@@ -703,14 +703,14 @@
 				if (pastDueNumber > 0) {
 					S.getId("pastDueNotifier").textContent = pastDueNumber;
 					S.getId("pastDueNotifier").style.display = "inline-block";
+					// makes an audible message for things that are past due
+					setTimeout(function () {
+						new S.Sound({ waveform: "square" }).play("a5sa4sa5 " + "a5 ".repeat(pastDueNumber));
+					}, 15000);
 				} else {
 					S.getId("pastDueNotifier").style.display = "none";
 				}
 				S.getId("pastDueItems").textContent = pastDueNumber;
-				// makes an audible message for things that are past due
-				setTimeout(function () {
-					new S.Sound({ waveform: "square" }).play("a5sa4sa5 " + "a5 ".repeat(pastDueNumber));
-				}, 15000);
 				// adds an indicator of what's due the same day
 				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
 
