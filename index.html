@@ -730,10 +730,6 @@
 				if (pastDueNumber > 0) {
 					S.getId("pastDueNotifier").textContent = pastDueNumber;
 					S.getId("pastDueNotifier").style.display = "inline-block";
-					// makes an audible message for things that are past due
-					setTimeout(function () {
-						new S.Sound({ waveform: "square" }).play("a5sa4sa5 " + "a5 ".repeat(pastDueNumber));
-					}, 15000);
 				} else {
 					S.getId("pastDueNotifier").style.display = "none";
 				}
@@ -1006,6 +1002,13 @@
 						if (now.getMonth() == 11 && Math.ceil(Math.random() * 3) == 3) {  // occasionally plays a part of "We Wish You a Merry Christmas" during December
 							noisemaker.play("a4---d5- d5-e5-d5-Db5-b4- b4- b4---e5- e5-F#5-e5-d5-C#5- a4- a4---F#5- F#5-g5-F#5-e5-d5- b4- a4-a4-b4-- e5- Db5- d5---", { noteLength: 75, attack: 30, decay: 30 });
 						}
+					}
+					if (pastDueNumber > 0) {
+						// makes an audible message for things that are past due
+						setTimeout(function () {
+							noisemaker.change("waveform", "square");
+							noisemaker.play("a5sa4sa5 " + "a5 ".repeat(pastDueNumber));
+						}, 15000);
 					}
 					noisemaker = new S.Sound();
 				}, 1000000);  // refreshes a little under every 17 minutes
