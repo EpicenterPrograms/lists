@@ -695,7 +695,6 @@
 						S.forEach(labelsToInclude, function (label, index) {
 							labelsToInclude[index] = label.trim();
 						});
-						console.log(item.labels);
 						if (item.labels && item.labels.some(function (label) {
 							return labelsToInclude.includes(label);
 						})) {
@@ -909,7 +908,14 @@
 				S.getClass("drop-down")[1].children[1].style.display = "none";
 			}
 
-			S.listen("listFilter", "change", refresh);
+			S.listen("listFilter", "change", function () {
+				if (this.value.trim()) {
+					this.parentNode.parentNode.children[0].style.color = "#0a0";
+				} else {
+					this.parentNode.parentNode.children[0].style.color = "steelblue";
+				}
+				refresh();
+			});
 			
 			window.addEventListener("finished", function () {
 				S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
@@ -927,14 +933,14 @@
 				S.getId("quickSelect").addEventListener("change", function() {
 					S.getId("fullDate").value = this.value;
 				});
-				setInterval(function () {
+				setInterval(function () {  // refreshes a little under every 17 minutes
 					refresh(true);
 					let now = new Date();
 					let time = now.getHours();
 					if (new Date(now.getTime() - dayThreshold * 3600000).getDay() < 5) {  // if it's a week-night
-						time -= 1;
-						if (time == -1) {
-							time = 23;
+						time += 1;
+						if (time == 24) {
+							time = 0;
 						}
 					}
 					if (time == 21 && Math.floor(Math.random() * 2) == 0) {
@@ -949,7 +955,6 @@
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a5-a5-");
-							noisemaker.change("waveform", "sine");
 						}, 500000);
 					} else if (time == 0) {
 						noisemaker.change("waveform", "sawtooth");
@@ -957,19 +962,23 @@
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a4ssa5a4ssa5");
-							noisemaker.change("waveform", "sine");
 						}, 250000);
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a4ssa5a4ssa5");
-							noisemaker.change("waveform", "sine");
 						}, 500000);
 						setTimeout(function () {
 							noisemaker.change("waveform", "sawtooth");
 							noisemaker.play("a4ssa5a4ssa5");
-							noisemaker.change("waveform", "sine");
 						}, 750000);
-					} else if (time >= 1 && time < dayThreshold && !noisemaker.playing) {
+					} else if (time == 1) {
+						S.forEach(8, function (_, index) {
+							setTimeout(function () {
+								noisemaker.change("waveform", "sawtooth");
+								noisemaker.play("a5a4a5a4");
+							}, 125000 * index);
+						});
+					} else if (time >= 2 && time < dayThreshold && !noisemaker.playing) {
 						noisemaker = new S.Sound({ frequency: 660, waveform: "square", changeWave: "sawtooth", modulation: 1, hertzChange: 220 });
 						noisemaker.start();
 						/*  This is too much fun to make me want to go to bed.
@@ -999,18 +1008,18 @@
 						}, 1205);
 						*/
 					} else {
+						noisemaker.change("waveform", "sine");
 						if (now.getMonth() == 11 && Math.ceil(Math.random() * 3) == 3) {  // occasionally plays a part of "We Wish You a Merry Christmas" during December
 							noisemaker.play("a4---d5- d5-e5-d5-Db5-b4- b4- b4---e5- e5-F#5-e5-d5-C#5- a4- a4---F#5- F#5-g5-F#5-e5-d5- b4- a4-a4-b4-- e5- Db5- d5---", { noteLength: 75, attack: 30, decay: 30 });
 						}
 					}
-					if (pastDueNumber > 0) {
+					if (pastDueNumber > 0 && !(time >= 2 && time < dayThreshold)) {
 						// makes an audible message for things that are past due
 						setTimeout(function () {
 							noisemaker.change("waveform", "square");
 							noisemaker.play("a5sa4sa5 " + "a5 ".repeat(pastDueNumber));
 						}, 15000);
 					}
-					noisemaker = new S.Sound();
 				}, 1000000);  // refreshes a little under every 17 minutes
 
 				firebase.auth().onAuthStateChanged(function (user) {
@@ -1066,6 +1075,18 @@
 					storagePlace = "local";
 				} else {
 					storagePlace = "session";
+				}
+			});
+
+			S.listen("soundVolume", "change", function () {
+				if (this.value == "") {
+					var volume = 100;
+				} else if (S.getType(Number(this.value)) == "Number") {
+					var volume = Number(this.value);
+				}
+				if (typeof volume !== "undefined") {
+					volume = volume / 100;
+					noisemaker.change("maxVolume", volume);
 				}
 			});
 
@@ -1251,6 +1272,11 @@
 							</td>
 							<td>
 								<input type="radio" name="storagePlace" id="useSessionStorage">
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<input type="text" id="soundVolume" placeholder="Volume (1-100)">
 							</td>
 						</tr>
 						<tr>
