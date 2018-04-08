@@ -1086,8 +1086,14 @@
 				}
 				if (typeof volume !== "undefined") {
 					volume = volume / 100;
-					noisemaker.change("maxVolume", volume);
-					noisemaker.play("a5---");
+					if (noisemaker.playing && noisemaker.hertzChange != 0) {  // if the lateness alarm is constantly going off
+						noisemaker.stop();
+						noisemaker.change("maxVolume", volume);
+						noisemaker.start();
+					} else {
+						noisemaker.change("maxVolume", volume);
+						noisemaker.play("a5---");
+					}
 				}
 			});
 
