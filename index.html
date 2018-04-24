@@ -505,6 +505,11 @@
 					setTimeout(function () {
 						refresh(true);
 					}, 0);
+					// randomly displays inspiring messages (if desired)
+					if (S.getId("inspiringMessages").checked && Math.floor(Math.random()*4) == 0) {
+						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
+						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
+					}
 				} else {
 					alert("You left out at least one field.");
 				}
@@ -1087,9 +1092,14 @@
 				if (typeof volume !== "undefined") {
 					volume = volume / 100;
 					if (noisemaker.playing && noisemaker.hertzChange != 0) {  // if the lateness alarm is constantly going off
+						//// console.log("--------");
+						//// console.log(noisemaker.playing);
 						noisemaker.stop();
+						//// console.log(noisemaker.playing);
 						noisemaker.change("maxVolume", volume);
+						//// console.log(noisemaker.playing);
 						noisemaker.start();
+						//// console.log(noisemaker.playing);
 					} else {
 						noisemaker.change("maxVolume", volume);
 						noisemaker.play("a5---");
@@ -1288,6 +1298,12 @@
 						</tr>
 						<tr>
 							<td colspan="2">
+								<input type="checkbox" id="inspiringMessages" checked>
+								<label for="inspiringMessages">say inspiring messages</label>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
 								<button id="loadSampleList">Load sample list</button>
 							</td>
 						</tr>
@@ -1307,6 +1323,7 @@
 				</div>
 				<div>
 					<input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
+					<input type="text" class="block" id="labels" placeholder="Labels">
 					<select class="block" id="importance">
 						<option value="" disabled selected>
 							Importance
@@ -1441,7 +1458,6 @@
 							</option>
 						</select>
 					</section>
-					<input type="text" class="block" id="labels" placeholder="Labels">
 					<section>
 						<button onclick="include()">
 							Add to list
