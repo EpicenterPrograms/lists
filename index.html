@@ -1050,7 +1050,10 @@
 						refresh(true);
 					});
 				}
-				S.makeToneGenerator(true, startDoingStuff, startDoingStuff);
+				S.makeToneGenerator(true, function () {
+					noisemaker = new S.Sound();
+					startDoingStuff();
+				}, startDoingStuff);
 			});
 
 			S.listen("syncData", "change", function () {
