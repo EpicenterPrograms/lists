@@ -441,7 +441,7 @@
 									date = now.getTime() + 3628800000;  // in exactly 42 days
 									break;
 								case "same":
-									date = Number(S.storage[storagePlace].recall(description).time.slice(0, -1));  // at the pre-estblished time
+									date = Number(S.storage[storagePlace].recall(description).time.split("~")[0]);  // at the pre-estblished time
 									break;
 							}
 							break;
