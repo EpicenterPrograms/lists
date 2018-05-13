@@ -440,6 +440,9 @@
 								case "somePoint":
 									date = now.getTime() + 3628800000;  // in exactly 42 days
 									break;
+								case "same":
+									date = Number(S.storage[storagePlace].recall(description).time);  // at the pre-estblished time
+									break;
 							}
 							break;
 						case "once":
@@ -500,6 +503,7 @@
 					["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
 						S.getId(ID).style.display = "none";
 					});
+					S.getId("timeframe").options["same"].disabled = true;
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -761,7 +765,7 @@
 						});
 						// listens for double-clicking on a description
 						// (pulls up the editor for that item)
-						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {
+						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
 							// prevents highlighting the text when double-clicking
 							// event.preventDefault() would only work with onmousedown
 							if (document.selection && document.selection.empty) {
@@ -775,6 +779,7 @@
 							S.getId("recurrence").value = item.recurrence;
 							switch (item.recurrence) {
 								case "indefinite":
+									/*
 									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
 									if (indefiniteTime <= 0) {
 										indefiniteTime = "immediately";
@@ -787,7 +792,9 @@
 									} else {
 										indefiniteTime = "somePoint";
 									}
-									S.getId("timeframe").value = indefiniteTime;
+									*/
+									S.getId("timeframe").options["same"].disabled = false;
+									S.getId("timeframe").value = "same";
 									break;
 								case "once":
 									S.getId("fullDate").value = item.time.split("~")[0];
@@ -821,7 +828,7 @@
 						});
 						// listens for touching and holding on a description
 						// (pulls up the editor for that item)
-						S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {
+						S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
 							if (document.selection && document.selection.empty) {
 								document.selection.empty();
 							} else if (window.getSelection) {
@@ -833,6 +840,7 @@
 							S.getId("recurrence").value = item.recurrence;
 							switch (item.recurrence) {
 								case "indefinite":
+									/*
 									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
 									if (indefiniteTime <= 0) {
 										indefiniteTime = "immediately";
@@ -845,7 +853,9 @@
 									} else {
 										indefiniteTime = "somePoint";
 									}
-									S.getId("timeframe").value = indefiniteTime;
+									*/
+									S.getId("timeframe").options["same"].disabled = false;
+									S.getId("timeframe").value = "same";
 									break;
 								case "once":
 									S.getId("fullDate").value = item.time.split("~")[0];
@@ -1389,6 +1399,9 @@
 							</option>
 							<option value="somePoint">
 								At some point
+							</option>
+							<option value="same" name="same" disabled>
+								Same
 							</option>
 						</select>
 					</section>
