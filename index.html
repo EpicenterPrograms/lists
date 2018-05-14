@@ -47,6 +47,14 @@
 					done: false
 				},
 				{
+					description: "oil the door hinge",
+					importance: 1,
+					recurrence: "indefinite",
+					time: now.getTime() + 86400000 + "~",
+					lastFinished: now.getTime() - 172800000,
+					done: false
+				},
+				{
 					description: "brush my teeth",
 					importance: 3,
 					recurrence: "daily",
@@ -57,7 +65,7 @@
 				},
 				{
 					description: "cut the grass",
-					importance: 1,
+					importance: 2,
 					recurrence: "indefinite",
 					time: now.getTime() + 700000000 + "~",
 					lastFinished: now.getTime(),
@@ -492,7 +500,11 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false, labels: labels });
+					if (S.getId("recurrence").value == "indefinite" && S.getId("timeframe").value == "same") {
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, done: false, labels: labels });
+					} else {
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false, labels: labels });
+					}
 					// resets stuff
 					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat", "labels"].forEach(function(ID) {
 						S.getId(ID).value = "";
