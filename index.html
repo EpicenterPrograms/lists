@@ -405,7 +405,7 @@
 						// (prevents overwriting when things have the same due-date and importance)
 						increment++;
 					}
-					Priority.instances[urgency+increment] = {description: decodeURIComponent(description), done: done, elements: elements.innerHTML, labels: labels};
+					Priority.instances[urgency+increment] = {description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels};
 				}
 			}
 			Priority = {instances: {}};
@@ -709,22 +709,40 @@
 					currentIndex = 0,
 					alreadyCounted = [];
 				// puts items from the Priority.instances object into an array
-				S.forEach(Priority.instances, function (item) {
-					// allows filtering items
-					if (S.getId("listFilter").value.trim()) {
-						let labelsToInclude = S.getId("listFilter").value.trim().split(",");
-						S.forEach(labelsToInclude, function (label, index) {
-							labelsToInclude[index] = label.trim();
-						});
-						if (item.labels && item.labels.some(function (label) {
+				// allows filtering items
+				if (S.getId("listFilter").value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) {return box.checked;})) {
+					let labelsToInclude = S.getId("listFilter").value.trim().split(",");
+					S.forEach(labelsToInclude, function (label, index) {
+						labelsToInclude[index] = label.trim();
+					});
+					if (labelsToInclude[0] === "") {  // prevents empty labels from being counted as matching
+						labelsToInclude.shift();
+					}
+					let importanceLevels = S.toArray(S.getId("importanceFilter").getElementsByTagName("input"));
+					S.forEach(Priority.instances, function (item) {
+						let shouldAdd = true;
+						// checks labels
+						if (S.getId("listFilter").value.trim() && !(item.labels && item.labels.some(function (label) {
 							return labelsToInclude.includes(label);
-						})) {
+						}))) {
+							shouldAdd = false;
+						}
+						// checks importance
+						if (importanceLevels.some(function (box) {
+							return box.checked;
+						}) && !S.getId("importanceFilter").getElementsByTagName("input")[Number(item.importance) - 1].checked) {
+							shouldAdd = false;
+						}
+						// adds valid items
+						if (shouldAdd) {
 							list.push(item);
 						}
-					} else {
+					});
+				} else {
+					S.forEach(Priority.instances, function (item) {
 						list.push(item);
-					}
-				});
+					});
+				}
 				// moves finished items to the end
 				while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
 					if (list[currentIndex].done) {
@@ -746,6 +764,12 @@
 						S.getId("list").getElementsByTagName("input")[index].checked = true;
 					}
 				});
+				// shows how many items are present in the list
+				if (list.length == 1) {
+					S.getId("numberOfFilteredItems").textContent = list.length + " item satisfies this filter";
+				} else {
+					S.getId("numberOfFilteredItems").textContent = list.length + " items satisfy this filter";
+				}
 				// adds a notification of past-due items
 				if (pastDueNumber > 0) {
 					S.getId("pastDueNotifier").textContent = pastDueNumber;
@@ -936,7 +960,7 @@
 			}
 
 			S.listen("listFilter", "change", function () {
-				if (this.value.trim()) {
+				if (this.value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) { return box.checked; })) {
 					this.parentNode.parentNode.children[0].style.color = "#0a0";
 				} else {
 					this.parentNode.parentNode.children[0].style.color = "steelblue";
@@ -945,8 +969,20 @@
 			});
 			
 			window.addEventListener("finished", function () {
+
+				S.forEach(S.getId("importanceFilter").getElementsByTagName("input"), function (box) {
+					box.addEventListener("click", function () {
+						if (S.getId("listFilter").value.trim() || S.toArray(this.parentNode.getElementsByTagName("input")).some(function (box) { return box.checked; })) {
+							this.parentNode.parentNode.parentNode.children[0].style.color = "#0a0";
+						} else {
+							this.parentNode.parentNode.parentNode.children[0].style.color = "steelblue";
+						}
+						refresh();
+					});
+				});
+
 				function startDoingStuff() {
-					S.forEach(S.getTag("nav")[0].children, function (section) {  // allows mobile devices to access the drop-down menus
+					S.forEach(S.getTag("nav")[0].children, function (section) {  // allows basic mobile devices to access the drop-down menus
 						section.children[0].addEventListener("click", function () {
 							if (window.getComputedStyle(section.children[1]).display == "none") {
 								section.children[1].style.display = "block";
@@ -1049,7 +1085,7 @@
 							}, 15000);
 						}
 					}, 1000000);  // refreshes a little under every 17 minutes
-
+					
 					firebase.auth().onAuthStateChanged(function (user) {
 						if (user) {
 							S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = false;
@@ -1231,6 +1267,11 @@
 				height: 1em;
 				overflow: hidden;
 			}
+			#importanceFilter {
+				display: table;
+				position: static;
+			}
+
 			@media screen and (max-width: 1000px) {
 				body {
 					font-size: 1.5em;
@@ -1507,6 +1548,14 @@
 					Filter
 				</div>
 				<div>
+					<section id="numberOfFilteredItems"></section>
+					<div class="list" id="importanceFilter">
+						<input type="checkbox"><label>1</label><br>
+						<input type="checkbox"><label>2</label><br>
+						<input type="checkbox"><label>3</label><br>
+						<input type="checkbox"><label>4</label><br>
+						<input type="checkbox"><label>5</label>
+					</div><br>
 					<input type="text" id="listFilter" placeholder="Filter items">
 				</div>
 			</div>
