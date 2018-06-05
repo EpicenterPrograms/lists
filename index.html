@@ -2,15 +2,15 @@
 <html>
 	<head>
 		<title>
-			To-do List
+			Lists
 		</title>
+		<!--
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/general.js"></script>
-		<!--
-		<script src="file:///C:/Users/Robert/Documents/GitHub/standards/behavior/general.js"></script>
 		-->
+		<script src="file:///C:/Users/Robert/Documents/GitHub/standards/behavior/general.js"></script>
 		<script>
 			var S = Standards.general;
 			S.storage.session.defaultLocation = "lists/default";
@@ -658,7 +658,7 @@
 						listenable.value = 0;
 					});
 				}
-				S.getClass("drop-down")[0].children[1].style.display = "none";
+				S.getId("settingsSection").children[1].style.display = "none";
 			}
 
 			function refresh(shouldSync) {
@@ -860,7 +860,7 @@
 								S.getId("labels").value = item.labels.join(", ");
 							}
 							showHide();
-							S.getClass("drop-down")[1].children[1].style.display = "block";
+							S.getId("editorSection").children[1].style.display = "block";
 						});
 						// listens for touching and holding on a description
 						// (pulls up the editor for that item)
@@ -921,13 +921,13 @@
 								S.getId("labels").value = item.labels.join(", ");
 							}
 							showHide();
-							S.getClass("drop-down")[1].children[1].style.display = "block";
+							S.getId("editorSection").children[1].style.display = "block";
 						}, false, 300);
 					});
 				}
 				S.getId("recurrence").value = "";
 				showHide();
-				S.getClass("drop-down")[1].children[1].style.display = "none";
+				S.getId("editorSection").children[1].style.display = "none";
 			});
 
 			function remove() {
@@ -945,25 +945,25 @@
 			}
 
 			function cancel() {
-				S.forEach(S.getClass("drop-down")[1].children[1].getElementsByTagName("input"), function (input) {
+				S.forEach(S.getId("editorSection").children[1].getElementsByTagName("input"), function (input) {
 					if (input.type == "checkbox") {
 						input.checked = false;
 					} else {
 						input.value = "";
 					}
 				});
-				S.forEach(S.getClass("drop-down")[1].children[1].getElementsByTagName("select"), function (select) {
+				S.forEach(S.getId("editorSection").children[1].getElementsByTagName("select"), function (select) {
 					select.value = "";
 				});
 				showHide();
-				S.getClass("drop-down")[1].children[1].style.display = "none";
+				S.getId("editorSection").children[1].style.display = "none";
 			}
 
 			S.listen("listFilter", "change", function () {
 				if (this.value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) { return box.checked; })) {
-					this.parentNode.parentNode.children[0].style.color = "#0a0";
+					S.getId("filterSection").children[0].style.color = "#0a0";
 				} else {
-					this.parentNode.parentNode.children[0].style.color = "steelblue";
+					S.getId("filterSection").children[0].style.color = "steelblue";
 				}
 				refresh();
 			});
@@ -973,9 +973,9 @@
 				S.forEach(S.getId("importanceFilter").getElementsByTagName("input"), function (box) {
 					box.addEventListener("click", function () {
 						if (S.getId("listFilter").value.trim() || S.toArray(this.parentNode.getElementsByTagName("input")).some(function (box) { return box.checked; })) {
-							this.parentNode.parentNode.parentNode.children[0].style.color = "#0a0";
+							S.getId("filterSection").children[0].style.color = "#0a0";
 						} else {
-							this.parentNode.parentNode.parentNode.children[0].style.color = "steelblue";
+							S.getId("filterSection").children[0].style.color = "steelblue";
 						}
 						refresh();
 					});
@@ -1085,11 +1085,11 @@
 							}, 15000);
 						}
 					}, 1000000);  // refreshes a little under every 17 minutes
-					
+					/*
 					firebase.auth().onAuthStateChanged(function (user) {
 						if (user) {
-							S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = false;
-							S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = false;
+							S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
+							S.getId("settingsSection").getElementsByTagName("button")[1].disabled = false;
 							if (S.getId("syncData").checked) {
 								mergeData = confirm("Merge this data with your account data?");
 								if (mergeData) {  ////
@@ -1102,11 +1102,11 @@
 								}
 							}
 						} else {
-							S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[0].disabled = true;
-							S.getTag("nav")[0].getElementsByTagName("div")[0].getElementsByTagName("button")[1].disabled = true;
+							S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
+							S.getId("settingsSection").getElementsByTagName("button")[1].disabled = true;
 						}
 						refresh(true);
-					});
+					});*/
 				}
 				S.makeToneGenerator(true, function () {
 					noisemaker = new S.Sound();
@@ -1187,8 +1187,24 @@
 					storagePlace = "local";
 					this.textContent = "Load sample list";
 				}
-				S.getClass("drop-down")[0].children[1].style.display = "none";
+				S.getId("settingsSection").children[1].style.display = "none";
 				refresh();
+			});
+
+			S.listen("filterCheckbox", "click", function () {
+				if (window.getComputedStyle(S.getId("filterSection")).display == "inline-table") {
+					S.getId("filterSection").style.display = "none";
+				} else {
+					S.getId("filterSection").style.display = "inline-table";
+				}
+			});
+
+			S.listen("notificationsCheckbox", "click", function () {
+				if (window.getComputedStyle(S.getId("notificationsSection")).display == "inline-table") {
+					S.getId("notificationsSection").style.display = "none";
+				} else {
+					S.getId("notificationsSection").style.display = "inline-table";
+				}
 			});
 
 			S.listen("update", "click", function () {
@@ -1208,10 +1224,10 @@
 				}
 			});
 		</script>
-		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
 		<!--
-		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
 		-->
+		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
 		<style>
 			main {
 				margin-top: 0em;
@@ -1322,7 +1338,7 @@
 			</button>
 		</div>
 		<nav class="top-nav">
-			<div class="drop-down" tabindex="0">
+			<div class="drop-down" tabindex="0" id="settingsSection">
 				<div>
 					Settings
 				</div>
@@ -1378,6 +1394,19 @@
 						</tr>
 						<tr>
 							<td colspan="2">
+								<h4 style="margin:.25em">
+									Sections to show
+								</h4>
+								<div class="list" style="display:table; position:static;">
+									<input type="checkbox" id="filterCheckbox" checked>
+									<label for="filterCheckbox">Filter</label><br>
+									<input type="checkbox" id="notificationsCheckbox" checked>
+									<label for="notificationsCheckbox">Notifications</label>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
 								<button id="update" disabled>
 									Run corrections
 								</button>
@@ -1386,7 +1415,7 @@
 					</table>
 				</div>
 			</div>
-			<div class="drop-down" tabindex="0">
+			<div class="drop-down" tabindex="0" id="editorSection">
 				<div>
 					Editor
 				</div>
@@ -1543,7 +1572,7 @@
 					</button>
 				</div>
 			</div>
-			<div class="drop-down" tabindex="0">
+			<div class="drop-down" tabindex="0" id="filterSection">
 				<div>
 					Filter
 				</div>
@@ -1559,7 +1588,7 @@
 					<input type="text" id="listFilter" placeholder="Filter items">
 				</div>
 			</div>
-			<div class="drop-down" tabindex="0">
+			<div class="drop-down" tabindex="0" id="notificationsSection">
 				<div>
 					Notifications
 					<div id="pastDueNotifier"></div>
