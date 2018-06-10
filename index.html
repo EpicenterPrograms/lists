@@ -1171,6 +1171,27 @@
 				}
 			});
 
+			S.listen("dayThresholdSetter", "change", function () {
+				dayThreshold = this.value;
+				refresh();
+			});
+
+			S.listen("filterCheckbox", "click", function () {
+				if (this.checked) {
+					S.getId("filterSection").style.display = "inline-table";
+				} else {
+					S.getId("filterSection").style.display = "none";
+				}
+			});
+
+			S.listen("notificationsCheckbox", "click", function () {
+				if (this.checked) {
+					S.getId("notificationsSection").style.display = "inline-table";
+				} else {
+					S.getId("notificationsSection").style.display = "none";
+				}
+			});
+
 			S.listen("loadSampleList", "click", function () {
 				if (this.textContent.trim() == "Load sample list") {
 					S.forEach(sampleList, function (item) {
@@ -1189,22 +1210,6 @@
 				}
 				S.getId("settingsSection").children[1].style.display = "none";
 				refresh();
-			});
-
-			S.listen("filterCheckbox", "click", function () {
-				if (window.getComputedStyle(S.getId("filterSection")).display == "inline-table") {
-					S.getId("filterSection").style.display = "none";
-				} else {
-					S.getId("filterSection").style.display = "inline-table";
-				}
-			});
-
-			S.listen("notificationsCheckbox", "click", function () {
-				if (window.getComputedStyle(S.getId("notificationsSection")).display == "inline-table") {
-					S.getId("notificationsSection").style.display = "none";
-				} else {
-					S.getId("notificationsSection").style.display = "inline-table";
-				}
 			});
 
 			S.listen("update", "click", function () {
@@ -1244,6 +1249,9 @@
 			}
 			nav.top-nav div.drop-down div {
 				padding: .5em;
+			}
+			nav.top-nav div.drop-down table {
+				margin: 0rem;
 			}
 			section button {
 				margin: 0rem .5rem;
@@ -1376,43 +1384,33 @@
 								<input type="radio" name="storagePlace" id="useSessionStorage">
 							</td>
 						</tr>
-						<tr>
-							<td colspan="2">
-								<input type="text" id="soundVolume" placeholder="Volume (1-100)">
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<input type="checkbox" id="inspiringMessages">
-								<label for="inspiringMessages">say inspiring messages</label>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<button id="loadSampleList">Load sample list</button>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<h4 style="margin:.25em">
-									Sections to show
-								</h4>
-								<div class="list" style="display:table; position:static;">
-									<input type="checkbox" id="filterCheckbox" checked>
-									<label for="filterCheckbox">Filter</label><br>
-									<input type="checkbox" id="notificationsCheckbox" checked>
-									<label for="notificationsCheckbox">Notifications</label>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<button id="update" disabled>
-									Run corrections
-								</button>
-							</td>
-						</tr>
 					</table>
+					<br>
+					<input type="text" id="soundVolume" placeholder="Volume (1-100)">
+					<br>
+					<input type="checkbox" id="inspiringMessages">
+					<label for="inspiringMessages">say inspiring messages</label>
+					<h4 style="margin:.25em">
+						Day threshold
+					</h4>
+					<input type="text" id="dayThresholdSetter" value="8" style="width:1.5em">&thinsp;:00
+					<h4 style="margin:.25em">
+						Sections to show
+					</h4>
+					<div class="list" style="display:table; position:static;">
+						<input type="checkbox" id="filterCheckbox" checked>
+						<label for="filterCheckbox">Filter</label><br>
+						<input type="checkbox" id="notificationsCheckbox" checked>
+						<label for="notificationsCheckbox">Notifications</label>
+					</div>
+					<br>
+					<button id="loadSampleList">
+						Load sample list
+					</button>
+					<br>
+					<button id="update" disabled>
+						Run corrections
+					</button>
 				</div>
 			</div>
 			<div class="drop-down" tabindex="0" id="editorSection">
