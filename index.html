@@ -28,6 +28,7 @@
 			var dueTodayNumber = 0;
 			var storagePlace = "local";
 			var noisemaker;
+			var labelList = [];
 
 			var sampleList = [
 				{
@@ -130,6 +131,9 @@
 					labels: ["fun"]
 				}
 			];
+
+
+
 
 			function makePriority(description, importance, date, recurrence, lastFinished, done, labels) {
 				/**
@@ -409,7 +413,10 @@
 				}
 			}
 			Priority = {instances: {}};
-			
+
+
+
+
 			function include() {
 				let enoughInformation = true;
 				if (!(S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value)) {
@@ -530,6 +537,10 @@
 					alert("You left out at least one field.");
 				}
 			}
+
+
+
+
 			function showHide() {
 				switch (S.getId("recurrence").value) {
 					case "indefinite":
@@ -576,6 +587,9 @@
 						break;
 				}
 			}
+
+
+
 
 			function mergeInformation(localTakesPrecedence) {
 				////
@@ -661,12 +675,16 @@
 				S.getId("settingsSection").children[1].style.display = "none";
 			}
 
+
+
+
 			function refresh(shouldSync) {
 				now = new Date();
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
+				labelList = [];
 				// syncs data if desired and possible
 				if (shouldSync && S.getId("syncData").checked && S.storage.server.user) {
 					/*
@@ -780,6 +798,25 @@
 				S.getId("pastDueItems").textContent = pastDueNumber;
 				// adds an indicator of what's due the same day
 				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
+				// lists all labels
+				list.forEach(function (item) {
+					if (item.labels) {
+						item.labels.forEach(function (label) {
+							if (!labelList.includes(label)) {
+								labelList.push(label);
+							}
+						});
+					}
+				});
+				labelList.sort();
+				labelList.forEach(function (label, index) {
+					let element = document.createElement("div");
+					element.innerHTML = '<input type="checkbox"><label>' + label + '</label>';
+					S.getId("labelContainer").appendChild(element);
+					if (index < labelList.length - 1) {
+						S.getId("labelContainer").appendChild(document.createElement("br"));
+					}
+				});
 
 				if (S.getId("list").innerHTML == "") {
 					// adds a prompt if there's no items saved
@@ -930,6 +967,9 @@
 				S.getId("editorSection").children[1].style.display = "none";
 			});
 
+
+
+
 			function remove() {
 				let location = S.storage[storagePlace];
 				location.list().forEach(function(key) {
@@ -967,7 +1007,11 @@
 				}
 				refresh();
 			});
-			
+
+
+
+
+
 			window.addEventListener("finished", function () {
 
 				S.forEach(S.getId("importanceFilter").getElementsByTagName("input"), function (box) {
@@ -1085,34 +1129,39 @@
 							}, 15000);
 						}
 					}, 1000000);  // refreshes a little under every 17 minutes
-					
-					firebase.auth().onAuthStateChanged(function (user) {
-						if (user) {
-							S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
-							S.getId("settingsSection").getElementsByTagName("button")[1].disabled = false;
-							if (S.getId("syncData").checked) {
-								mergeData = confirm("Merge this data with your account data?");
-								if (mergeData) {  ////
-									if (S.storage.session.list().length > 0) {
-										S.forEach(S.storage.session.list(), function (key) {
-											S.storage.local.store(key, S.storage.session.recall(key));
-										});
+
+					if (typeof firebase !== "undefined") {
+						firebase.auth().onAuthStateChanged(function (user) {
+							if (user) {
+								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
+								S.getId("settingsSection").getElementsByTagName("button")[1].disabled = false;
+								if (S.getId("syncData").checked) {
+									mergeData = confirm("Merge this data with your account data?");
+									if (mergeData) {  ////
+										if (S.storage.session.list().length > 0) {
+											S.forEach(S.storage.session.list(), function (key) {
+												S.storage.local.store(key, S.storage.session.recall(key));
+											});
+										}
+										deleteData = confirm("Delete account data not present here?");
 									}
-									deleteData = confirm("Delete account data not present here?");
 								}
+							} else {
+								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
+								S.getId("settingsSection").getElementsByTagName("button")[1].disabled = true;
 							}
-						} else {
-							S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
-							S.getId("settingsSection").getElementsByTagName("button")[1].disabled = true;
-						}
-						refresh(true);
-					});
+							refresh(true);
+						});
+					}
 				}
 				S.makeToneGenerator(true, function () {
 					noisemaker = new S.Sound();
 					startDoingStuff();
 				}, startDoingStuff);
 			});
+
+
+
 
 			S.listen("syncData", "change", function () {
 				if (S.storage.server.user && this.checked) {
@@ -1295,6 +1344,17 @@
 				display: table;
 				position: static;
 			}
+			#labelContainer {
+				display: table;
+				position: static;
+				max-height: 7rem;
+				padding: 0rem;
+			}
+			#labelContainer div {
+				display: inline-block;
+				position: static;
+				padding: 0rem;
+			}
 
 			@media screen and (max-width: 1000px) {
 				body {
@@ -1419,7 +1479,8 @@
 				</div>
 				<div>
 					<input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
-					<input type="text" class="block" id="labels" placeholder="Labels">
+					<input type="text" class="block" id="labels" placeholder="New labels">
+					<div class="list" id="labelContainer"></div>
 					<select class="block" id="importance">
 						<option value="" disabled selected>
 							Importance
