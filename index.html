@@ -1267,18 +1267,12 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					/*
-					S.storage.local.list().forEach(function(key) {
-						S.storage.local.move(key, decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(decodeURIComponent(key))))));
+					S.storage.local.list().forEach(function (key) {
+						S.storage.local.move(key, "items/" + key);
 					});
-					S.forEach(S.storage.local.list(), function(key) {
-						if (key != encodeURIComponent(key)) {
-							S.storage.local.store(encodeURIComponent(key), S.storage.local.recall(key));
-							S.storage.local.forget(key);
-						}
+					S.storage.local.list("lists/default/items").forEach(function (key) {
+						console.log(S.storage.local.recall(key));
 					});
-					refresh();
-					*/
 				}
 			});
 		</script>
@@ -1472,7 +1466,7 @@
 						Load sample list
 					</button>
 					<br>
-					<button id="update" disabled>
+					<button id="update">
 						Run corrections
 					</button>
 				</div>
