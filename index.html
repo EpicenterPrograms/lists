@@ -13,8 +13,8 @@
 		-->
 		<script>
 			var S = Standards.general;
-			S.storage.session.defaultLocation = "lists/default";
-			S.storage.local.defaultLocation = "lists/default";
+			S.storage.session.defaultLocation = "lists/default/items";
+			S.storage.local.defaultLocation = "lists/default/items";
 			S.storage.server.defaultLocation = "lists/default/items";
 
 			var itemNumber = 1;
@@ -1267,9 +1267,11 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					/*
 					S.storage.local.list().forEach(function (key) {
 						S.storage.local.move(key, "items/" + key);
 					});
+					*/
 					S.storage.local.list("lists/default/items").forEach(function (key) {
 						console.log(S.storage.local.recall(key));
 					});
