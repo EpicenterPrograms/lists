@@ -13,9 +13,9 @@
 		-->
 		<script>
 			var S = Standards.general;
-			S.storage.session.defaultLocation = "lists/default/items";
-			S.storage.local.defaultLocation = "lists/default/items";
-			S.storage.server.defaultLocation = "lists/default/items";
+			S.storage.session.defaultLocation = "lists/Default/items";  //// "lists/items" "lists/default/items"
+			S.storage.local.defaultLocation = "lists/Default/items";  //// "lists/items" "lists/default/items"
+			S.storage.server.defaultLocation = "lists/Default/items";  //// "lists/default/items"
 
 			var itemNumber = 1;
 			var now = new Date();
@@ -716,8 +716,12 @@
 				}
 			}
 			S.listen(window, "readyToRefresh", function () {
+
+				S.getClass("main-title")[0].textContent = S.storage[storagePlace].defaultLocation.split("/")[1];  // sets the title
+
 				S.getId("list").innerHTML = "";
 				S.getId("labelContainer").innerHTML = "";
+				S.getId("listList").innerHTML = "";
 				// fills Priority.instances
 				S.storage[storagePlace].list().forEach(function (key) {
 					let item = S.storage[storagePlace].recall(key);
@@ -783,6 +787,8 @@
 						S.getId("list").getElementsByTagName("input")[index].checked = true;
 					}
 				});
+				// sets the title (since it changes depending on what list is selected)
+				S.getClass("main-title")[0].textContent = S.storage[storagePlace].defaultLocation.split("/")[1];
 				// shows how many items are present in the list
 				if (list.length == 1) {
 					S.getId("numberOfFilteredItems").textContent = list.length + " item satisfies this filter";
@@ -799,6 +805,23 @@
 				S.getId("pastDueItems").textContent = pastDueNumber;
 				// adds an indicator of what's due the same day
 				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
+				// lists the lists
+				let listArray = [];
+				S.storage[storagePlace].list("lists").forEach(function (location) {
+					let listName = location.slice(0, location.indexOf("/"));
+					if (!listArray.includes(listName)) {
+						listArray.push(listName);
+					}
+				});
+				listArray.forEach(function (title) {
+					let button = document.createElement("button");
+					button.className = "subtle";
+					button.textContent = title;
+					button.addEventListener("click", function () {
+						//// switch to the list
+					});
+					S.getId("listList").appendChild(button);
+				});
 				// lists all labels
 				list.forEach(function (item) {
 					if (item.labels) {
@@ -1229,6 +1252,27 @@
 				refresh();
 			});
 
+			S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
+				now = new Date();
+				S.storage[storagePlace].list().forEach(function (key) {
+					let item = S.storage[storagePlace].recall(key);
+					if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
+						// puts lower-priority items further off into the future
+						// randomly assigns exact times within certain tiers
+						item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
+						S.storage[storagePlace].store(key, item);
+					}
+				});
+				S.getId("settingsSection").children[1].style.display = "none";
+				refresh();
+			});
+
+			S.listen("listDeletor", "click", function () {  ////
+				S.makeDialog("Are you sure you want to delete this list?", ["Yes", function () {
+					//// delete the list
+				}], "No");
+			});
+
 			S.listen("filterCheckbox", "click", function () {
 				if (this.checked) {
 					S.getId("filterSection").style.display = "inline-table";
@@ -1242,6 +1286,14 @@
 					S.getId("notificationsSection").style.display = "inline-table";
 				} else {
 					S.getId("notificationsSection").style.display = "none";
+				}
+			});
+
+			S.listen("listsCheckbox", "click", function () {
+				if (this.checked) {
+					S.getId("listsSection").style.display = "inline-table";
+				} else {
+					S.getId("listsSection").style.display = "none";
 				}
 			});
 
@@ -1267,15 +1319,14 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					/*
-					S.storage.local.list().forEach(function (key) {
-						S.storage.local.move(key, "items/" + key);
-					});
-					*/
 					S.storage.local.list("lists/default/items").forEach(function (key) {
-						console.log(S.storage.local.recall(key));
+						S.storage.local.move("default/items" + key, "Default/items" + key, "lists");
+					});
+					S.storage.local.list("lists/default/items").forEach(function (key) {
+						console.log(S.storage.local.recall(key, "lists/default/items"));
 					});
 				}
+				S.getId("settingsSection").children[1].style.display = "none";
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
@@ -1311,6 +1362,16 @@
 			.block {
 				display: block;
 				margin: 1em auto;
+			}
+			.subtle {
+				display: block;
+				border: none;
+				background: none;
+				font-size: 1rem;
+			}
+			.subtle:hover {
+				background: rgba(255, 255, 255, .5);
+				font-weight: bold;
 			}
 			#pastDueNotifier {
 				display: none;
@@ -1355,6 +1416,10 @@
 				position: static;
 				padding: 0rem;
 			}
+			#listList {
+				display: inline-block;
+				position: static;
+			}
 
 			@media screen and (max-width: 1000px) {
 				body {
@@ -1389,7 +1454,7 @@
 	</head>
 	<body>
 		<h1 class="main-title">
-			To-do List
+			Lists
 		</h1>
 		<div class="user-section">
 			<button id="signIn">
@@ -1461,13 +1526,21 @@
 						<input type="checkbox" id="filterCheckbox" checked>
 						<label for="filterCheckbox">Filter</label><br>
 						<input type="checkbox" id="notificationsCheckbox" checked>
-						<label for="notificationsCheckbox">Notifications</label>
+						<label for="notificationsCheckbox">Notifications</label><br>
+						<input type="checkbox" id="listsCheckbox" checked>
+						<label for="notificationsCheckbox">Lists</label>
 					</div>
+					<br>
+					<button id="procrastinator">
+						Postpone items
+					</button>
+					<button id="listDeletor">
+						Delete list
+					</button>
 					<br>
 					<button id="loadSampleList">
 						Load sample list
 					</button>
-					<br>
 					<button id="update">
 						Run corrections
 					</button>
@@ -1660,6 +1733,20 @@
 					There are
 					<div id="dueTodayItems">0</div>
 					items due today.
+				</div>
+			</div>
+			<div class="drop-down" tabindex="0" id="listsSection">
+				<div>
+					Lists
+				</div>
+				<div>
+					<div id="listList"></div>
+					<br>
+					<input type="text" id="newListTitle" placeholder="New list">
+					<br>
+					<button id="listMaker">
+						Create
+					</button>
 				</div>
 			</div>
 		</nav>
