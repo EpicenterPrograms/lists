@@ -1320,7 +1320,7 @@
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
 					S.storage.local.list("lists/default/items").forEach(function (key) {
-						S.storage.local.move("default/items" + key, "Default/items" + key, "lists");
+						S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
 					});
 					S.storage.local.list("lists/default/items").forEach(function (key) {
 						console.log(S.storage.local.recall(key, "lists/default/items"));
