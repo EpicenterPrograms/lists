@@ -24,6 +24,7 @@
 			var mergeData = false;
 			var deleteData = false;
 			var listenable = new S.Listenable();
+			var advancedSettingsSection;
 			var pastDueNumber = 0;
 			var dueTodayNumber = 0;
 			var storagePlace = "local";
@@ -818,7 +819,9 @@
 					button.className = "subtle";
 					button.textContent = title;
 					button.addEventListener("click", function () {
-						//// switch to the list
+						S.getId("listsSection").children[1].style.display = "none";
+						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
+						refresh();
 					});
 					S.getId("listList").appendChild(button);
 				});
@@ -1041,6 +1044,93 @@
 
 			window.addEventListener("finished", function () {
 
+				S.listen("listTitle", "change", function () {
+					let oldTitle = S.storage[storagePlace].defaultLocation.split("/")[1];
+					let newTitle = this.value.trim();
+					S.storage[storagePlace].list("lists/" + oldTitle).forEach(function (key) {
+						S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "lists");
+					});
+					S.storage[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
+					refresh();
+				});
+
+				S.listen("dayThresholdSetter", "change", function () {
+					dayThreshold = this.value;
+					refresh();
+				});
+
+				S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
+					now = new Date();
+					S.storage[storagePlace].list().forEach(function (key) {
+						let item = S.storage[storagePlace].recall(key);
+						if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
+							// puts lower-priority items further off into the future
+							// randomly assigns exact times within certain tiers
+							item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
+							S.storage[storagePlace].store(key, item);
+						}
+					});
+					refresh();
+				});
+
+				S.listen("listDeletor", "click", function () {
+					S.makeDialog("Are you sure you want to delete this list?", ["Yes", function () {
+						setTimeout(function () {
+							let shouldDelete = true;
+							S.makeDialog('<span id="deletingMessage">Deleting list...</span>', ['<span id="deletingButton">Cancel</span>', function () {
+								shouldDelete = false;
+							}]);
+							setTimeout(function () {
+								if (shouldDelete) {
+									let location = S.storage[storagePlace].defaultLocation.slice(0, S.storage[storagePlace].defaultLocation.lastIndexOf("/"));
+									S.forEach(S.storage[storagePlace].list(location), function (key) {
+										S.storage[storagePlace].forget(key, location);
+									});
+									S.getId("deletingMessage").textContent = "List deleted.";
+									S.getId("deletingButton").textContent = "Okay";
+									S.storage[storagePlace].defaultLocation = "lists/Default/items";
+									refresh();
+								}
+							}, 3000);
+						}, 0);
+					}], "No");
+				});
+
+				S.listen("loadSampleList", "click", function () {
+					if (this.textContent.trim() == "Load sample list") {
+						this.textContent = "Remove sample list";
+						S.getId("useSessionStorage").checked = true;
+						storagePlace = "session";
+						S.forEach(sampleList, function (item) {
+							S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done, labels: item.labels });
+						});
+					} else {
+						S.forEach(S.storage.session.list(), function (key) {
+							S.storage.session.forget(key);
+						});
+						S.getId("useLocalStorage").checked = true;
+						storagePlace = "local";
+						this.textContent = "Load sample list";
+					}
+					refresh();
+				});
+
+				S.listen("update", "click", function () {
+					if (!this.disabled) {
+						S.storage.local.list("lists/default/items").forEach(function (key) {
+							S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
+						});
+						S.storage.local.list("lists/default/items").forEach(function (key) {
+							console.log(S.storage.local.recall(key, "lists/default/items"));
+						});
+					}
+				});
+
+				advancedSettingsSection = S.getId("advancedSettings");
+				advancedSettingsSection.parentNode.removeChild(advancedSettingsSection);
+
+
+
 				S.forEach(S.getId("importanceFilter").getElementsByTagName("input"), function (box) {
 					box.addEventListener("click", function () {
 						if (S.getId("listFilter").value.trim() || S.toArray(this.parentNode.getElementsByTagName("input")).some(function (box) { return box.checked; })) {
@@ -1190,6 +1280,7 @@
 
 
 
+
 			S.listen("syncData", "change", function () {
 				if (S.storage.server.user && this.checked) {
 					mergeData = confirm("Merge this data with your account data?");
@@ -1247,31 +1338,13 @@
 				}
 			});
 
-			S.listen("dayThresholdSetter", "change", function () {
-				dayThreshold = this.value;
-				refresh();
-			});
 
-			S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
-				now = new Date();
-				S.storage[storagePlace].list().forEach(function (key) {
-					let item = S.storage[storagePlace].recall(key);
-					if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
-						// puts lower-priority items further off into the future
-						// randomly assigns exact times within certain tiers
-						item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
-						S.storage[storagePlace].store(key, item);
-					}
-				});
+			S.listen("showAdvancedSettings", "click", function () {
+				S.makeDialog(advancedSettingsSection, "Done");
+				S.getId("listTitle").value = S.storage[storagePlace].defaultLocation.split("/")[1];
 				S.getId("settingsSection").children[1].style.display = "none";
-				refresh();
 			});
 
-			S.listen("listDeletor", "click", function () {  ////
-				S.makeDialog("Are you sure you want to delete this list?", ["Yes", function () {
-					//// delete the list
-				}], "No");
-			});
 
 			S.listen("filterCheckbox", "click", function () {
 				if (this.checked) {
@@ -1297,36 +1370,13 @@
 				}
 			});
 
-			S.listen("loadSampleList", "click", function () {
-				if (this.textContent.trim() == "Load sample list") {
-					S.forEach(sampleList, function (item) {
-						S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done, labels: item.labels });
-					});
-					S.getId("useSessionStorage").checked = true;
-					storagePlace = "session";
-					this.textContent = "Remove sample list";
-				} else {
-					S.forEach(S.storage.session.list(), function (key) {
-						S.storage.session.forget(key);
-					});
-					S.getId("useLocalStorage").checked = true;
-					storagePlace = "local";
-					this.textContent = "Load sample list";
-				}
-				S.getId("settingsSection").children[1].style.display = "none";
+			S.listen("listMaker", "click", function () {
+				let title = S.getId("newListTitle").value.trim();
+				S.storage[storagePlace].store("ordering", "dynamic", "lists/" + title + "/settings");
+				S.getId("newListTitle").value = "";
+				S.getId("listsSection").children[1].style.display = "none";
+				S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
 				refresh();
-			});
-
-			S.listen("update", "click", function () {
-				if (!this.disabled) {
-					S.storage.local.list("lists/default/items").forEach(function (key) {
-						S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
-					});
-					S.storage.local.list("lists/default/items").forEach(function (key) {
-						console.log(S.storage.local.recall(key, "lists/default/items"));
-					});
-				}
-				S.getId("settingsSection").children[1].style.display = "none";
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
@@ -1367,6 +1417,7 @@
 				display: block;
 				border: none;
 				background: none;
+				font-family: serif;
 				font-size: 1rem;
 			}
 			.subtle:hover {
@@ -1516,10 +1567,6 @@
 					<input type="checkbox" id="inspiringMessages">
 					<label for="inspiringMessages">say inspiring messages</label>
 					<h4 style="margin:.25em">
-						Day threshold
-					</h4>
-					<input type="text" id="dayThresholdSetter" value="8" style="width:1.5em">&thinsp;:00
-					<h4 style="margin:.25em">
 						Sections to show
 					</h4>
 					<div class="list" style="display:table; position:static;">
@@ -1531,19 +1578,33 @@
 						<label for="notificationsCheckbox">Lists</label>
 					</div>
 					<br>
-					<button id="procrastinator">
-						Postpone items
+					<button id="showAdvancedSettings">
+						Show advanced settings
 					</button>
-					<button id="listDeletor">
-						Delete list
-					</button>
-					<br>
-					<button id="loadSampleList">
-						Load sample list
-					</button>
-					<button id="update">
-						Run corrections
-					</button>
+					<div id="advancedSettings">
+						<h4 style="margin:.25em">
+							List title
+						</h4>
+						<input type="text" id="listTitle">
+						<h4 style="margin:.25em">
+							Day threshold
+						</h4>
+						<input type="text" id="dayThresholdSetter" value="8" style="width:1.5em">&thinsp;:00
+						<br>
+						<button id="procrastinator">
+							Postpone items
+						</button>
+						<button id="listDeletor">
+							Delete list
+						</button>
+						<br>
+						<button id="loadSampleList">
+							Load sample list
+						</button>
+						<button id="update" disabled>
+							Run corrections
+						</button>
+					</div>
 				</div>
 			</div>
 			<div class="drop-down" tabindex="0" id="editorSection">
