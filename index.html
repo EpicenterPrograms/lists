@@ -718,7 +718,7 @@
 			}
 			S.listen(window, "readyToRefresh", function () {
 
-				S.getClass("main-title")[0].textContent = S.storage[storagePlace].defaultLocation.split("/")[1];  // sets the title
+				S.getClass("main-title")[0].textContent = decodeURIComponent(S.storage[storagePlace].defaultLocation.split("/")[1]);  // sets the title
 
 				S.getId("list").innerHTML = "";
 				S.getId("labelContainer").innerHTML = "";
@@ -788,8 +788,6 @@
 						S.getId("list").getElementsByTagName("input")[index].checked = true;
 					}
 				});
-				// sets the title (since it changes depending on what list is selected)
-				S.getClass("main-title")[0].textContent = S.storage[storagePlace].defaultLocation.split("/")[1];
 				// shows how many items are present in the list
 				if (list.length == 1) {
 					S.getId("numberOfFilteredItems").textContent = list.length + " item satisfies this filter";
@@ -817,10 +815,11 @@
 				listArray.forEach(function (title) {
 					let button = document.createElement("button");
 					button.className = "subtle";
-					button.textContent = title;
+					button.textContent = decodeURIComponent(title);
 					button.addEventListener("click", function () {
 						S.getId("listsSection").children[1].style.display = "none";
 						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
+						S.storage.server.defaultLocation = "lists/" + title + "/items";
 						refresh();
 					});
 					S.getId("listList").appendChild(button);
@@ -1046,7 +1045,7 @@
 
 				S.listen("listTitle", "change", function () {
 					let oldTitle = S.storage[storagePlace].defaultLocation.split("/")[1];
-					let newTitle = this.value.trim();
+					let newTitle = encodeURIComponent(this.value.trim());
 					S.storage[storagePlace].list("lists/" + oldTitle).forEach(function (key) {
 						S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "lists");
 					});
@@ -1341,7 +1340,7 @@
 
 			S.listen("showAdvancedSettings", "click", function () {
 				S.makeDialog(advancedSettingsSection, "Done");
-				S.getId("listTitle").value = S.storage[storagePlace].defaultLocation.split("/")[1];
+				S.getId("listTitle").value = decodeURIComponent(S.storage[storagePlace].defaultLocation.split("/")[1]);
 				S.getId("settingsSection").children[1].style.display = "none";
 			});
 
@@ -1371,12 +1370,15 @@
 			});
 
 			S.listen("listMaker", "click", function () {
-				let title = S.getId("newListTitle").value.trim();
-				S.storage[storagePlace].store("ordering", "dynamic", "lists/" + title + "/settings");
-				S.getId("newListTitle").value = "";
-				S.getId("listsSection").children[1].style.display = "none";
-				S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
-				refresh();
+				let title = encodeURIComponent(S.getId("newListTitle").value.trim());
+				if (title != "") {
+					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + title + "/settings");
+					S.getId("newListTitle").value = "";
+					S.getId("listsSection").children[1].style.display = "none";
+					S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
+					S.storage.server.defaultLocation = "lists/" + title + "/items";
+					refresh();
+				}
 			});
 		</script>
 		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/foundation.css">
