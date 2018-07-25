@@ -17,6 +17,8 @@
 			S.storage.local.defaultLocation = "lists/Default/items";  //// "lists/items" "lists/default/items"
 			S.storage.server.defaultLocation = "lists/Default/items";  //// "lists/default/items"
 
+			var currentList = "Default";
+			var Priority = { instances: {} };
 			var itemNumber = 1;
 			var now = new Date();
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -136,9 +138,9 @@
 
 
 
-			function makePriority(description, importance, date, recurrence, lastFinished, done, labels) {
+			function makeDynamicItem(description, importance, date, recurrence, lastFinished, done, labels) {
 				/**
-				adds a priority to Priority.instances
+				adds a dynamic list item to Priority.instances
 				*/
 				
 				// makes a Date object for the due date (assigned to "then")
@@ -399,7 +401,7 @@
 				
 				// adds the item to the priority list or runs the function again
 				if (needsToRunFunctionAgain) {
-					makePriority(description, importance, originalDate, recurrence, lastFinished, done, labels);
+					makeDynamicItem(description, importance, originalDate, recurrence, lastFinished, done, labels);
 				} else {
 					if (isNaN(urgency) || S.getType(urgency) != "Number") {
 						throw 'The item with the description "' + decodeURIComponent(description) + '" has a non-number urgency.';
@@ -413,12 +415,42 @@
 					Priority.instances[urgency+increment] = {description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels};
 				}
 			}
-			Priority = {instances: {}};
+
+
+			function makeStaticItem(description, item) {
+				/**
+				adds a static list item to Priority.instances
+				*/
+
+				// creates the HTML objects to be displayed
+				let checkbox = document.createElement("input");
+				checkbox.type = "checkbox";
+				checkbox.id = "item" + itemNumber++;
+				let label = document.createElement("span");
+				label.title = "Item position: " + item.position;
+				label.textContent = decodeURIComponent(description);
+
+				// puts the elements into a container
+				let section = document.createElement("section");
+				section.className = "list-item";
+				section.appendChild(checkbox);
+				section.appendChild(label);
+				let elements = document.createElement("div");
+				elements.appendChild(section);
+
+				// crosses out finished items
+				if (item.done) {
+					label.style.textDecoration = "line-through";
+					label.title = "Finished";
+				}
+
+				Priority.instances[item.position-1] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+			}
 
 
 
 
-			function include() {
+			function includeDynamicItem() {
 				let enoughInformation = true;
 				if (!(S.getId("description").value.trim() && S.getId("importance").value && S.getId("recurrence").value)) {
 					enoughInformation = false;
@@ -535,7 +567,54 @@
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
 				} else {
-					alert("You left out at least one field.");
+					alert("You left out at least one required field.");
+				}
+			}
+
+			function includeStaticItem() {
+				let enoughInformation = true;
+				if (S.getId("positioner").value.trim() == "") {
+					enoughInformation = false;
+				} else if (S.getId("description").value.trim() == "") {
+					enoughInformation = false;
+				}
+				if (enoughInformation) {
+					now = new Date();
+					// sets the position
+					let position = Number(S.getId("positioner").value);
+					if (position < 1) {
+						position = 1;
+					}
+					let itemList = S.storage[storagePlace].list();
+					if (position > itemList.length + 1) {
+						position = itemList.length + 1;
+					} else if (position < itemList.length + 1) {
+						S.forEach(itemList, function (key) {
+							let item = S.storage[storagePlace].recall(key);
+							if (item.position >= position) {
+								item.position++;
+								S.storage[storagePlace].store(key, item);
+							}
+						});
+					}
+					// sets labels
+					let labels = S.getId("labels").value.trim().split(",");
+					S.forEach(labels, function (label, index) {
+						labels[index] = label.trim();
+					});
+					// stores the information
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, lastFinished: now.getTime(), labels: labels });
+					// resets stuff
+					["description", "labels", "importance", "positioner"].forEach(function (ID) {
+						S.getId(ID).value = "";
+					});
+					// refreshes the list
+					refresh();
+					setTimeout(function () {
+						refresh(true);
+					}, 0);
+				} else {
+					alert("You left out at least one required field.");
 				}
 			}
 
@@ -680,6 +759,7 @@
 
 
 			function refresh(shouldSync) {
+
 				now = new Date();
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				Priority.instances = {};
@@ -723,11 +803,30 @@
 				S.getId("list").innerHTML = "";
 				S.getId("labelContainer").innerHTML = "";
 				S.getId("listList").innerHTML = "";
+				S.getId("defaultList").innerHTML = "";
 				// fills Priority.instances
-				S.storage[storagePlace].list().forEach(function (key) {
-					let item = S.storage[storagePlace].recall(key);
-					makePriority(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
-				});
+				if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "dynamic") {
+					S.getId("staticEditor").style.display = "none";
+					S.getId("dynamicEditor").style.display = "block";
+					S.storage[storagePlace].list().forEach(function (key) {
+						let item = S.storage[storagePlace].recall(key);
+						makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
+					});
+				} else if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "static") {
+					S.getId("dynamicEditor").style.display = "none";
+					S.getId("staticEditor").style.display = "block";
+					S.storage[storagePlace].list().forEach(function (key) {
+						makeStaticItem(key, S.storage[storagePlace].recall(key));
+					});
+				}
+				// adds list settings if necessary
+				if (!S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings")) {
+					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
+				}
+				advancedSettingsSection.querySelector("#listOrdering").value = S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings");
+				if (!S.storage[storagePlace].recall("filter", "lists/" + currentList + "/settings")) {
+					S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
+				}
 				// declares necessary variables
 				let list = [],
 					currentIndex = 0,
@@ -807,9 +906,11 @@
 				// lists the lists
 				let listArray = [];
 				S.storage[storagePlace].list("lists").forEach(function (location) {
-					let listName = location.slice(0, location.indexOf("/"));
-					if (!listArray.includes(listName)) {
-						listArray.push(listName);
+					if (location != "start-up settings") {
+						let listName = location.slice(0, location.indexOf("/"));
+						if (!listArray.includes(listName)) {
+							listArray.push(listName);
+						}
 					}
 				});
 				listArray.forEach(function (title) {
@@ -820,10 +921,18 @@
 						S.getId("listsSection").children[1].style.display = "none";
 						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
 						S.storage.server.defaultLocation = "lists/" + title + "/items";
+						currentList = title;
 						refresh();
 					});
 					S.getId("listList").appendChild(button);
 				});
+				listArray.forEach(function (title) {
+					let option = document.createElement("option");
+					option.value = title;
+					option.textContent = decodeURIComponent(title);
+					S.getId("defaultList").appendChild(option);
+				});
+				S.getId("defaultList").value = S.storage[storagePlace].recall("start-up settings", "lists").list;
 				// lists all labels
 				list.forEach(function (item) {
 					if (item.labels) {
@@ -867,128 +976,161 @@
 						});
 						// listens for double-clicking on a description
 						// (pulls up the editor for that item)
-						S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
-							// prevents highlighting the text when double-clicking
-							// event.preventDefault() would only work with onmousedown
-							if (document.selection && document.selection.empty) {
-								document.selection.empty();
-							} else if (window.getSelection) {
-								window.getSelection().removeAllRanges();
-							}
-							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-							S.getId("description").value = listItem.description;
-							S.getId("importance").value = item.importance;
-							S.getId("recurrence").value = item.recurrence;
-							switch (item.recurrence) {
-								case "indefinite":
-									/*
-									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
-									if (indefiniteTime <= 0) {
-										indefiniteTime = "immediately";
-									} else if (indefiniteTime <= 250000000) {
-										indefiniteTime = "soon";
-									} else if (indefiniteTime <= 700000000) {
-										indefiniteTime = "later";
-									} else if (indefiniteTime <= 1600000000) {
-										indefiniteTime = "aWhile";
-									} else {
-										indefiniteTime = "somePoint";
-									}
-									*/
-									S.getId("timeframe").options["same"].disabled = false;
-									S.getId("timeframe").value = "same";
-									break;
-								case "once":
-									S.getId("fullDate").value = item.time.split("~")[0];
-									break;
-								case "monthly":
-									S.getId("day").value = item.time.split("~")[0];
-									break;
-								case "weekly":
-									week.forEach(function (ID) {
-										S.getId(ID).checked = false;
-									});
-									item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
-										S.getId(ID).checked = true;
-									});
-									break;
-							}
-							if (item.recurrence != "indefinite") {
-								if (item.time.split("~")[1].includes(" ")) {
-									S.getId("time").value = item.time.split("~")[1].split(" ")[0];
-									S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
-								} else {
-									S.getId("time").value = item.time.split("~")[1];
-									S.getId("timeFormat").value = "24-hour";
+						if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "dynamic") {
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								// prevents highlighting the text when double-clicking
+								// event.preventDefault() would only work with onmousedown
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
 								}
-							}
-							if (item.labels) {
-								S.getId("labels").value = item.labels.join(", ");
-							}
-							showHide();
-							S.getId("editorSection").children[1].style.display = "block";
-						});
-						// listens for touching and holding on a description
-						// (pulls up the editor for that item)
-						S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
-							if (document.selection && document.selection.empty) {
-								document.selection.empty();
-							} else if (window.getSelection) {
-								window.getSelection().removeAllRanges();
-							}
-							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-							S.getId("description").value = listItem.description;
-							S.getId("importance").value = item.importance;
-							S.getId("recurrence").value = item.recurrence;
-							switch (item.recurrence) {
-								case "indefinite":
-									/*
-									let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
-									if (indefiniteTime <= 0) {
-										indefiniteTime = "immediately";
-									} else if (indefiniteTime <= 250000000) {
-										indefiniteTime = "soon";
-									} else if (indefiniteTime <= 700000000) {
-										indefiniteTime = "later";
-									} else if (indefiniteTime <= 1600000000) {
-										indefiniteTime = "aWhile";
-									} else {
-										indefiniteTime = "somePoint";
-									}
-									*/
-									S.getId("timeframe").options["same"].disabled = false;
-									S.getId("timeframe").value = "same";
-									break;
-								case "once":
-									S.getId("fullDate").value = item.time.split("~")[0];
-									break;
-								case "monthly":
-									S.getId("day").value = item.time.split("~")[0];
-									break;
-								case "weekly":
-									week.forEach(function (ID) {
-										S.getId(ID).checked = false;
-									});
-									item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
-										S.getId(ID).checked = true;
-									});
-									break;
-							}
-							if (item.recurrence != "indefinite") {
-								if (item.time.split("~")[1].includes(" ")) {
-									S.getId("time").value = item.time.split("~")[1].split(" ")[0];
-									S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
-								} else {
-									S.getId("time").value = item.time.split("~")[1];
-									S.getId("timeFormat").value = "24-hour";
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("importance").value = item.importance;
+								S.getId("recurrence").value = item.recurrence;
+								switch (item.recurrence) {
+									case "indefinite":
+										/*
+										let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
+										if (indefiniteTime <= 0) {
+											indefiniteTime = "immediately";
+										} else if (indefiniteTime <= 250000000) {
+											indefiniteTime = "soon";
+										} else if (indefiniteTime <= 700000000) {
+											indefiniteTime = "later";
+										} else if (indefiniteTime <= 1600000000) {
+											indefiniteTime = "aWhile";
+										} else {
+											indefiniteTime = "somePoint";
+										}
+										*/
+										S.getId("timeframe").options["same"].disabled = false;
+										S.getId("timeframe").value = "same";
+										break;
+									case "once":
+										S.getId("fullDate").value = item.time.split("~")[0];
+										break;
+									case "monthly":
+										S.getId("day").value = item.time.split("~")[0];
+										break;
+									case "weekly":
+										week.forEach(function (ID) {
+											S.getId(ID).checked = false;
+										});
+										item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
+											S.getId(ID).checked = true;
+										});
+										break;
 								}
-							}
-							if (item.labels) {
-								S.getId("labels").value = item.labels.join(", ");
-							}
-							showHide();
-							S.getId("editorSection").children[1].style.display = "block";
-						}, false, 300);
+								if (item.recurrence != "indefinite") {
+									if (item.time.split("~")[1].includes(" ")) {
+										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
+										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
+									} else {
+										S.getId("time").value = item.time.split("~")[1];
+										S.getId("timeFormat").value = "24-hour";
+									}
+								}
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								showHide();
+								S.getId("editorSection").children[1].style.display = "block";
+							});
+							// listens for touching and holding on a description
+							// (pulls up the editor for that item)
+							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
+								}
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("importance").value = item.importance;
+								S.getId("recurrence").value = item.recurrence;
+								switch (item.recurrence) {
+									case "indefinite":
+										/*
+										let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
+										if (indefiniteTime <= 0) {
+											indefiniteTime = "immediately";
+										} else if (indefiniteTime <= 250000000) {
+											indefiniteTime = "soon";
+										} else if (indefiniteTime <= 700000000) {
+											indefiniteTime = "later";
+										} else if (indefiniteTime <= 1600000000) {
+											indefiniteTime = "aWhile";
+										} else {
+											indefiniteTime = "somePoint";
+										}
+										*/
+										S.getId("timeframe").options["same"].disabled = false;
+										S.getId("timeframe").value = "same";
+										break;
+									case "once":
+										S.getId("fullDate").value = item.time.split("~")[0];
+										break;
+									case "monthly":
+										S.getId("day").value = item.time.split("~")[0];
+										break;
+									case "weekly":
+										week.forEach(function (ID) {
+											S.getId(ID).checked = false;
+										});
+										item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
+											S.getId(ID).checked = true;
+										});
+										break;
+								}
+								if (item.recurrence != "indefinite") {
+									if (item.time.split("~")[1].includes(" ")) {
+										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
+										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
+									} else {
+										S.getId("time").value = item.time.split("~")[1];
+										S.getId("timeFormat").value = "24-hour";
+									}
+								}
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								showHide();
+								S.getId("editorSection").children[1].style.display = "block";
+							}, false, 300);
+						} else if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "static") {
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								// prevents highlighting the text when double-clicking
+								// event.preventDefault() would only work with onmousedown
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
+								}
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("positioner").value = item.position;
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								S.getId("editorSection").children[1].style.display = "block";
+							});
+							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
+								}
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("positioner").value = item.position;
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								S.getId("editorSection").children[1].style.display = "block";
+							}, false, 300);
+						}
 					});
 				}
 				S.getId("recurrence").value = "";
@@ -1005,7 +1147,7 @@
 					let item = location.recall(key);
 					if (key == encodeURIComponent(S.getId("description").value.trim())) {
 						location.forget(key);
-					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once")) {
+					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "lists/"+location.defaultLocation.split("/")[1]+"/settings") == "static")) {
 						location.forget(key);
 					}
 				});
@@ -1043,93 +1185,58 @@
 
 			window.addEventListener("finished", function () {
 
-				S.listen("listTitle", "change", function () {
-					let oldTitle = S.storage[storagePlace].defaultLocation.split("/")[1];
-					let newTitle = encodeURIComponent(this.value.trim());
-					S.storage[storagePlace].list("lists/" + oldTitle).forEach(function (key) {
-						S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "lists");
-					});
-					S.storage[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
-					refresh();
-				});
-
-				S.listen("dayThresholdSetter", "change", function () {
-					dayThreshold = this.value;
-					refresh();
-				});
-
-				S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
-					now = new Date();
-					S.storage[storagePlace].list().forEach(function (key) {
-						let item = S.storage[storagePlace].recall(key);
-						if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
-							// puts lower-priority items further off into the future
-							// randomly assigns exact times within certain tiers
-							item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
-							S.storage[storagePlace].store(key, item);
-						}
-					});
-					refresh();
-				});
-
-				S.listen("listDeletor", "click", function () {
-					S.makeDialog("Are you sure you want to delete this list?", ["Yes", function () {
-						setTimeout(function () {
-							let shouldDelete = true;
-							S.makeDialog('<span id="deletingMessage">Deleting list...</span>', ['<span id="deletingButton">Cancel</span>', function () {
-								shouldDelete = false;
-							}]);
-							setTimeout(function () {
-								if (shouldDelete) {
-									let location = S.storage[storagePlace].defaultLocation.slice(0, S.storage[storagePlace].defaultLocation.lastIndexOf("/"));
-									S.forEach(S.storage[storagePlace].list(location), function (key) {
-										S.storage[storagePlace].forget(key, location);
-									});
-									S.getId("deletingMessage").textContent = "List deleted.";
-									S.getId("deletingButton").textContent = "Okay";
-									S.storage[storagePlace].defaultLocation = "lists/Default/items";
-									refresh();
-								}
-							}, 3000);
-						}, 0);
-					}], "No");
-				});
-
-				S.listen("loadSampleList", "click", function () {
-					if (this.textContent.trim() == "Load sample list") {
-						this.textContent = "Remove sample list";
-						S.getId("useSessionStorage").checked = true;
-						storagePlace = "session";
-						S.forEach(sampleList, function (item) {
-							S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done, labels: item.labels });
-						});
-					} else {
-						S.forEach(S.storage.session.list(), function (key) {
-							S.storage.session.forget(key);
-						});
-						S.getId("useLocalStorage").checked = true;
-						storagePlace = "local";
-						this.textContent = "Load sample list";
-					}
-					refresh();
-				});
-
-				S.listen("update", "click", function () {
-					if (!this.disabled) {
-						S.storage.local.list("lists/default/items").forEach(function (key) {
-							S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
-						});
-						S.storage.local.list("lists/default/items").forEach(function (key) {
-							console.log(S.storage.local.recall(key, "lists/default/items"));
-						});
-					}
-				});
-
 				advancedSettingsSection = S.getId("advancedSettings");
 				advancedSettingsSection.parentNode.removeChild(advancedSettingsSection);
 
+				var siteSettings;
+				// sets or retrieves the start-up settings
+				if (S.getType(S.storage.local.recall("start-up settings", "lists")) != "Object") {
+					siteSettings = {};
+					siteSettings.list = "Default";  // the list to start with
+					siteSettings.hide = [];  // what sections should be hidden
+					siteSettings.sync = false;  // whether the information should sync when logged in
+					siteSettings.volume = 100;  // the sound volume
+					siteSettings.inspiration = false;  // whether inspirational messages should be said
+					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
+					S.storage.local.store("start-up settings", siteSettings, "lists");
+				} else {
+					siteSettings = S.storage.local.recall("start-up settings", "lists");
+				}
+				if (S.getType(S.storage.session.recall("start-up settings", "lists")) != "Object") {
+					siteSettings = {};
+					siteSettings.list = "Default";  // the list to start with
+					siteSettings.hide = [];  // what sections should be hidden
+					siteSettings.sync = false;  // whether the information should sync when logged in
+					siteSettings.volume = 100;  // the sound volume
+					siteSettings.inspiration = false;  // whether inspirational messages should be said
+					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
+					S.storage.session.store("start-up settings", siteSettings, "lists");
+				} else {
+					siteSettings = S.storage.session.recall("start-up settings", "lists");
+				}
+				// sets the current list
+				currentList = siteSettings.list;
+				S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
+				S.storage.server.defaultLocation = "lists/" + currentList + "/items";
+				// sets the inspiration
+				if (siteSettings.inspiration == true) {
+					S.getId("inspiringMessages").checked = true;
+				}
+				// sets the storage type
+				if (siteSettings.storageType == "session") {
+					S.getName("storagePlace")[0].checked = false;
+					S.getName("storagePlace")[1].checked = true;
+				}
 
+				// adds list settings if necessary
+				if (!S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings")) {
+					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
+				}
+				if (!S.storage[storagePlace].recall("filter", "lists/" + currentList + "/settings")) {
+					S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
+				}
 
+				// adds listeners to the filter inputs
 				S.forEach(S.getId("importanceFilter").getElementsByTagName("input"), function (box) {
 					box.addEventListener("click", function () {
 						if (S.getId("listFilter").value.trim() || S.toArray(this.parentNode.getElementsByTagName("input")).some(function (box) { return box.checked; })) {
@@ -1298,19 +1405,31 @@
 			});
 
 			S.listen("useLocalStorage", "click", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
 				} else {
 					storagePlace = "session";
 				}
+				settings.storageType = storagePlace;
+				S.storage[storagePlace].store("start-up settings", settings, "lists");
 			});
 
 			S.listen("useSessionStorage", "click", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
 				} else {
 					storagePlace = "session";
 				}
+				settings.storageType = storagePlace;
+				S.storage[storagePlace].store("start-up settings", settings, "lists");
+			});
+
+			S.listen("defaultList", "change", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				settings.list = this.value;
+				S.storage[storagePlace].store("start-up settings", settings, "lists");
 			});
 
 			S.listen("soundVolume", "change", function () {
@@ -1344,28 +1463,170 @@
 				S.getId("settingsSection").children[1].style.display = "none";
 			});
 
+			S.listen("listTitle", "change", function () {
+				let oldTitle = S.storage[storagePlace].defaultLocation.split("/")[1];
+				let newTitle = encodeURIComponent(this.value.trim());
+				S.storage[storagePlace].list("lists/" + oldTitle).forEach(function (key) {
+					S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "lists");
+				});
+				S.storage[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
+				S.storage.server.defaultLocation = "lists/" + newTitle + "/items";
+				if (S.storage[storagePlace].recall("start-up settings", "lists").list == currentList) {
+					let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+					settings.list = newTitle;
+					S.storage[storagePlace].store("start-up settings", settings, "lists");
+				}
+				currentList = newTitle;
+				refresh();
+			});
+
+			S.listen("listOrdering", "change", function () {
+				S.storage[storagePlace].store("ordering", this.value, "lists/" + currentList + "/settings");
+				refresh();
+			});
+
+			S.listen("dayThresholdSetter", "change", function () {
+				if (this.value == Math.round(this.value)) {  // if the number is an integer
+					S.storage[storagePlace].store("threshold", this.value, "lists/" + currentList + "/settings");
+					refresh();
+				}
+			});
+
+			S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
+				now = new Date();
+				S.storage[storagePlace].list().forEach(function (key) {
+					let item = S.storage[storagePlace].recall(key);
+					if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
+						// puts lower-priority items further off into the future
+						// randomly assigns exact times within certain tiers
+						item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
+						S.storage[storagePlace].store(key, item);
+					}
+				});
+				refresh();
+			});
+
+			S.listen("listDeletor", "click", function () {
+				S.makeDialog("Are you sure you want to delete this list?", ["Yes", function () {
+					setTimeout(function () {
+						let shouldDelete = true;
+						S.makeDialog('<span id="deletingMessage">Deleting list...</span>', ['<span id="deletingButton">Cancel</span>', function () {
+							shouldDelete = false;
+						}]);
+						setTimeout(function () {
+							if (shouldDelete) {
+								let location = S.storage[storagePlace].defaultLocation.slice(0, S.storage[storagePlace].defaultLocation.lastIndexOf("/"));
+								S.forEach(S.storage[storagePlace].list(location), function (key) {
+									S.storage[storagePlace].forget(key, location);
+								});
+								S.getId("deletingMessage").textContent = "List deleted.";
+								S.getId("deletingButton").textContent = "Okay";
+								if (S.storage[storagePlace].recall("start-up settings", "lists").list != currentList) {
+									currentList = S.storage[storagePlace].recall("start-up settings", "lists").list;
+									S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
+									S.storage.server.defaultLocation = "lists/" + currentList + "/items";
+								} else {
+									S.storage[storagePlace].defaultLocation = "lists/Default/items";
+									S.storage.server.defaultLocation = "lists/Default/items";
+									currentList = "Default";
+									S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
+									S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
+									let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+									settings.list = "Default";
+									S.storage[storagePlace].store("start-up settings", settings, "lists");
+								}
+								refresh();
+							}
+						}, 3000);
+					}, 0);
+				}], "No");
+			});
+
+			S.listen("loadSampleList", "click", function () {
+				if (this.textContent.trim() == "Load sample list") {
+					this.textContent = "Remove sample list";
+					S.getId("useSessionStorage").checked = true;
+					storagePlace = "session";
+					S.forEach(sampleList, function (item) {
+						S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done, labels: item.labels });
+					});
+				} else {
+					S.forEach(S.storage.session.list(), function (key) {
+						S.storage.session.forget(key);
+					});
+					S.getId("useLocalStorage").checked = true;
+					storagePlace = "local";
+					this.textContent = "Load sample list";
+				}
+				refresh();
+			});
+
+			S.listen("update", "click", function () {
+				if (!this.disabled) {
+					S.storage.local.list("lists/default/items").forEach(function (key) {
+						S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
+					});
+					S.storage.local.list("lists/default/items").forEach(function (key) {
+						console.log(S.storage.local.recall(key, "lists/default/items"));
+					});
+				}
+			});
+
+
+			S.listen("inspiringMessages", "click", function () {
+				let settings = S.storage.local.recall("start-up settings", "lists");
+				settings.inspiration = this.checked;
+				S.storage[storagePlace].store("start-up settings", settings, "lists");
+			});
 
 			S.listen("filterCheckbox", "click", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
 				if (this.checked) {
 					S.getId("filterSection").style.display = "inline-table";
+					if (settings.hide.includes("filter")) {
+						settings.hide.splice(settings.hide.indexOf("filter"), 1);
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				} else {
 					S.getId("filterSection").style.display = "none";
+					if (!settings.hide.includes("filter")) {
+						settings.hide.push("filter");
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				}
 			});
 
 			S.listen("notificationsCheckbox", "click", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
 				if (this.checked) {
 					S.getId("notificationsSection").style.display = "inline-table";
+					if (settings.hide.includes("notifications")) {
+						settings.hide.splice(settings.hide.indexOf("notifications"), 1);
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				} else {
 					S.getId("notificationsSection").style.display = "none";
+					if (!settings.hide.includes("notifications")) {
+						settings.hide.push("notifications");
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				}
 			});
 
 			S.listen("listsCheckbox", "click", function () {
+				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
 				if (this.checked) {
 					S.getId("listsSection").style.display = "inline-table";
+					if (settings.hide.includes("lists")) {
+						settings.hide.splice(settings.hide.indexOf("lists"), 1);
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				} else {
 					S.getId("listsSection").style.display = "none";
+					if (!settings.hide.includes("lists")) {
+						settings.hide.push("lists");
+						S.storage[storagePlace].store("start-up settings", settings, "lists");
+					}
 				}
 			});
 
@@ -1373,11 +1634,14 @@
 				let title = encodeURIComponent(S.getId("newListTitle").value.trim());
 				if (title != "") {
 					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + title + "/settings");
+					S.storage[storagePlace].store("filter", [], "lists/" + title + "/settings");
 					S.getId("newListTitle").value = "";
 					S.getId("listsSection").children[1].style.display = "none";
 					S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
 					S.storage.server.defaultLocation = "lists/" + title + "/items";
+					currentList = title;
 					refresh();
+					S.getId("showAdvancedSettings").click();
 				}
 			});
 		</script>
@@ -1439,6 +1703,16 @@
 				background: red;
 				font-size: .75em;
 				color: white;
+			}
+			#dynamicEditor {
+				display: block;
+				position: static;
+				padding: 0rem;
+			}
+			#staticEditor {
+				display: none;
+				position: static;
+				padding: 0rem;
 			}
 			#pastDueItems {
 				display: inline-block;
@@ -1565,6 +1839,10 @@
 					</table>
 					<br>
 					<input type="text" id="soundVolume" placeholder="Volume (1-100)">
+					<h4 style="margin:.25em">
+						Default list
+					</h4>
+					<select id="defaultList"></select>
 					<br>
 					<input type="checkbox" id="inspiringMessages">
 					<label for="inspiringMessages">say inspiring messages</label>
@@ -1588,6 +1866,17 @@
 							List title
 						</h4>
 						<input type="text" id="listTitle">
+						<h4 style="margin:.25em">
+							Type of ordering
+						</h4>
+						<select id="listOrdering">
+							<option value="dynamic" selected>
+								Dynamic
+							</option>
+							<option value="static">
+								Static
+							</option>
+						</select>
 						<h4 style="margin:.25em">
 							Day threshold
 						</h4>
@@ -1615,9 +1904,9 @@
 				</div>
 				<div>
 					<input type="text" class="block" id="description" placeholder="Thing to do" style="margin-top:.5em">
-					<input type="text" class="block" id="labels" placeholder="New labels">
-					<div class="list" id="labelContainer"></div>
-					<select class="block" id="importance">
+					<input type="text" class="block" id="labels" placeholder="Labels">
+					<div class="list" id="labelContainer" style="display:none"></div>
+					<select class="block" id="importance" style="margin-bottom:0rem">
 						<option value="" disabled selected>
 							Importance
 						</option>
@@ -1637,132 +1926,145 @@
 							5 (highest)
 						</option>
 					</select>
-					<select class="block" id="recurrence">
-						<option value="" disabled selected>
-							Recurrence
-						</option>
-						<option value="indefinite">
-							Indefinite
-						</option>
-						<option value="once">
-							One time
-						</option>
-						<option value="monthly">
-							Monthly
-						</option>
-						<option value="weekly">
-							Weekly
-						</option>
-						<option value="daily">
-							Daily
-						</option>
-					</select>
-					<section id="indefinite" style="display:none">
-						<select id="timeframe">
+					<div id="dynamicEditor">
+						<select class="block" id="recurrence">
 							<option value="" disabled selected>
-								Timeframe
+								Recurrence
 							</option>
-							<option value="immediately">
-								Immediately
+							<option value="indefinite">
+								Indefinite
 							</option>
-							<option value="soon">
-								Soon
+							<option value="once">
+								One time
 							</option>
-							<option value="later">
-								Later
+							<option value="monthly">
+								Monthly
 							</option>
-							<option value="aWhile">
-								In a while
+							<option value="weekly">
+								Weekly
 							</option>
-							<option value="somePoint">
-								At some point
-							</option>
-							<option value="same" name="same" disabled>
-								Same
+							<option value="daily">
+								Daily
 							</option>
 						</select>
-					</section>
-					<section id="once" style="display:none">
-						<input type="text" id="fullDate" placeholder="Date (month/day/year)">
-						<select id="quickSelect">
-							<option value="" disabled selected>
-								Quick select
-							</option>
-							<option value="monday">
-								Monday
-							</option>
-							<option value="tuesday">
-								Tuesday
-							</option>
-							<option value="wednesday">
-								Wednesday
-							</option>
-							<option value="thursday">
-								Thursday
-							</option>
-							<option value="friday">
-								Friday
-							</option>
-							<option value="saturday">
-								Saturday
-							</option>
-							<option value="sunday">
-								Sunday
-							</option>
-						</select>
-					</section>
-					<section id="monthly" style="display:none">
-						<input type="text" id="day" placeholder="Day of the month">
-					</section>
-					<section id="weekly" class="list" style="display:none">
-						<input type="checkbox" id="monday">
-						<label for="monday">Monday</label>
-						<br>
-						<input type="checkbox" id="tuesday">
-						<label for="tuesday">Tuesday</label>
-						<br>
-						<input type="checkbox" id="wednesday">
-						<label for="wednesday">Wednesday</label>
-						<br>
-						<input type="checkbox" id="thursday">
-						<label for="thursday">Thursday</label>
-						<br>
-						<input type="checkbox" id="friday">
-						<label for="friday">Friday</label>
-						<br>
-						<input type="checkbox" id="saturday">
-						<label for="saturday">Saturday</label>
-						<br>
-						<input type="checkbox" id="sunday">
-						<label for="sunday">Sunday</label>
-					</section>
-					<section id="timeSection" style="display:none">
-						<input type="text" id="time" placeholder="Time (hour:minute)">
-						<span>&nbsp;</span>
-						<select id="timeFormat">
-							<option value="" disabled selected>
-								Time format
-							</option>
-							<option value="am">
-								am
-							</option>
-							<option value="pm">
-								pm
-							</option>
-							<option value="24-hour">
-								24-hour
-							</option>
-						</select>
-					</section>
-					<section>
-						<button onclick="include()">
-							Add to list
-						</button>
-						<button onclick="remove()">
-							Remove
-						</button>
-					</section>
-					<button class="block" onclick="cancel()">
+						<section id="indefinite" style="display:none">
+							<select id="timeframe">
+								<option value="" disabled selected>
+									Timeframe
+								</option>
+								<option value="immediately">
+									Immediately
+								</option>
+								<option value="soon">
+									Soon
+								</option>
+								<option value="later">
+									Later
+								</option>
+								<option value="aWhile">
+									In a while
+								</option>
+								<option value="somePoint">
+									At some point
+								</option>
+								<option value="same" name="same" disabled>
+									Same
+								</option>
+							</select>
+						</section>
+						<section id="once" style="display:none">
+							<input type="text" id="fullDate" placeholder="Date (month/day/year)">
+							<select id="quickSelect">
+								<option value="" disabled selected>
+									Quick select
+								</option>
+								<option value="monday">
+									Monday
+								</option>
+								<option value="tuesday">
+									Tuesday
+								</option>
+								<option value="wednesday">
+									Wednesday
+								</option>
+								<option value="thursday">
+									Thursday
+								</option>
+								<option value="friday">
+									Friday
+								</option>
+								<option value="saturday">
+									Saturday
+								</option>
+								<option value="sunday">
+									Sunday
+								</option>
+							</select>
+						</section>
+						<section id="monthly" style="display:none">
+							<input type="text" id="day" placeholder="Day of the month">
+						</section>
+						<section id="weekly" class="list" style="display:none">
+							<input type="checkbox" id="monday">
+							<label for="monday">Monday</label>
+							<br>
+							<input type="checkbox" id="tuesday">
+							<label for="tuesday">Tuesday</label>
+							<br>
+							<input type="checkbox" id="wednesday">
+							<label for="wednesday">Wednesday</label>
+							<br>
+							<input type="checkbox" id="thursday">
+							<label for="thursday">Thursday</label>
+							<br>
+							<input type="checkbox" id="friday">
+							<label for="friday">Friday</label>
+							<br>
+							<input type="checkbox" id="saturday">
+							<label for="saturday">Saturday</label>
+							<br>
+							<input type="checkbox" id="sunday">
+							<label for="sunday">Sunday</label>
+						</section>
+						<section id="timeSection" style="display:none">
+							<input type="text" id="time" placeholder="Time (hour:minute)">
+							<span>&nbsp;</span>
+							<select id="timeFormat">
+								<option value="" disabled selected>
+									Time format
+								</option>
+								<option value="am">
+									am
+								</option>
+								<option value="pm">
+									pm
+								</option>
+								<option value="24-hour">
+									24-hour
+								</option>
+							</select>
+						</section>
+						<section>
+							<button onclick="includeDynamicItem()">
+								Add to list
+							</button>
+							<button onclick="remove()">
+								Remove
+							</button>
+						</section>
+					</div>
+					<div id="staticEditor">
+						<input type="text" class="block" id="positioner" placeholder="position">
+						<section>
+							<button onclick="includeStaticItem()">
+								Add to list
+							</button>
+							<button onclick="remove()">
+								Remove
+							</button>
+						</section>
+					</div>
+					<button onclick="cancel()">
 						Cancel
 					</button>
 				</div>
