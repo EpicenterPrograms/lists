@@ -685,7 +685,7 @@
 						if (value >= S.storage[storagePlace].list().length) {  // when all items have been stored
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
-							S.storage.server.list("", function (list) {
+							S.storage.server.list(undefined, function (list) {
 								let localKeys = S.storage[storagePlace].list();
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
@@ -701,7 +701,7 @@
 										if (!localKeys.includes(document.id)) {
 											deleting = true;
 											listenable.value++;
-											S.storage.server.forget(document.id, "", function () {
+											S.storage.server.forget(document.id, undefined, function () {
 												listenable.value--;
 											});
 										}
@@ -718,7 +718,7 @@
 					if (S.storage[storagePlace].list().length > 0) {
 						// stores and replaces account data with current data
 						S.forEach(S.storage[storagePlace].list(), function (key) {
-							S.storage.server.store(key, S.storage[storagePlace].recall(key), "", function () {
+							S.storage.server.store(key, S.storage[storagePlace].recall(key), undefined, function () {  ////
 								listenable.value++;
 							});
 						});
@@ -726,9 +726,9 @@
 						listenable.value++;
 					}
 				} else {  // if the server information should be given precedence over the local information
-					S.storage.server.list("", function (list) {
+					S.storage.server.list(undefined, function (list) {
 						listenable.addEventListener("change", function (index) {
-							S.storage.server.recall(list[index].id, "", function (data) {
+							S.storage.server.recall(list[index].id, undefined, function (data) {
 								S.storage[storagePlace].store(list[index].id, data);
 								if (index + 1 >= list.length) {
 									let idList = [];
@@ -774,9 +774,9 @@
 					} else {
 						useLocal = false;
 						// stores and replaces current session data with account data
-						S.storage.server.list("", function (list) {
+						S.storage.server.list(undefined, function (list) {
 							listenable.addEventListener("change", function (index) {
-								S.storage.server.recall(list[index].id, "", function (data) {
+								S.storage.server.recall(list[index].id, undefined, function (data) {
 									S.storage.session.store(list[index].id, data);
 									if (index + 1 >= list.length) {
 										window.dispatchEvent(new Event("readyToRefresh"));
@@ -805,14 +805,14 @@
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
 				// fills Priority.instances
-				if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "dynamic") {
+				if (S.storage[storagePlace].recall("ordering", "../settings") == "dynamic") {
 					S.getId("staticEditor").style.display = "none";
 					S.getId("dynamicEditor").style.display = "block";
 					S.storage[storagePlace].list().forEach(function (key) {
 						let item = S.storage[storagePlace].recall(key);
 						makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
 					});
-				} else if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "static") {
+				} else if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
 					S.getId("dynamicEditor").style.display = "none";
 					S.getId("staticEditor").style.display = "block";
 					S.storage[storagePlace].list().forEach(function (key) {
@@ -820,12 +820,12 @@
 					});
 				}
 				// adds list settings if necessary
-				if (!S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings")) {
-					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
+				if (!S.storage[storagePlace].recall("ordering", "../settings")) {
+					S.storage[storagePlace].store("ordering", "dynamic", "../settings");
 				}
-				advancedSettingsSection.querySelector("#listOrdering").value = S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings");
-				if (!S.storage[storagePlace].recall("filter", "lists/" + currentList + "/settings")) {
-					S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
+				advancedSettingsSection.querySelector("#listOrdering").value = S.storage[storagePlace].recall("ordering", "../settings");
+				if (!S.storage[storagePlace].recall("filter", "../settings")) {
+					S.storage[storagePlace].store("filter", [], "../settings");
 				}
 				// declares necessary variables
 				let list = [],
@@ -905,7 +905,7 @@
 				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
 				// lists the lists
 				let listArray = [];
-				S.storage[storagePlace].list("lists").forEach(function (location) {
+				S.storage[storagePlace].list("/lists").forEach(function (location) {
 					if (location != "start-up settings") {
 						let listName = location.slice(0, location.indexOf("/"));
 						if (!listArray.includes(listName)) {
@@ -919,8 +919,8 @@
 					button.textContent = decodeURIComponent(title);
 					button.addEventListener("click", function () {
 						S.getId("listsSection").children[1].style.display = "none";
-						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
-						S.storage.server.defaultLocation = "lists/" + title + "/items";
+						S.storage[storagePlace].defaultLocation = "/lists/" + title + "/items";
+						S.storage.server.defaultLocation = "/lists/" + title + "/items";
 						currentList = title;
 						refresh();
 					});
@@ -932,7 +932,7 @@
 					option.textContent = decodeURIComponent(title);
 					S.getId("defaultList").appendChild(option);
 				});
-				S.getId("defaultList").value = S.storage[storagePlace].recall("start-up settings", "lists").list;
+				S.getId("defaultList").value = S.storage[storagePlace].recall("start-up settings", "/lists").list;
 				// lists all labels
 				list.forEach(function (item) {
 					if (item.labels) {
@@ -976,7 +976,7 @@
 						});
 						// listens for double-clicking on a description
 						// (pulls up the editor for that item)
-						if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "dynamic") {
+						if (S.storage[storagePlace].recall("ordering", "../settings") == "dynamic") {
 							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
 								// prevents highlighting the text when double-clicking
 								// event.preventDefault() would only work with onmousedown
@@ -1099,7 +1099,7 @@
 								showHide();
 								S.getId("editorSection").children[1].style.display = "block";
 							}, false, 300);
-						} else if (S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings") == "static") {
+						} else if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
 							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
 								// prevents highlighting the text when double-clicking
 								// event.preventDefault() would only work with onmousedown
@@ -1190,7 +1190,7 @@
 
 				var siteSettings;
 				// sets or retrieves the start-up settings
-				if (S.getType(S.storage.local.recall("start-up settings", "lists")) != "Object") {
+				if (S.getType(S.storage.local.recall("start-up settings", "/lists")) != "Object") {
 					siteSettings = {};
 					siteSettings.list = "Default";  // the list to start with
 					siteSettings.hide = [];  // what sections should be hidden
@@ -1198,11 +1198,11 @@
 					siteSettings.volume = 100;  // the sound volume
 					siteSettings.inspiration = false;  // whether inspirational messages should be said
 					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
-					S.storage.local.store("start-up settings", siteSettings, "lists");
+					S.storage.local.store("start-up settings", siteSettings, "/lists");
 				} else {
-					siteSettings = S.storage.local.recall("start-up settings", "lists");
+					siteSettings = S.storage.local.recall("start-up settings", "/lists");
 				}
-				if (S.getType(S.storage.session.recall("start-up settings", "lists")) != "Object") {
+				if (S.getType(S.storage.session.recall("start-up settings", "/lists")) != "Object") {
 					siteSettings = {};
 					siteSettings.list = "Default";  // the list to start with
 					siteSettings.hide = [];  // what sections should be hidden
@@ -1210,9 +1210,9 @@
 					siteSettings.volume = 100;  // the sound volume
 					siteSettings.inspiration = false;  // whether inspirational messages should be said
 					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
-					S.storage.session.store("start-up settings", siteSettings, "lists");
+					S.storage.session.store("start-up settings", siteSettings, "/lists");
 				} else {
-					siteSettings = S.storage.session.recall("start-up settings", "lists");
+					siteSettings = S.storage.session.recall("start-up settings", "/lists");
 				}
 				// sets the current list
 				currentList = siteSettings.list;
@@ -1229,11 +1229,11 @@
 				}
 
 				// adds list settings if necessary
-				if (!S.storage[storagePlace].recall("ordering", "lists/" + currentList + "/settings")) {
-					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
+				if (!S.storage[storagePlace].recall("ordering", "../settings")) {
+					S.storage[storagePlace].store("ordering", "dynamic", "../settings");
 				}
-				if (!S.storage[storagePlace].recall("filter", "lists/" + currentList + "/settings")) {
-					S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
+				if (!S.storage[storagePlace].recall("filter", "../settings")) {
+					S.storage[storagePlace].store("filter", [], "../settings");
 				}
 
 				// adds listeners to the filter inputs
@@ -1405,31 +1405,31 @@
 			});
 
 			S.listen("useLocalStorage", "click", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
 				} else {
 					storagePlace = "session";
 				}
 				settings.storageType = storagePlace;
-				S.storage[storagePlace].store("start-up settings", settings, "lists");
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
 			S.listen("useSessionStorage", "click", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
 				} else {
 					storagePlace = "session";
 				}
 				settings.storageType = storagePlace;
-				S.storage[storagePlace].store("start-up settings", settings, "lists");
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
 			S.listen("defaultList", "change", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				settings.list = this.value;
-				S.storage[storagePlace].store("start-up settings", settings, "lists");
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
 			S.listen("soundVolume", "change", function () {
@@ -1466,28 +1466,28 @@
 			S.listen("listTitle", "change", function () {
 				let oldTitle = S.storage[storagePlace].defaultLocation.split("/")[1];
 				let newTitle = encodeURIComponent(this.value.trim());
-				S.storage[storagePlace].list("lists/" + oldTitle).forEach(function (key) {
-					S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "lists");
+				S.storage[storagePlace].list("/lists/" + oldTitle).forEach(function (key) {
+					S.storage[storagePlace].move(oldTitle + "/" + key, newTitle + "/" + key, "/lists");
 				});
 				S.storage[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
 				S.storage.server.defaultLocation = "lists/" + newTitle + "/items";
-				if (S.storage[storagePlace].recall("start-up settings", "lists").list == currentList) {
-					let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				if (S.storage[storagePlace].recall("start-up settings", "/lists").list == currentList) {
+					let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 					settings.list = newTitle;
-					S.storage[storagePlace].store("start-up settings", settings, "lists");
+					S.storage[storagePlace].store("start-up settings", settings, "/lists");
 				}
 				currentList = newTitle;
 				refresh();
 			});
 
 			S.listen("listOrdering", "change", function () {
-				S.storage[storagePlace].store("ordering", this.value, "lists/" + currentList + "/settings");
+				S.storage[storagePlace].store("ordering", this.value, "../settings");
 				refresh();
 			});
 
 			S.listen("dayThresholdSetter", "change", function () {
 				if (this.value == Math.round(this.value)) {  // if the number is an integer
-					S.storage[storagePlace].store("threshold", this.value, "lists/" + currentList + "/settings");
+					S.storage[storagePlace].store("threshold", this.value, "../settings");
 					refresh();
 				}
 			});
@@ -1515,25 +1515,24 @@
 						}]);
 						setTimeout(function () {
 							if (shouldDelete) {
-								let location = S.storage[storagePlace].defaultLocation.slice(0, S.storage[storagePlace].defaultLocation.lastIndexOf("/"));
-								S.forEach(S.storage[storagePlace].list(location), function (key) {
-									S.storage[storagePlace].forget(key, location);
+								S.forEach(S.storage[storagePlace].list(".."), function (key) {
+									S.storage[storagePlace].forget(key, "..");
 								});
 								S.getId("deletingMessage").textContent = "List deleted.";
 								S.getId("deletingButton").textContent = "Okay";
-								if (S.storage[storagePlace].recall("start-up settings", "lists").list != currentList) {
-									currentList = S.storage[storagePlace].recall("start-up settings", "lists").list;
+								if (S.storage[storagePlace].recall("start-up settings", "/lists").list != currentList) {
+									currentList = S.storage[storagePlace].recall("start-up settings", "/lists").list;
 									S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
 									S.storage.server.defaultLocation = "lists/" + currentList + "/items";
 								} else {
 									S.storage[storagePlace].defaultLocation = "lists/Default/items";
 									S.storage.server.defaultLocation = "lists/Default/items";
 									currentList = "Default";
-									S.storage[storagePlace].store("ordering", "dynamic", "lists/" + currentList + "/settings");
-									S.storage[storagePlace].store("filter", [], "lists/" + currentList + "/settings");
-									let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+									S.storage[storagePlace].store("ordering", "dynamic", "../settings");
+									S.storage[storagePlace].store("filter", [], "../settings");
+									let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 									settings.list = "Default";
-									S.storage[storagePlace].store("start-up settings", settings, "lists");
+									S.storage[storagePlace].store("start-up settings", settings, "/lists");
 								}
 								refresh();
 							}
@@ -1563,69 +1562,71 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					/*
 					S.storage.local.list("lists/default/items").forEach(function (key) {
 						S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
 					});
 					S.storage.local.list("lists/default/items").forEach(function (key) {
 						console.log(S.storage.local.recall(key, "lists/default/items"));
 					});
+					*/
 				}
 			});
 
 
 			S.listen("inspiringMessages", "click", function () {
-				let settings = S.storage.local.recall("start-up settings", "lists");
+				let settings = S.storage.local.recall("start-up settings", "/lists");
 				settings.inspiration = this.checked;
-				S.storage[storagePlace].store("start-up settings", settings, "lists");
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
 			S.listen("filterCheckbox", "click", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (this.checked) {
 					S.getId("filterSection").style.display = "inline-table";
 					if (settings.hide.includes("filter")) {
 						settings.hide.splice(settings.hide.indexOf("filter"), 1);
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				} else {
 					S.getId("filterSection").style.display = "none";
 					if (!settings.hide.includes("filter")) {
 						settings.hide.push("filter");
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				}
 			});
 
 			S.listen("notificationsCheckbox", "click", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (this.checked) {
 					S.getId("notificationsSection").style.display = "inline-table";
 					if (settings.hide.includes("notifications")) {
 						settings.hide.splice(settings.hide.indexOf("notifications"), 1);
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				} else {
 					S.getId("notificationsSection").style.display = "none";
 					if (!settings.hide.includes("notifications")) {
 						settings.hide.push("notifications");
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				}
 			});
 
 			S.listen("listsCheckbox", "click", function () {
-				let settings = S.storage[storagePlace].recall("start-up settings", "lists");
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (this.checked) {
 					S.getId("listsSection").style.display = "inline-table";
 					if (settings.hide.includes("lists")) {
 						settings.hide.splice(settings.hide.indexOf("lists"), 1);
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				} else {
 					S.getId("listsSection").style.display = "none";
 					if (!settings.hide.includes("lists")) {
 						settings.hide.push("lists");
-						S.storage[storagePlace].store("start-up settings", settings, "lists");
+						S.storage[storagePlace].store("start-up settings", settings, "/lists");
 					}
 				}
 			});
@@ -1633,8 +1634,8 @@
 			S.listen("listMaker", "click", function () {
 				let title = encodeURIComponent(S.getId("newListTitle").value.trim());
 				if (title != "") {
-					S.storage[storagePlace].store("ordering", "dynamic", "lists/" + title + "/settings");
-					S.storage[storagePlace].store("filter", [], "lists/" + title + "/settings");
+					S.storage[storagePlace].store("ordering", "dynamic", "/lists/" + title + "/settings");
+					S.storage[storagePlace].store("filter", [], "/lists/" + title + "/settings");
 					S.getId("newListTitle").value = "";
 					S.getId("listsSection").children[1].style.display = "none";
 					S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
