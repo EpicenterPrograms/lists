@@ -25,7 +25,6 @@
 			var dayThreshold = 8;
 			var mergeData = false;
 			var deleteData = false;
-			var listenable = new S.Listenable();
 			var advancedSettingsSection;
 			var pastDueNumber = 0;
 			var dueTodayNumber = 0;
@@ -680,13 +679,15 @@
 				dueTodayNumber = 0;
 				////
 				if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
+					let information = S.storage[storagePlace].list("/lists");
+					information.splice(information.indexOf("start-up settings"), 1);
+					let listenable = new S.Listenable();
 					listenable.value = 0;
 					listenable.addEventListener("change", function (value) {
-						if (value >= S.storage[storagePlace].list().length) {  // when all items have been stored
+						if (value >= information.length) {  // when all items have been stored
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
-							S.storage.server.list(undefined, function (list) {
-								let localKeys = S.storage[storagePlace].list();
+							S.storage.server.list("/list", function (data) {
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
 									if (itemsLeft == 0) {
@@ -694,14 +695,14 @@
 										window.dispatchEvent(new Event("readyToRefresh"));
 									}
 								});
-								if (list.length > 0) {
+								if (data.length > 0) {
 									// deletes account data not not present in the current data
 									let deleting = false;
-									S.forEach(list, function (document) {
-										if (!localKeys.includes(document.id)) {
+									S.forEach(data, function (key) {
+										if (!information.includes(key)) {
 											deleting = true;
 											listenable.value++;
-											S.storage.server.forget(document.id, undefined, function () {
+											S.storage.server.forget(key, "/lists", function () {
 												listenable.value--;
 											});
 										}
@@ -715,10 +716,10 @@
 							});
 						}
 					});
-					if (S.storage[storagePlace].list().length > 0) {
+					if (information.length > 0) {
 						// stores and replaces account data with current data
-						S.forEach(S.storage[storagePlace].list(), function (key) {
-							S.storage.server.store(key, S.storage[storagePlace].recall(key), undefined, function () {  ////
+						S.forEach(information, function (key) {
+							S.storage.server.store(key, S.storage[storagePlace].recall(key, "/lists"), "/lists", function () {  ////
 								listenable.value++;
 							});
 						});
@@ -726,18 +727,15 @@
 						listenable.value++;
 					}
 				} else {  // if the server information should be given precedence over the local information
-					S.storage.server.list(undefined, function (list) {
+					let listenable = new S.Listenable();
+					S.storage.server.list("/lists", function (list) {
 						listenable.addEventListener("change", function (index) {
-							S.storage.server.recall(list[index].id, undefined, function (data) {
-								S.storage[storagePlace].store(list[index].id, data);
-								if (index + 1 >= list.length) {
-									let idList = [];
-									S.forEach(list, function (document) {
-										idList.push(document.id);
-									});
-									S.forEach(S.storage[storagePlace].list(), function (key) {
-										if (!idList.includes(key)) {
-											S.storage[storagePlace].forget(key);
+							S.storage.server.recall(list[index], "/lists", function (data) {
+								S.storage[storagePlace].store(list[index], data, "/lists");
+								if (index + 1 >= list.length) {  // once all items have been iterated through
+									S.forEach(S.storage[storagePlace].list("/lists"), function (key) {
+										if (!list.includes(key) && key != "start-up settings") {
+											S.storage[storagePlace].forget(key, "/lists");
 										}
 									});
 									window.dispatchEvent(new Event("readyToRefresh"));
