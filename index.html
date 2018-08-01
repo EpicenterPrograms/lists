@@ -615,6 +615,11 @@
 					setTimeout(function () {
 						refresh(true);
 					}, 0);
+					// randomly displays inspiring messages (if desired)
+					if (S.getId("inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
+						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
+						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
+					}
 				} else {
 					alert("You left out at least one required field.");
 				}
@@ -1144,15 +1149,18 @@
 
 			function remove() {
 				let location = S.storage[storagePlace];
-				location.list().forEach(function(key) {
+				location.list().forEach(function (key) {
 					let item = location.recall(key);
 					if (key == encodeURIComponent(S.getId("description").value.trim())) {
 						location.forget(key);
-					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "lists/"+location.defaultLocation.split("/")[1]+"/settings") == "static")) {
+					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static")) {
 						location.forget(key);
 					}
 				});
 				S.getId("description").value = "";
+				S.getId("labels").value = "";
+				S.getId("importance").value = "";
+				S.getId("positioner").value = "";
 				refresh();
 			}
 
