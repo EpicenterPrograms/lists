@@ -1217,13 +1217,26 @@
 				S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
 				S.storage.server.defaultLocation = "lists/" + currentList + "/items";
 				// sets the inspiration
-				if (siteSettings.inspiration == true) {
+				if (siteSettings.inspiration == "true") {  // This can't be the boolean because it won't evaluate correctly.
 					S.getId("inspiringMessages").checked = true;
 				}
 				// sets the storage type
 				if (siteSettings.storageType == "session") {
 					S.getName("storagePlace")[0].checked = false;
 					S.getName("storagePlace")[1].checked = true;
+				}
+				// sets which sections are visible
+				if (siteSettings.hide.includes("filter")) {
+					S.getId("filterSection").style.display = "none";
+					S.getId("filterCheckbox").checked = false;
+				}
+				if (siteSettings.hide.includes("notifications")) {
+					S.getId("notificationsSection").style.display = "none";
+					S.getId("notificationsCheckbox").checked = false;
+				}
+				if (siteSettings.hide.includes("lists")) {
+					S.getId("listsSection").style.display = "none";
+					S.getId("listsCheckbox").checked = false;
 				}
 
 				// adds list settings if necessary
