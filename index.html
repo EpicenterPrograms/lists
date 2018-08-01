@@ -572,15 +572,18 @@
 
 			function includeStaticItem() {
 				let enoughInformation = true;
-				if (S.getId("positioner").value.trim() == "") {
-					enoughInformation = false;
-				} else if (S.getId("description").value.trim() == "") {
+				if (S.getId("description").value.trim() == "") {
 					enoughInformation = false;
 				}
 				if (enoughInformation) {
 					now = new Date();
 					// sets the position
-					let position = Number(S.getId("positioner").value);
+					let position;
+					if (S.getId("positioner").value.trim() == "") {
+						position = S.storage[storagePlace].list().length + 1;
+					} else {
+						position = Number(S.getId("positioner").value);
+					}
 					if (position < 1) {
 						position = 1;
 					}
