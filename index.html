@@ -917,8 +917,8 @@
 					button.textContent = decodeURIComponent(title);
 					button.addEventListener("click", function () {
 						S.getId("listsSection").children[1].style.display = "none";
-						S.storage[storagePlace].defaultLocation = "/lists/" + title + "/items";
-						S.storage.server.defaultLocation = "/lists/" + title + "/items";
+						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
+						S.storage.server.defaultLocation = "lists/" + title + "/items";
 						currentList = title;
 						refresh();
 					});
