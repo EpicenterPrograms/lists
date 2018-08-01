@@ -1186,38 +1186,34 @@
 				advancedSettingsSection = S.getId("advancedSettings");
 				advancedSettingsSection.parentNode.removeChild(advancedSettingsSection);
 
-				var siteSettings;
 				// sets or retrieves the start-up settings
 				if (S.getType(S.storage.local.recall("start-up settings", "/lists")) != "Object") {
-					siteSettings = {};
-					siteSettings.list = "Default";  // the list to start with
-					siteSettings.hide = [];  // what sections should be hidden
-					siteSettings.sync = false;  // whether the information should sync when logged in
-					siteSettings.volume = 100;  // the sound volume
-					siteSettings.inspiration = false;  // whether inspirational messages should be said
-					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
-					S.storage.local.store("start-up settings", siteSettings, "/lists");
-				} else {
-					siteSettings = S.storage.local.recall("start-up settings", "/lists");
+					let settings = {};
+					settings.list = "Default";  // the list to start with
+					settings.hide = [];  // what sections should be hidden
+					settings.sync = false;  // whether the information should sync when logged in
+					settings.volume = 100;  // the sound volume
+					settings.inspiration = false;  // whether inspirational messages should be said
+					settings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
+					S.storage.local.store("start-up settings", settings, "/lists");
 				}
 				if (S.getType(S.storage.session.recall("start-up settings", "/lists")) != "Object") {
-					siteSettings = {};
-					siteSettings.list = "Default";  // the list to start with
-					siteSettings.hide = [];  // what sections should be hidden
-					siteSettings.sync = false;  // whether the information should sync when logged in
-					siteSettings.volume = 100;  // the sound volume
-					siteSettings.inspiration = false;  // whether inspirational messages should be said
-					siteSettings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
-					S.storage.session.store("start-up settings", siteSettings, "/lists");
-				} else {
-					siteSettings = S.storage.session.recall("start-up settings", "/lists");
+					let settings = {};
+					settings.list = "Default";  // the list to start with
+					settings.hide = [];  // what sections should be hidden
+					settings.sync = false;  // whether the information should sync when logged in
+					settings.volume = 100;  // the sound volume
+					settings.inspiration = false;  // whether inspirational messages should be said
+					settings.storageType = "local";  // whether information uses local or session storage (mainly for testing)
+					S.storage.session.store("start-up settings", settings, "/lists");
 				}
+				var siteSettings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				// sets the current list
 				currentList = siteSettings.list;
 				S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
 				S.storage.server.defaultLocation = "lists/" + currentList + "/items";
 				// sets the inspiration
-				if (siteSettings.inspiration == "true") {  // This can't be the boolean because it won't evaluate correctly.
+				if (siteSettings.inspiration == true) {
 					S.getId("inspiringMessages").checked = true;
 				}
 				// sets the storage type
