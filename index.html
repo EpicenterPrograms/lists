@@ -39,7 +39,8 @@
 					recurrence: "weekly",
 					time: "monday wednesday friday~11:59 pm",
 					lastFinished: now.getTime(),
-					done: false
+					done: false,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "go to work",
@@ -47,7 +48,8 @@
 					recurrence: "weekly",
 					time: "monday tuesday wednesday thursday friday~4:00 pm",
 					lastFinished: now.getTime(),
-					done: false
+					done: false,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "oil the door hinge",
@@ -55,7 +57,8 @@
 					recurrence: "indefinite",
 					time: now.getTime() + 86400000 + "~",
 					lastFinished: now.getTime() - 172800000,
-					done: false
+					done: false,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "brush my teeth",
@@ -64,7 +67,8 @@
 					time: "~10:30 pm",
 					lastFinished: now.getTime(),
 					done: false,
-					labels: ["sanitary"]
+					labels: ["sanitary"],
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "cut the grass",
@@ -72,7 +76,8 @@
 					recurrence: "indefinite",
 					time: now.getTime() + 700000000 + "~",
 					lastFinished: now.getTime(),
-					done: false
+					done: false,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "go to Joe's party",
@@ -84,7 +89,8 @@
 					}(),
 					lastFinished: now.getTime(),
 					done: false,
-					labels: ["fun"]
+					labels: ["fun"],
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "take out the trash",
@@ -93,7 +99,8 @@
 					time: "friday~7:00 pm",
 					lastFinished: now.getTime(),
 					done: true,
-					labels: ["sanitary"]
+					labels: ["sanitary"],
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "have game night",
@@ -102,7 +109,8 @@
 					time: "10~8:00 pm",
 					lastFinished: now.getTime(),
 					done: false,
-					labels: ["fun"]
+					labels: ["fun"],
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "sign up for the charity event",
@@ -113,7 +121,8 @@
 						return (time.getMonth() + 1) + "/" + time.getDate() + "/" + time.getFullYear() + "~5:00 pm";
 					}(),
 					lastFinished: now.getTime()-172800000,
-					done: false
+					done: false,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "find my keys",
@@ -121,7 +130,8 @@
 					recurrence: "indefinite",
 					time: now.getTime() + "~",
 					lastFinished: now.getTime(),
-					done: true
+					done: true,
+					lastUpdated: now.getTime()
 				},
 				{
 					description: "have breakfast with Sally",
@@ -130,7 +140,28 @@
 					time: ((now.getMonth()>10 ? 0 : now.getMonth()+1)+1) + "/" + (now.getDate()+1) + "/" + (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear()) + "~8:00 am",
 					lastFinished: now.getTime(),
 					done: false,
-					labels: ["fun"]
+					labels: ["fun"],
+					lastUpdated: now.getTime()
+				},
+				{
+					description: "clean my room",
+					importance: 2,
+					recurrence: "continual",
+					time: now.getTime() + 2200000000 + "~",
+					lastFinished: now.getTime() - 1000000000,
+					done: false,
+					labels: [],
+					lastUpdated: now.getTime()
+				},
+				{
+					description: "go jogging",
+					importance: 5,
+					recurrence: "continual",
+					time: now.getTime() + "~",
+					lastFinished: now.getTime() - 200000000,
+					done: false,
+					labels: [],
+					lastUpdated: now.getTime()
 				}
 			];
 
@@ -149,8 +180,9 @@
 				function combine(array) {
 					return new Date(array.join(" ") + time);
 				}
-				now = new Date(Number(lastFinished));  //// This should use a different variable than "now", but I used "now" too many times in the following part.
+				let beginning = new Date(Number(lastFinished));
 				switch (recurrence) {  // sets the exact time of the (next) event
+					case "continual":
 					case "indefinite":
 						then = new Date(Number(then));  // Number() is needed because "then" is a string
 						// "date" can't also be set here because it causes the due time displayed to always be what it was originally
@@ -160,23 +192,23 @@
 						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
 						break;
 					case "monthly":
-						if (now.getDate() == then) {
-							if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, then]).getTime()) {
-								then = combine([now.getFullYear(), now.getMonth()+1, then]);
+						if (beginning.getDate() == then) {
+							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth()+1, then]).getTime()) {
+								then = combine([beginning.getFullYear(), beginning.getMonth()+1, then]);
 							} else {
-								if (now.getMonth() + 2 <= 12) {
-									then = combine([now.getFullYear(), now.getMonth()+2, then]);
+								if (beginning.getMonth() + 2 <= 12) {
+									then = combine([beginning.getFullYear(), beginning.getMonth()+2, then]);
 								} else {
-									then = combine([now.getFullYear()+1, 1, then]);
+									then = combine([beginning.getFullYear()+1, 1, then]);
 								}
 							}
-						} else if (now.getDate() < then) {
-							then = new Date(now.getTime() + (then-now.getDate())*86400000);
+						} else if (beginning.getDate() < then) {
+							then = new Date(beginning.getTime() + (then-beginning.getDate())*86400000);
 						} else {
-							if (now.getMonth() + 2 <= 12) {
-								then = combine([now.getFullYear(), now.getMonth()+2, then]);
+							if (beginning.getMonth() + 2 <= 12) {
+								then = combine([beginning.getFullYear(), beginning.getMonth()+2, then]);
 							} else {
-								then = combine([now.getFullYear()+1, 1, then]);
+								then = combine([beginning.getFullYear()+1, 1, then]);
 							}
 						}
 						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
@@ -185,59 +217,59 @@
 						let closest = Infinity;
 						then.split(" ").forEach(function(weekday) {
 							let number = week.indexOf(weekday);
-							if (now.getDay() > number) {
-								number = 7 + number - now.getDay();
+							if (beginning.getDay() > number) {
+								number = 7 + number - beginning.getDay();
 							} else {
-								number -= now.getDay();
+								number -= beginning.getDay();
 							}
 							if (number < closest) {
 								closest = number;
 							}
 						});
-						closest += now.getDay();
+						closest += beginning.getDay();
 						if (closest > 6) {
 							closest -= 7;
 						}
-						if (now.getDay() == closest) {
-							if (now.getTime() <= combine([now.getFullYear(), now.getMonth()+1, now.getDate()]).getTime()) {
-								then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
+						if (beginning.getDay() == closest) {
+							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]).getTime()) {
+								then = combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]);
 							} else {
 								closest = Infinity;
 								then.split(" ").forEach(function(weekday) {
 									let number = week.indexOf(weekday);
-									if (now.getDay() + 1 > number) {
-										number = 6 + number - now.getDay();
+									if (beginning.getDay() + 1 > number) {
+										number = 6 + number - beginning.getDay();
 									} else {
-										number -= now.getDay() + 1;
+										number -= beginning.getDay() + 1;
 									}
 									if (number < closest) {
 										closest = number;
 									}
 								});
-								closest += now.getDay() + 1;
+								closest += beginning.getDay() + 1;
 								if (closest > 6) {
 									closest -= 7;
 								}
-								if (now.getDay() < closest) {
-									then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+								if (beginning.getDay() < closest) {
+									then = new Date(beginning.getTime() + (closest-beginning.getDay())*86400000);
 									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
 								} else {
-									then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+									then = new Date(beginning.getTime() + (7+closest-beginning.getDay())*86400000);
 									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
 								}
 							}
-						} else if (now.getDay() < closest) {
-							then = new Date(now.getTime() + (closest-now.getDay())*86400000);
+						} else if (beginning.getDay() < closest) {
+							then = new Date(beginning.getTime() + (closest-beginning.getDay())*86400000);
 							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
 						} else {
-							then = new Date(now.getTime() + (7+closest-now.getDay())*86400000);
+							then = new Date(beginning.getTime() + (7+closest-beginning.getDay())*86400000);
 							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
 						}
 						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
 						break;
 					case "daily":
-						then = combine([now.getFullYear(), now.getMonth()+1, now.getDate()]);
-						if (now.getTime() > then.getTime()) {
+						then = combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]);
+						if (beginning.getTime() > then.getTime()) {
 							then = new Date(then.getTime()+86400000);
 						}
 						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
@@ -245,8 +277,8 @@
 				}
 				
 				// sets the urgency of the item
-				now = new Date();  //// This sets "now" back to representing what it's supposed to.
-				if (recurrence == "indefinite") {
+				now = new Date();
+				if (recurrence == "indefinite" || recurrence == "continual") {
 					date = then.getTime() - now.getTime();
 					if (date <= 0) {
 						date = "Immediately";
@@ -263,7 +295,7 @@
 					if (urgency < 54000) {  // Negative numbers will put it at the end, not the top.
 						urgency = 54000;  // This causes indefinite items to effectively never be any closer than 15 hours away.
 					}
-					urgency = Math.round(urgency * (10-importance))
+					urgency = Math.round(urgency * (10-importance));
 				} else if (recurrence == "daily") {
 					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
 				} else {
@@ -276,7 +308,7 @@
 				checkbox.id = "item" + itemNumber;
 				itemNumber++;
 				let label = document.createElement("span");
-				if (recurrence == "indefinite") {
+				if (recurrence == "indefinite" || recurrence == "continual") {
 					label.title = "Due: {0}\nImportance: {1}".format(date, importance);
 				} else {
 					if (then.getTime() - now.getTime() < 86400000) {
@@ -290,7 +322,7 @@
 				label.innerHTML = decodeURIComponent(description);
 				
 				// sets label highlighting
-				if (then.getTime() >= now.getTime() || recurrence == "indefinite") {
+				if (then.getTime() >= now.getTime() || recurrence == "indefinite" || recurrence == "continual") {
 					let later;
 					if (recurrence == "indefinite") {
 						if (then.getTime() <= now.getTime()) {
@@ -304,6 +336,13 @@
 							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
 							label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
+						}
+					} else if (recurrence == "continual") {
+						if (then.getTime() <= now.getTime()) {
+							label.style.fontWeight = "bold";
+							label.innerHTML = "<mark style='background:#0000ff'>" + label.innerHTML + "</mark>";
+						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
+							label.innerHTML = "<mark style='background:#8888ff'>" + label.innerHTML + "</mark>";
 						}
 					} else if (recurrence == "daily") {
 						if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
@@ -361,7 +400,7 @@
 				
 				// crosses out finished items
 				if (done) {
-					if (then.getTime() < now.getTime() && recurrence != "indefinite") {
+					if (then.getTime() < now.getTime() && recurrence != "indefinite" && recurrence != "continual") {
 						pastDueNumber--;
 					}
 					label.style.textDecoration = "line-through";
@@ -427,7 +466,7 @@
 				checkbox.id = "item" + itemNumber++;
 				let label = document.createElement("span");
 				label.title = "Item position: " + item.position;
-				label.textContent = decodeURIComponent(description);
+				label.innerHTML = decodeURIComponent(description);
 
 				// puts the elements into a container
 				let section = document.createElement("section");
@@ -447,6 +486,66 @@
 			}
 
 
+			function makeRandomItem(description, item) {
+				/**
+				adds a randomly ordered list item to Priority.instances
+				*/
+
+				// creates the HTML objects to be displayed
+				let checkbox = document.createElement("input");
+				checkbox.type = "checkbox";
+				checkbox.id = "item" + itemNumber++;
+				let label = document.createElement("span");
+				label.title = "Importance: " + item.importance;
+				label.innerHTML = decodeURIComponent(description);
+
+				// sets label highlighting
+				if (now.getTime() - item.lastUpdated > 2000000000) {  // if it's been more than about 23 days
+					label.style.fontWeight = "bold";
+					if (importance == 5) {
+						label.style.textDecoration = "underline";
+					} else if (importance == 4) {
+						label.style.WebkitTextDecorationStyle = "dotted";  // for Safari
+						label.style.textDecoration = "underline dotted";
+					}
+					label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+				} else if (now.getTime() - item.lastUpdated > 1000000000) {  // if it's been more than about 11.5 days
+					label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
+				}
+
+				// puts the elements into a container
+				let section = document.createElement("section");
+				section.className = "list-item";
+				section.appendChild(checkbox);
+				section.appendChild(label);
+				let elements = document.createElement("div");
+				elements.appendChild(section);
+
+				// crosses out finished items
+				if (item.done) {
+					label.style.textDecoration = "line-through";
+					label.title = "Finished";
+					label.style.color = "inherit";
+					label.style.fontWeight = "inherit";
+					if (label.children.length > 0) {  // if there's a <mark> tag
+						label.children[0].style.background = "inherit";
+					}
+				}
+
+				// sets the placement
+				let placement = Math.round(item.importance * 100 + Math.random() * 100 - 50);
+
+				// adds the item to the priority list
+				let increment = 0;
+				while (Priority.instances[placement + increment] != undefined) {
+					// while there's a target key value already taken, increase the target key by 1
+					// (prevents overwriting when things have the same due-date and importance)
+					increment++;
+				}
+				Priority.instances[placement + increment] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+			}
+
+
 
 
 			function includeDynamicItem() {
@@ -458,7 +557,7 @@
 						if (!S.getId("timeframe").value) {
 							enoughInformation = false;
 						}
-					} else {
+					} else if (S.getId("recurrence").value != "continual") {
 						if (!S.getId("time").value) {
 							enoughInformation = false;
 						}
@@ -470,6 +569,8 @@
 					let date = "";
 					let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
 					switch (S.getId("recurrence").value) {
+						case "continual":
+							date = now.getTime() + Math.pow(6-Number(S.getId("importance").value), 2) * 200000000;
 						case "indefinite":
 							switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
 								case "immediately":
@@ -540,9 +641,9 @@
 					});
 					// stores the information
 					if (S.getId("recurrence").value == "indefinite" && S.getId("timeframe").value == "same") {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, done: false, labels: labels });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels });
 					} else {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), done: false, labels: labels });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels });
 					}
 					// resets stuff
 					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat", "labels"].forEach(function(ID) {
@@ -605,7 +706,7 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, lastFinished: now.getTime(), labels: labels });
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels });
 					// resets stuff
 					["description", "labels", "importance", "positioner"].forEach(function (ID) {
 						S.getId(ID).value = "";
@@ -619,6 +720,39 @@
 					if (S.getId("inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
 						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
+					}
+				} else {
+					alert("You left out at least one required field.");
+				}
+			}
+
+			function includeRandomItem() {
+				let enoughInformation = true;
+				if (S.getId("description").value.trim() == "" || S.getId("importance").value == "") {
+					enoughInformation = false;
+				}
+				if (enoughInformation) {
+					now = new Date();
+					// sets labels
+					let labels = S.getId("labels").value.trim().split(",");
+					S.forEach(labels, function (label, index) {
+						labels[index] = label.trim();
+					});
+					// stores the information
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels });
+					// resets stuff
+					["description", "labels", "importance"].forEach(function (ID) {
+						S.getId(ID).value = "";
+					});
+					// refreshes the list
+					refresh();
+					setTimeout(function () {
+						refresh(true);
+					}, 0);
+					// randomly displays inspiring messages (if desired)
+					if (S.getId("inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
+						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
+						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
 				} else {
 					alert("You left out at least one required field.");
@@ -665,6 +799,7 @@
 						S.getId("weekly").style.display = "none";
 						S.getId("timeSection").style.display = "block";
 						break;
+					case "continual":
 					default:
 						S.getId("indefinite").style.display = "none";
 						S.getId("once").style.display = "none";
@@ -814,6 +949,7 @@
 				if (S.storage[storagePlace].recall("ordering", "../settings") == "dynamic") {
 					S.getId("staticEditor").style.display = "none";
 					S.getId("dynamicEditor").style.display = "block";
+					S.getId("randomEditor").style.display = "none";
 					S.storage[storagePlace].list().forEach(function (key) {
 						let item = S.storage[storagePlace].recall(key);
 						makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
@@ -821,8 +957,16 @@
 				} else if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
 					S.getId("dynamicEditor").style.display = "none";
 					S.getId("staticEditor").style.display = "block";
+					S.getId("randomEditor").style.display = "none";
 					S.storage[storagePlace].list().forEach(function (key) {
 						makeStaticItem(key, S.storage[storagePlace].recall(key));
+					});
+				} else if (S.storage[storagePlace].recall("ordering", "../settings") == "random") {
+					S.getId("dynamicEditor").style.display = "none";
+					S.getId("staticEditor").style.display = "none";
+					S.getId("randomEditor").style.display = "block";
+					S.storage[storagePlace].list().forEach(function (key) {
+						makeRandomItem(key, S.storage[storagePlace].recall(key));
 					});
 				}
 				// adds list settings if necessary
@@ -972,11 +1116,17 @@
 						// (toggles the item's "done" property)
 						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function () {
 							let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-							if (this.checked) {
-								item.done = true;
+							if (item.recurrence == "continual") {
+								item.lastFinished = now.getTime();
+								item.time = now.getTime() + Math.pow(6-item.importance, 2) * 200000000 + "~";
 							} else {
-								item.done = false;
+								if (this.checked) {
+									item.done = true;
+								} else {
+									item.done = false;
+								}
 							}
+							item.lastUpdated = now.getTime();
 							S.storage[storagePlace].store(encodeURIComponent(listItem.description), item);
 							refresh();
 						});
@@ -1029,7 +1179,7 @@
 										});
 										break;
 								}
-								if (item.recurrence != "indefinite") {
+								if (item.recurrence != "indefinite" && item.recurrence != "continual") {
 									if (item.time.split("~")[1].includes(" ")) {
 										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
 										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
@@ -1090,7 +1240,7 @@
 										});
 										break;
 								}
-								if (item.recurrence != "indefinite") {
+								if (item.recurrence != "indefinite" && item.recurrence != "continual") {
 									if (item.time.split("~")[1].includes(" ")) {
 										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
 										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
@@ -1136,6 +1286,37 @@
 								}
 								S.getId("editorSection").children[1].style.display = "block";
 							}, false, 300);
+						} else if (S.storage[storagePlace].recall("ordering", "../settings") == "random") {
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								// prevents highlighting the text when double-clicking
+								// event.preventDefault() would only work with onmousedown
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
+								}
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("importance").value = listItem.importance;
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								S.getId("editorSection").children[1].style.display = "block";
+							});
+							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+								if (document.selection && document.selection.empty) {
+									document.selection.empty();
+								} else if (window.getSelection) {
+									window.getSelection().removeAllRanges();
+								}
+								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
+								S.getId("description").value = listItem.description;
+								S.getId("importance").value = listItem.importance;
+								if (item.labels) {
+									S.getId("labels").value = item.labels.join(", ");
+								}
+								S.getId("editorSection").children[1].style.display = "block";
+							}, false, 300);
 						}
 					});
 				}
@@ -1153,7 +1334,7 @@
 					let item = location.recall(key);
 					if (key == encodeURIComponent(S.getId("description").value.trim())) {
 						location.forget(key);
-					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static")) {
+					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static" || location.recall("ordering", "../settings") == "random")) {
 						location.forget(key);
 					}
 				});
@@ -1451,26 +1632,18 @@
 			});
 
 			S.listen("soundVolume", "change", function () {
-				if (this.value == "") {
-					var volume = 100;
-				} else if (S.getType(Number(this.value)) == "Number") {
-					var volume = Number(this.value);
-				}
-				if (typeof volume !== "undefined") {
-					volume = volume / 100;
-					if (noisemaker.playing && noisemaker.hertzChange != 0) {  // if the lateness alarm is constantly going off
-						//// console.log("--------");
-						//// console.log(noisemaker.playing);
-						noisemaker.stop();
-						//// console.log(noisemaker.playing);
-						noisemaker.change("maxVolume", volume);
-						//// console.log(noisemaker.playing);
-						noisemaker.start();
-						//// console.log(noisemaker.playing);
-					} else {
-						noisemaker.change("maxVolume", volume);
-						noisemaker.play("a5---");
-					}
+				if (noisemaker.playing && noisemaker.hertzChange != 0) {  // if the lateness alarm is constantly going off
+					//// console.log("--------");
+					//// console.log(noisemaker.playing);
+					noisemaker.stop();
+					//// console.log(noisemaker.playing);
+					noisemaker.change("maxVolume", this.value);
+					//// console.log(noisemaker.playing);
+					noisemaker.start();
+					//// console.log(noisemaker.playing);
+				} else {
+					noisemaker.change("maxVolume", this.value);
+					noisemaker.play("a5---");
 				}
 			});
 
@@ -1733,6 +1906,11 @@
 				position: static;
 				padding: 0rem;
 			}
+			#randomEditor {
+				display: none;
+				position: static;
+				padding: 0rem;
+			}
 			#pastDueItems {
 				display: inline-block;
 				position: static;
@@ -1857,7 +2035,10 @@
 						</tr>
 					</table>
 					<br>
-					<input type="text" id="soundVolume" placeholder="Volume (1-100)">
+					<h4 style="margin:.25em">
+						Volume
+					</h4>
+					<input type="range" id="soundVolume" value="100">
 					<h4 style="margin:.25em">
 						Default list
 					</h4>
@@ -1894,6 +2075,9 @@
 							</option>
 							<option value="static">
 								Static
+							</option>
+							<option value="random">
+								Random
 							</option>
 						</select>
 						<h4 style="margin:.25em">
@@ -1949,6 +2133,9 @@
 						<select class="block" id="recurrence">
 							<option value="" disabled selected>
 								Recurrence
+							</option>
+							<option value="continual">
+								Continual
 							</option>
 							<option value="indefinite">
 								Indefinite
@@ -2019,6 +2206,8 @@
 									Sunday
 								</option>
 							</select>
+							<br>
+							<input type="date">
 						</section>
 						<section id="monthly" style="display:none">
 							<input type="text" id="day" placeholder="Day of the month">
@@ -2076,6 +2265,16 @@
 						<input type="text" class="block" id="positioner" placeholder="position">
 						<section>
 							<button onclick="includeStaticItem()">
+								Add to list
+							</button>
+							<button onclick="remove()">
+								Remove
+							</button>
+						</section>
+					</div>
+					<div id="randomEditor">
+						<section>
+							<button onclick="includeRandomItem()">
 								Add to list
 							</button>
 							<button onclick="remove()">
