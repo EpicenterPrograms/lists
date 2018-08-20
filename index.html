@@ -831,6 +831,8 @@
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
 							S.storage.server.list("/list", function (data) {
+								console.log(information);
+								console.log(data);
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
 									if (itemsLeft == 0) {
@@ -843,7 +845,6 @@
 									let deleting = false;
 									S.forEach(data, function (key) {
 										if (!information.includes(key)) {
-											console.log("Trying to delete.");
 											deleting = true;
 											listenable.value++;
 											S.storage.server.forget(key, "/lists", function () {
