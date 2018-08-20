@@ -843,6 +843,7 @@
 									let deleting = false;
 									S.forEach(data, function (key) {
 										if (!information.includes(key)) {
+											console.log("Trying to delete.");
 											deleting = true;
 											listenable.value++;
 											S.storage.server.forget(key, "/lists", function () {
