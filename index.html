@@ -830,9 +830,7 @@
 						if (value >= information.length) {  // when all items have been stored
 							listenable.removeEventListener("change", arguments.callee);
 							listenable.value = undefined;
-							S.storage.server.list("/list", function (data) {
-								console.log(information);
-								console.log(data);
+							S.storage.server.list("/lists", function (data) {
 								listenable.value = 0;
 								listenable.addEventListener("set", function (itemsLeft) {
 									if (itemsLeft == 0) {
