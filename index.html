@@ -1404,6 +1404,8 @@
 				currentList = siteSettings.list;
 				S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
 				S.storage.server.defaultLocation = "lists/" + currentList + "/items";
+				// sets the volume
+				S.getId("soundVolume").value = siteSettings.volume;
 				// sets the inspiration
 				if (siteSettings.inspiration == true) {
 					S.getId("inspiringMessages").checked = true;
@@ -1637,14 +1639,17 @@
 					//// console.log(noisemaker.playing);
 					noisemaker.stop();
 					//// console.log(noisemaker.playing);
-					noisemaker.change("maxVolume", this.value);
+					noisemaker.change("maxVolume", Number(this.value) / 100);
 					//// console.log(noisemaker.playing);
 					noisemaker.start();
 					//// console.log(noisemaker.playing);
 				} else {
-					noisemaker.change("maxVolume", this.value);
+					noisemaker.change("maxVolume", Number(this.value) / 100);
 					noisemaker.play("a5---");
 				}
+				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
+				settings.volume = Number(this.value);
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
 
