@@ -340,9 +340,9 @@
 					} else if (recurrence == "continual") {
 						if (then.getTime() <= now.getTime()) {
 							label.style.fontWeight = "bold";
-							label.innerHTML = "<mark style='background:#0000ff'>" + label.innerHTML + "</mark>";
+							label.innerHTML = "<mark style='background:#00ffff'>" + label.innerHTML + "</mark>";
 						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
-							label.innerHTML = "<mark style='background:#8888ff'>" + label.innerHTML + "</mark>";
+							label.innerHTML = "<mark style='background:#88ffff'>" + label.innerHTML + "</mark>";
 						}
 					} else if (recurrence == "daily") {
 						if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
