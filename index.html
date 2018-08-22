@@ -18,7 +18,7 @@
 			S.storage.server.defaultLocation = "lists/Default/items";  //// "lists/default/items"
 
 			var currentList = "Default";
-			var Priority = { instances: {} };
+			var itemSet = {};
 			var itemNumber = 1;
 			var now = new Date();
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -170,7 +170,7 @@
 
 			function makeDynamicItem(description, importance, date, recurrence, lastFinished, done, labels) {
 				/**
-				adds a dynamic list item to Priority.instances
+				adds a dynamic list item to itemSet
 				*/
 				
 				// makes a Date object for the due date (assigned to "then")
@@ -445,19 +445,19 @@
 						throw 'The item with the description "' + decodeURIComponent(description) + '" has a non-number urgency.';
 					}
 					let increment = 0;
-					while (Priority.instances[urgency + increment] != undefined) {
+					while (itemSet[urgency + increment] != undefined) {
 						// while there's a target key value already taken, increase the target key by 1
 						// (prevents overwriting when things have the same due-date and importance)
 						increment++;
 					}
-					Priority.instances[urgency+increment] = {description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels};
+					itemSet[urgency+increment] = {description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels};
 				}
 			}
 
 
 			function makeStaticItem(description, item) {
 				/**
-				adds a static list item to Priority.instances
+				adds a static list item to itemSet
 				*/
 
 				// creates the HTML objects to be displayed
@@ -482,13 +482,56 @@
 					label.title = "Finished";
 				}
 
-				Priority.instances[item.position-1] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+				if (item.position>0 && itemSet.hasOwnProperty(item.position-1) || item.position<0 && itemSet.hasOwnProperty(item.position)) {  // if the position is taken
+					// corrects the stored items
+					S.forEach(S.storage[storagePlace].list(), function (key) {
+						if (description != key) {
+							let currentItem = S.storage[storagePlace].recall(key);
+							if (item.position > 0) {
+								if (currentItem.position >= item.position) {
+									currentItem.position++;
+								}
+							} else {
+								if (currentItem.position <= item.position) {
+									currentItem.position--;
+								}
+							}
+							S.storage[storagePlace].store(key, currentItem);
+						}
+					});
+					// corrects the items in itemSet
+					let newSet = [];
+					S.forEach(itemSet, function (value, placement) {
+						newSet.push({ placement: Number(placement), value: value });
+					});
+					S.forEach(newSet, function (currentItem) {
+						if (item.position > 0) {
+							if (currentItem.placement >= item.position - 1) {
+								currentItem.placement++;
+							}
+						} else {
+							if (currentItem.placement <= item.position - 1) {
+								currentItem.placement--;
+							}
+						}
+					});
+					itemSet = {};
+					S.forEach(newSet, function (obj) {
+						itemSet[obj.placement] = obj.value;
+					});
+				}
+
+				if (item.position > 0) {
+					itemSet[item.position-1] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+				} else {
+					itemSet[item.position] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+				}
 			}
 
 
 			function makeRandomItem(description, item) {
 				/**
-				adds a randomly ordered list item to Priority.instances
+				adds a randomly ordered list item to itemSet
 				*/
 
 				// creates the HTML objects to be displayed
@@ -537,12 +580,12 @@
 
 				// adds the item to the priority list
 				let increment = 0;
-				while (Priority.instances[placement + increment] != undefined) {
+				while (itemSet[placement + increment] != undefined) {
 					// while there's a target key value already taken, increase the target key by 1
 					// (prevents overwriting when things have the same due-date and importance)
 					increment++;
 				}
-				Priority.instances[placement + increment] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+				itemSet[placement + increment] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
 			}
 
 
@@ -817,7 +860,7 @@
 				////
 				now = new Date();
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
-				Priority.instances = {};
+				itemSet = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
 				////
@@ -903,7 +946,7 @@
 
 				now = new Date();
 				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
-				Priority.instances = {};
+				itemSet = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
 				labelList = [];
@@ -945,29 +988,48 @@
 				S.getId("labelContainer").innerHTML = "";
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
-				// fills Priority.instances
-				if (S.storage[storagePlace].recall("ordering", "../settings") == "dynamic") {
-					S.getId("staticEditor").style.display = "none";
-					S.getId("dynamicEditor").style.display = "block";
-					S.getId("randomEditor").style.display = "none";
-					S.storage[storagePlace].list().forEach(function (key) {
-						let item = S.storage[storagePlace].recall(key);
-						makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
-					});
-				} else if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
-					S.getId("dynamicEditor").style.display = "none";
-					S.getId("staticEditor").style.display = "block";
-					S.getId("randomEditor").style.display = "none";
-					S.storage[storagePlace].list().forEach(function (key) {
-						makeStaticItem(key, S.storage[storagePlace].recall(key));
-					});
-				} else if (S.storage[storagePlace].recall("ordering", "../settings") == "random") {
-					S.getId("dynamicEditor").style.display = "none";
-					S.getId("staticEditor").style.display = "none";
-					S.getId("randomEditor").style.display = "block";
-					S.storage[storagePlace].list().forEach(function (key) {
-						makeRandomItem(key, S.storage[storagePlace].recall(key));
-					});
+				// fills itemSet
+				switch (S.storage[storagePlace].recall("ordering", "../settings")) {
+					case "dynamic":
+						S.getId("staticEditor").style.display = "none";
+						S.getId("dynamicEditor").style.display = "block";
+						S.getId("randomEditor").style.display = "none";
+						S.storage[storagePlace].list().forEach(function (key) {
+							let item = S.storage[storagePlace].recall(key);
+							makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
+						});
+						break;
+					case "static":
+						S.getId("dynamicEditor").style.display = "none";
+						S.getId("staticEditor").style.display = "block";
+						S.getId("randomEditor").style.display = "none";
+						S.storage[storagePlace].list().forEach(function (key) {
+							makeStaticItem(key, S.storage[storagePlace].recall(key));
+						});
+						// ensures that item positions don't leave gaps
+						S.forEach(itemSet, function (item, placement, instances, index) {
+							if (Number(placement) >= 0) {  // avoids crossed-out items
+								let storedItem = S.storage[storagePlace].recall(encodeURIComponent(item.description));
+								storedItem.position = index + 1;
+								S.storage[storagePlace].store(encodeURIComponent(item.description), storedItem);
+							}
+						});
+						itemSet = {};
+						S.storage[storagePlace].list().forEach(function (key) {
+							console.log(S.storage[storagePlace].recall(key).position);
+							makeStaticItem(key, S.storage[storagePlace].recall(key));
+						});
+						break;
+					case "random":
+						S.getId("dynamicEditor").style.display = "none";
+						S.getId("staticEditor").style.display = "none";
+						S.getId("randomEditor").style.display = "block";
+						S.storage[storagePlace].list().forEach(function (key) {
+							makeRandomItem(key, S.storage[storagePlace].recall(key));
+						});
+						break;
+					default:
+						throw "An invalid ordering type was selected.";
 				}
 				// adds list settings if necessary
 				if (!S.storage[storagePlace].recall("ordering", "../settings")) {
@@ -981,7 +1043,7 @@
 				let list = [],
 					currentIndex = 0,
 					alreadyCounted = [];
-				// puts items from the Priority.instances object into an array
+				// puts items from the itemSet object into an array
 				// allows filtering items
 				if (S.getId("listFilter").value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) {return box.checked;})) {
 					let labelsToInclude = S.getId("listFilter").value.trim().split(",");
@@ -992,7 +1054,7 @@
 						labelsToInclude.shift();
 					}
 					let importanceLevels = S.toArray(S.getId("importanceFilter").getElementsByTagName("input"));
-					S.forEach(Priority.instances, function (item) {
+					S.forEach(itemSet, function (item) {
 						let shouldAdd = true;
 						// checks labels
 						if (S.getId("listFilter").value.trim() && !(item.labels && item.labels.some(function (label) {
@@ -1012,17 +1074,19 @@
 						}
 					});
 				} else {
-					S.forEach(Priority.instances, function (item) {
+					S.forEach(itemSet, function (item) {
 						list.push(item);
 					});
 				}
-				// moves finished items to the end
-				while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
-					if (list[currentIndex].done) {
-						alreadyCounted.push(list[currentIndex].description);
-						list.move(currentIndex);
-					} else {
-						currentIndex++;
+				// moves finished items to the end (already done with static items)
+				if (S.storage[storagePlace].recall("ordering", "../settings") != "static") {
+					while (currentIndex < list.length && alreadyCounted.indexOf(list[currentIndex].description) == -1) {
+						if (list[currentIndex].done) {
+							alreadyCounted.push(list[currentIndex].description);
+							list.move(currentIndex);
+						} else {
+							currentIndex++;
+						}
 					}
 				}
 				// inserts the items onto the page
@@ -1125,6 +1189,9 @@
 								} else {
 									item.done = false;
 								}
+							}
+							if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
+								item.position = -item.position;
 							}
 							item.lastUpdated = now.getTime();
 							S.storage[storagePlace].store(encodeURIComponent(listItem.description), item);
