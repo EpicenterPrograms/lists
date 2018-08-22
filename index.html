@@ -468,6 +468,11 @@
 				label.title = "Item position: " + item.position;
 				label.innerHTML = decodeURIComponent(description);
 
+				// sets label highlighting
+				if (!item.positioned && !item.done) {
+					label.innerHTML = "<mark>" + label.innerHTML + "</mark>";
+				}
+
 				// puts the elements into a container
 				let section = document.createElement("section");
 				section.className = "list-item";
@@ -723,19 +728,31 @@
 					now = new Date();
 					// sets the position
 					let position;
+					let unfinishedListLength = 0;
+					let positioned = false;
+					S.forEach(S.storage[storagePlace].list(), function (key) {
+						if (!S.storage[storagePlace].recall(key).done) {
+							unfinishedListLength++;
+						}
+					});
 					if (S.getId("positioner").value.trim() == "") {
-						position = S.storage[storagePlace].list().length + 1;
+						if (S.getId("importance").value == "") {
+							position = unfinishedListLength + 1;
+						} else {
+							position = Math.ceil(unfinishedListLength * (6-Number(S.getId("importance").value)) / 5 + 1);
+							positioned = true;
+						}
 					} else {
 						position = Number(S.getId("positioner").value);
+						positioned = true;
 					}
 					if (position < 1) {
 						position = 1;
 					}
-					let itemList = S.storage[storagePlace].list();
-					if (position > itemList.length + 1) {
-						position = itemList.length + 1;
-					} else if (position < itemList.length + 1) {
-						S.forEach(itemList, function (key) {
+					if (position > unfinishedListLength + 1) {
+						position = unfinishedListLength + 1;
+					} else if (position < unfinishedListLength + 1) {
+						S.forEach(S.storage[storagePlace].list(), function (key) {
 							let item = S.storage[storagePlace].recall(key);
 							if (item.position >= position) {
 								item.position++;
@@ -749,7 +766,7 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels });
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels });
 					// resets stuff
 					["description", "labels", "importance", "positioner"].forEach(function (ID) {
 						S.getId(ID).value = "";
@@ -1016,7 +1033,6 @@
 						});
 						itemSet = {};
 						S.storage[storagePlace].list().forEach(function (key) {
-							console.log(S.storage[storagePlace].recall(key).position);
 							makeStaticItem(key, S.storage[storagePlace].recall(key));
 						});
 						break;
@@ -1654,6 +1670,10 @@
 
 
 
+
+			S.listen("importance", "change", function () {
+				S.getId("positioner").value = "";
+			});
 
 			S.listen("syncData", "change", function () {
 				if (S.storage.server.user && this.checked) {
