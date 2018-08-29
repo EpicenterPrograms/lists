@@ -26,6 +26,7 @@
 			var mergeData = false;
 			var deleteData = false;
 			var advancedSettingsSection;
+			var advancedEditorSection;
 			var pastDueNumber = 0;
 			var dueTodayNumber = 0;
 			var storagePlace = "local";
@@ -35,6 +36,7 @@
 			var sampleList = [
 				{
 					description: "finish my math homework",
+					elaboration: "chapter 7, activity 5, questions 5-20",
 					importance: 4,
 					recurrence: "weekly",
 					time: "monday wednesday friday~11:59 pm",
@@ -104,6 +106,7 @@
 				},
 				{
 					description: "have game night",
+					elaboration: "play hangman, charades, and Apples to Apples",
 					importance: 2,
 					recurrence: "monthly",
 					time: "10~8:00 pm",
@@ -114,6 +117,7 @@
 				},
 				{
 					description: "sign up for the charity event",
+					elaboration: "5 Giving Way, room 213",
 					importance: 2,
 					recurrence: "once",
 					time: function () {
@@ -126,6 +130,7 @@
 				},
 				{
 					description: "find my keys",
+					elaboration: "check under the couch",
 					importance: 5,
 					recurrence: "indefinite",
 					time: now.getTime() + "~",
@@ -615,7 +620,10 @@
 					now = new Date();
 					let description = encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;"));
 					let date = "";
-					let time = S.getId("time").value.trim() + (S.getId("timeFormat").value!="24-hour" ? " "+S.getId("timeFormat").value : "");
+					let time = S.getId("time").value.trim();
+					if (time.search(/\d(?:am|pm)/) > -1) {  // if there's an am or pm not preceeded by a space
+						time = time.slice(0, time.indexOf("m")-1) + " " + time.slice(time.indexOf("m")-1);
+					}
 					switch (S.getId("recurrence").value) {
 						case "continual":
 							date = now.getTime() + Math.pow(6-Number(S.getId("importance").value), 2) * 200000000;
@@ -689,12 +697,12 @@
 					});
 					// stores the information
 					if (S.getId("recurrence").value == "indefinite" && S.getId("timeframe").value == "same") {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					} else {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					}
 					// resets stuff
-					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "timeFormat", "labels"].forEach(function(ID) {
+					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "labels"].forEach(function(ID) {
 						S.getId(ID).value = "";
 					});
 					week.forEach(function(ID) {
@@ -704,6 +712,9 @@
 						S.getId(ID).style.display = "none";
 					});
 					S.getId("timeframe").options["same"].disabled = true;
+					S.forEach(["elaboration"], function (ID) {
+						advancedEditorSection.querySelector("#" + ID).value = "";
+					});
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -766,10 +777,13 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels });
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
 					["description", "labels", "importance", "positioner"].forEach(function (ID) {
 						S.getId(ID).value = "";
+					});
+					S.forEach(["elaboration"], function (ID) {
+						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
 					// refreshes the list
 					refresh();
@@ -799,10 +813,13 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels });
+					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
 					["description", "labels", "importance"].forEach(function (ID) {
 						S.getId(ID).value = "";
+					});
+					S.forEach(["elaboration"], function (ID) {
+						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
 					// refreshes the list
 					refresh();
@@ -1216,7 +1233,7 @@
 						// listens for double-clicking on a description
 						// (pulls up the editor for that item)
 						if (S.storage[storagePlace].recall("ordering", "../settings") == "dynamic") {
-							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+							function fillDynamicEditor() {
 								// prevents highlighting the text when double-clicking
 								// event.preventDefault() would only work with onmousedown
 								if (document.selection && document.selection.empty) {
@@ -1263,83 +1280,29 @@
 										break;
 								}
 								if (item.recurrence != "indefinite" && item.recurrence != "continual") {
-									if (item.time.split("~")[1].includes(" ")) {
-										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
-										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
-									} else {
-										S.getId("time").value = item.time.split("~")[1];
-										S.getId("timeFormat").value = "24-hour";
-									}
+									S.getId("time").value = item.time.split("~")[1];
 								}
 								if (item.labels) {
 									S.getId("labels").value = item.labels.join(", ");
 								}
+								if (item.elaboration) {
+									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
+								}
 								showHide();
 								S.getId("editorSection").children[1].style.display = "block";
+							}
+
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								fillDynamicEditor();
 							});
 							// listens for touching and holding on a description
 							// (pulls up the editor for that item)
 							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
-								if (document.selection && document.selection.empty) {
-									document.selection.empty();
-								} else if (window.getSelection) {
-									window.getSelection().removeAllRanges();
-								}
-								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-								S.getId("description").value = listItem.description;
-								S.getId("importance").value = item.importance;
-								S.getId("recurrence").value = item.recurrence;
-								switch (item.recurrence) {
-									case "indefinite":
-										/*
-										let indefiniteTime = Number(item.time.split("~")[0]) - now.getTime();
-										if (indefiniteTime <= 0) {
-											indefiniteTime = "immediately";
-										} else if (indefiniteTime <= 250000000) {
-											indefiniteTime = "soon";
-										} else if (indefiniteTime <= 700000000) {
-											indefiniteTime = "later";
-										} else if (indefiniteTime <= 1600000000) {
-											indefiniteTime = "aWhile";
-										} else {
-											indefiniteTime = "somePoint";
-										}
-										*/
-										S.getId("timeframe").options["same"].disabled = false;
-										S.getId("timeframe").value = "same";
-										break;
-									case "once":
-										S.getId("fullDate").value = item.time.split("~")[0];
-										break;
-									case "monthly":
-										S.getId("day").value = item.time.split("~")[0];
-										break;
-									case "weekly":
-										week.forEach(function (ID) {
-											S.getId(ID).checked = false;
-										});
-										item.time.split("~")[0].trim().split(" ").forEach(function (ID) {
-											S.getId(ID).checked = true;
-										});
-										break;
-								}
-								if (item.recurrence != "indefinite" && item.recurrence != "continual") {
-									if (item.time.split("~")[1].includes(" ")) {
-										S.getId("time").value = item.time.split("~")[1].split(" ")[0];
-										S.getId("timeFormat").value = item.time.split("~")[1].split(" ")[1];
-									} else {
-										S.getId("time").value = item.time.split("~")[1];
-										S.getId("timeFormat").value = "24-hour";
-									}
-								}
-								if (item.labels) {
-									S.getId("labels").value = item.labels.join(", ");
-								}
-								showHide();
-								S.getId("editorSection").children[1].style.display = "block";
+								fillDynamicEditor();
 							}, false, 300);
+
 						} else if (S.storage[storagePlace].recall("ordering", "../settings") == "static") {
-							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+							function fillStaticEditor() {
 								// prevents highlighting the text when double-clicking
 								// event.preventDefault() would only work with onmousedown
 								if (document.selection && document.selection.empty) {
@@ -1353,24 +1316,21 @@
 								if (item.labels) {
 									S.getId("labels").value = item.labels.join(", ");
 								}
+								if (item.elaboration) {
+									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
+								}
 								S.getId("editorSection").children[1].style.display = "block";
+							}
+
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								fillStaticEditor();
 							});
 							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
-								if (document.selection && document.selection.empty) {
-									document.selection.empty();
-								} else if (window.getSelection) {
-									window.getSelection().removeAllRanges();
-								}
-								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-								S.getId("description").value = listItem.description;
-								S.getId("positioner").value = item.position;
-								if (item.labels) {
-									S.getId("labels").value = item.labels.join(", ");
-								}
-								S.getId("editorSection").children[1].style.display = "block";
+								fillStaticEditor();
 							}, false, 300);
+
 						} else if (S.storage[storagePlace].recall("ordering", "../settings") == "random") {
-							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+							function fillRandomEditor() {
 								// prevents highlighting the text when double-clicking
 								// event.preventDefault() would only work with onmousedown
 								if (document.selection && document.selection.empty) {
@@ -1384,21 +1344,17 @@
 								if (item.labels) {
 									S.getId("labels").value = item.labels.join(", ");
 								}
+								if (item.elaboration) {
+									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
+								}
 								S.getId("editorSection").children[1].style.display = "block";
+							}
+
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
+								fillRandomEditor();
 							});
 							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
-								if (document.selection && document.selection.empty) {
-									document.selection.empty();
-								} else if (window.getSelection) {
-									window.getSelection().removeAllRanges();
-								}
-								let item = S.storage[storagePlace].recall(encodeURIComponent(listItem.description));
-								S.getId("description").value = listItem.description;
-								S.getId("importance").value = listItem.importance;
-								if (item.labels) {
-									S.getId("labels").value = item.labels.join(", ");
-								}
-								S.getId("editorSection").children[1].style.display = "block";
+								fillRandomEditor();
 							}, false, 300);
 						}
 					});
@@ -1413,18 +1369,23 @@
 
 			function remove() {
 				let location = S.storage[storagePlace];
-				location.list().forEach(function (key) {
-					let item = location.recall(key);
-					if (key == encodeURIComponent(S.getId("description").value.trim())) {
-						location.forget(key);
-					} else if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static" || location.recall("ordering", "../settings") == "random")) {
-						location.forget(key);
-					}
-				});
+				if (S.getId("description").value.trim() == "") {
+					location.list().forEach(function (key) {
+						let item = location.recall(key);
+						if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static" || location.recall("ordering", "../settings") == "random")) {
+							location.forget(key);
+						}
+					});
+				} else {
+					location.forget(encodeURIComponent(S.getId("description").value.trim()));
+				}
 				S.getId("description").value = "";
 				S.getId("labels").value = "";
 				S.getId("importance").value = "";
 				S.getId("positioner").value = "";
+				S.forEach(["elaboration"], function (ID) {
+					advancedEditorSection.querySelector("#" + ID).value = "";
+				});
 				refresh();
 			}
 
@@ -1438,6 +1399,9 @@
 				});
 				S.forEach(S.getId("editorSection").children[1].getElementsByTagName("select"), function (select) {
 					select.value = "";
+				});
+				S.forEach(["elaboration"], function (ID) {
+					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
 				showHide();
 				S.getId("editorSection").children[1].style.display = "none";
@@ -1460,6 +1424,8 @@
 
 				advancedSettingsSection = S.getId("advancedSettings");
 				advancedSettingsSection.parentNode.removeChild(advancedSettingsSection);
+				advancedEditorSection = S.getId("advancedEditor");
+				S.removeSelf(advancedEditorSection);
 
 				// sets or retrieves the start-up settings
 				if (S.getType(S.storage.local.recall("start-up settings", "/lists")) != "Object") {
@@ -1829,8 +1795,13 @@
 					this.textContent = "Remove sample list";
 					S.getId("useSessionStorage").checked = true;
 					storagePlace = "session";
+					if (!S.storage[storagePlace].recall("ordering", "../settings")) {
+						S.storage[storagePlace].store("ordering", "dynamic", "../settings");
+					}
 					S.forEach(sampleList, function (item) {
-						S.storage.session.store(encodeURIComponent(item.description), { importance: item.importance, time: item.time, recurrence: item.recurrence, lastFinished: item.lastFinished, done: item.done, labels: item.labels });
+						let description = encodeURIComponent(item.description);
+						delete item.description;
+						S.storage.session.store(description, item);
 					});
 				} else {
 					S.forEach(S.storage.session.list(), function (key) {
@@ -2205,20 +2176,20 @@
 						<option value="" disabled selected>
 							Importance
 						</option>
-						<option value="1">
-							1 (lowest)
-						</option>
-						<option value="2">
-							2
-						</option>
-						<option value="3">
-							3
+						<option value="5">
+							5 (highest)
 						</option>
 						<option value="4">
 							4
 						</option>
-						<option value="5">
-							5 (highest)
+						<option value="3">
+							3
+						</option>
+						<option value="2">
+							2
+						</option>
+						<option value="1">
+							1 (lowest)
 						</option>
 					</select>
 					<div id="dynamicEditor">
@@ -2328,21 +2299,6 @@
 						</section>
 						<section id="timeSection" style="display:none">
 							<input type="text" id="time" placeholder="Time (hour:minute)">
-							<span>&nbsp;</span>
-							<select id="timeFormat">
-								<option value="" disabled selected>
-									Time format
-								</option>
-								<option value="am">
-									am
-								</option>
-								<option value="pm">
-									pm
-								</option>
-								<option value="24-hour">
-									24-hour
-								</option>
-							</select>
 						</section>
 						<section>
 							<button onclick="includeDynamicItem()">
@@ -2374,9 +2330,40 @@
 							</button>
 						</section>
 					</div>
+					<button onclick="S.makeDialog(advancedEditorSection, 'Done')">
+						Advanced
+					</button>
 					<button onclick="cancel()">
 						Cancel
 					</button>
+					<div id="advancedEditor">
+						<textarea id="elaboration" placeholder="Elaboration"></textarea>
+						<h4 style="margin:.25em">
+							Difficulty
+						</h4>
+						<select>
+							<option value="5">
+								5 (highest)
+							</option>
+							<option value="4">
+								4
+							</option>
+							<option value="3" selected>
+								3
+							</option>
+							<option value="2">
+								2
+							</option>
+							<option value="1">
+								1 (lowest)
+							</option>
+						</select>
+						<h4 style="margin:.25em">
+							Ideal due time
+						</h4>
+						<input type="date"><br>
+						<input type="text" placeholder="00:00 am/pm">
+					</div>
 				</div>
 			</div>
 			<div class="drop-down" tabindex="0" id="filterSection">
