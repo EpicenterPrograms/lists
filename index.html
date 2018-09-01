@@ -474,7 +474,10 @@
 				
 				// adds the item to the priority list or runs the function again
 				if (needsToRunFunctionAgain) {
-					makeDynamicItem(description, importance, originalDate, recurrence, lastFinished, done, labels);
+					item.time = originalDate;
+					item.lastFinished = lastFinished;
+					item.done = done;
+					makeDynamicItem(description, item);
 				} else {
 					if (isNaN(urgency) || S.getType(urgency) != "Number") {
 						throw 'The item with the description "' + decodeURIComponent(description) + '" has a non-number urgency.';
