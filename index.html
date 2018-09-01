@@ -4,6 +4,7 @@
 		<title>
 			Lists
 		</title>
+		<link rel="icon" href="favicon.ico">
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
@@ -142,7 +143,19 @@
 					description: "have breakfast with Sally",
 					importance: 3,
 					recurrence: "once",
-					time: ((now.getMonth()>10 ? 0 : now.getMonth()+1)+1) + "/" + (now.getDate()+1) + "/" + (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear()) + "~8:00 am",
+					time: (function () {
+						let year = (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear());
+						let month = ((now.getMonth()>10 ? 0 : now.getMonth()+1)+1);
+						let day = (now.getDate()+1);
+						let time = "~8:00 am";
+						if (String(month).length == 1) {
+							month = "0" + month;
+						}
+						if (String(day).length == 1) {
+							day = "0" + day;
+						}
+						return year + " " + month + " " + day + time;
+					})(),
 					lastFinished: now.getTime(),
 					done: false,
 					labels: ["fun"],
@@ -173,12 +186,18 @@
 
 
 
-			function makeDynamicItem(description, importance, date, recurrence, lastFinished, done, labels) {
+			function makeDynamicItem(description, item) {
 				/**
 				adds a dynamic list item to itemSet
 				*/
 				
 				// makes a Date object for the due date (assigned to "then")
+				let importance = item.importance;
+				let date = item.time;
+				let recurrence = item.recurrence;
+				let lastFinished = item.lastFinished;
+				let done = item.done;
+				let labels = item.labels;
 				var originalDate = date;
 				var then = date.split("~")[0].trim();
 				var time = " " + date.split("~")[1].trim();
@@ -193,8 +212,13 @@
 						// "date" can't also be set here because it causes the due time displayed to always be what it was originally
 						break;
 					case "once":
-						then = new Date([].concat(then.split("/")[2], then.split("/").slice(0,2)).join(" ")+time);
-						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						if (then.includes("/")) {  ////
+							then = new Date([].concat(then.split("/")[2], then.split("/").slice(0, 2)).join(" ") + time);
+							date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						} else {
+							then = new Date(then + time);
+							date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						}
 						break;
 					case "monthly":
 						if (beginning.getDate() == then) {
@@ -400,6 +424,12 @@
 				section.className = "list-item";
 				section.appendChild(checkbox);
 				section.appendChild(label);
+				if (item.elaboration) {  // if there's an elaboration
+					let img = document.createElement("img");
+					img.src = "expandable.svg";
+					img.className = "icon";
+					section.appendChild(img);
+				}
 				let elements = document.createElement("div");
 				elements.appendChild(section);
 				
@@ -418,10 +448,10 @@
 					if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
 						lastFinished = then.getTime() + 1;
 						done = false;
-						let item = S.storage[storagePlace].recall(description);
-						item.lastFinished = lastFinished;
-						item.done = done;
-						S.storage[storagePlace].store(description, item);
+						let storedItem = S.storage[storagePlace].recall(description);
+						storedItem.lastFinished = lastFinished;
+						storedItem.done = done;
+						S.storage[storagePlace].store(description, storedItem);
 						var needsToRunFunctionAgain = true;
 					}
 				}
@@ -483,6 +513,12 @@
 				section.className = "list-item";
 				section.appendChild(checkbox);
 				section.appendChild(label);
+				if (item.elaboration) {  // if there's an elaboration
+					let img = document.createElement("img");
+					img.src = "expandable.svg";
+					img.className = "icon";
+					section.appendChild(img);
+				}
 				let elements = document.createElement("div");
 				elements.appendChild(section);
 
@@ -571,6 +607,12 @@
 				section.className = "list-item";
 				section.appendChild(checkbox);
 				section.appendChild(label);
+				if (item.elaboration) {  // if there's an elaboration
+					let img = document.createElement("img");
+					img.src = "expandable.svg";
+					img.className = "icon";
+					section.appendChild(img);
+				}
 				let elements = document.createElement("div");
 				elements.appendChild(section);
 
@@ -650,26 +692,25 @@
 							}
 							break;
 						case "once":
-							if (S.getId("fullDate").value.includes("/")) {
-								date = S.getId("fullDate").value;
-							} else {  // if it's a day of the week
-								var then = S.getId("fullDate").value;
-								then = week.indexOf(then.toLowerCase());
-								if (now.getDay() == then) {
-								   if (now.getTime() <= new Date([now.getFullYear(), now.getMonth()+1, now.getDate()].join(" ")+" "+time).getTime()) {
-										date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
-									} else {
-										then = new Date(now.getTime() + 604800000);
-										date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
-									}
-								} else if (now.getDay() < then) {
-									then = new Date(now.getTime() + (then-now.getDay())*86400000);
-									date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+							date = S.getId("fullDate").value.replace(/-/g, " ");
+							/* //// previously for quick selecting with a day of the week
+							var then = S.getId("fullDate").value;
+							then = week.indexOf(then.toLowerCase());
+							if (now.getDay() == then) {
+								if (now.getTime() <= new Date([now.getFullYear(), now.getMonth() + 1, now.getDate()].join(" ") + " " + time).getTime()) {
+									date = now.getMonth() + 1 + "/" + now.getDate() + "/" + now.getFullYear();
 								} else {
-									then = new Date(now.getTime() + (7+then-now.getDay())*86400000);
+									then = new Date(now.getTime() + 604800000);
 									date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
 								}
+							} else if (now.getDay() < then) {
+								then = new Date(now.getTime() + (then - now.getDay()) * 86400000);
+								date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
+							} else {
+								then = new Date(now.getTime() + (7 + then - now.getDay()) * 86400000);
+								date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear();
 							}
+							*/
 							break;
 						case "monthly":
 							date = S.getId("day").value;
@@ -702,7 +743,7 @@
 						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					}
 					// resets stuff
-					["description", "importance", "recurrence", "timeframe", "fullDate", "quickSelect", "day", "time", "labels"].forEach(function(ID) {
+					["description", "importance", "recurrence", "timeframe", "fullDate", "day", "time", "labels"].forEach(function(ID) {
 						S.getId(ID).value = "";
 					});
 					week.forEach(function(ID) {
@@ -1029,8 +1070,7 @@
 						S.getId("dynamicEditor").style.display = "block";
 						S.getId("randomEditor").style.display = "none";
 						S.storage[storagePlace].list().forEach(function (key) {
-							let item = S.storage[storagePlace].recall(key);
-							makeDynamicItem(key, item.importance, item.time, item.recurrence, item.lastFinished, item.done, item.labels);
+							makeDynamicItem(key, S.storage[storagePlace].recall(key));
 						});
 						break;
 					case "static":
@@ -1265,7 +1305,13 @@
 										S.getId("timeframe").value = "same";
 										break;
 									case "once":
-										S.getId("fullDate").value = item.time.split("~")[0];
+										if (item.time.includes("/")) {  ////
+											let date = item.time.split("~")[0].split("/");
+											date = date[2] + "-" + (date[0].length>1 ? "" : "0") + date[0] + "-" + (date[1].length>1 ? "" : "0") + date[1];
+											S.getId("fullDate").value = date;
+										} else {
+											S.getId("fullDate").value = item.time.split("~")[0].replace(/ /g, "-");
+										}
 										break;
 									case "monthly":
 										S.getId("day").value = item.time.split("~")[0];
@@ -1511,9 +1557,6 @@
 
 					refresh();
 					S.getId("recurrence").addEventListener("change", showHide);
-					S.getId("quickSelect").addEventListener("change", function () {
-						S.getId("fullDate").value = this.value;
-					});
 					setInterval(function () {  // refreshes a little under every 17 minutes
 						refresh(true);
 						let now = new Date();
@@ -1936,6 +1979,7 @@
 			}
 			.subtle {
 				display: block;
+				margin: auto;
 				border: none;
 				background: none;
 				font-family: serif;
@@ -1944,6 +1988,10 @@
 			.subtle:hover {
 				background: rgba(255, 255, 255, .5);
 				font-weight: bold;
+			}
+			.icon {
+				margin-left: .5em;
+				height: 1em;
 			}
 			#pastDueNotifier {
 				display: none;
@@ -2242,35 +2290,7 @@
 							</select>
 						</section>
 						<section id="once" style="display:none">
-							<input type="text" id="fullDate" placeholder="Date (month/day/year)">
-							<select id="quickSelect">
-								<option value="" disabled selected>
-									Quick select
-								</option>
-								<option value="monday">
-									Monday
-								</option>
-								<option value="tuesday">
-									Tuesday
-								</option>
-								<option value="wednesday">
-									Wednesday
-								</option>
-								<option value="thursday">
-									Thursday
-								</option>
-								<option value="friday">
-									Friday
-								</option>
-								<option value="saturday">
-									Saturday
-								</option>
-								<option value="sunday">
-									Sunday
-								</option>
-							</select>
-							<br>
-							<input type="date">
+							<input type="date" id="fullDate" placeholder="yyyy-mm-dd">
 						</section>
 						<section id="monthly" style="display:none">
 							<input type="text" id="day" placeholder="Day of the month">
@@ -2361,7 +2381,7 @@
 						<h4 style="margin:.25em">
 							Ideal due time
 						</h4>
-						<input type="date"><br>
+						<input type="date" placeholder="yyyy-mm-dd"><br>
 						<input type="text" placeholder="00:00 am/pm">
 					</div>
 				</div>
