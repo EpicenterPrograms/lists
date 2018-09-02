@@ -1067,6 +1067,9 @@
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
 				// fills itemSet
+				if (S.storage[storagePlace].recall("ordering", "../settings") == null) {  // for some reason, this can be true
+					S.storage[storagePlace].store("ordering", "dynamic", "../settings");
+				}
 				switch (S.storage[storagePlace].recall("ordering", "../settings")) {
 					case "dynamic":
 						S.getId("staticEditor").style.display = "none";
@@ -1870,8 +1873,6 @@
 						console.log(S.storage.local.recall(key, "lists/default/items"));
 					});
 					*/
-					localStorage.clear();
-					refresh();
 				}
 			});
 
@@ -2211,7 +2212,7 @@
 						<button id="loadSampleList">
 							Load sample list
 						</button>
-						<button id="update">
+						<button id="update" disabled>
 							Run corrections
 						</button>
 					</div>
