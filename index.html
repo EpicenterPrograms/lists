@@ -1870,6 +1870,8 @@
 						console.log(S.storage.local.recall(key, "lists/default/items"));
 					});
 					*/
+					localStorage.clear();
+					refresh();
 				}
 			});
 
@@ -2209,7 +2211,7 @@
 						<button id="loadSampleList">
 							Load sample list
 						</button>
-						<button id="update" disabled>
+						<button id="update">
 							Run corrections
 						</button>
 					</div>
