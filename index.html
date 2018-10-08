@@ -33,6 +33,7 @@
 			var storagePlace = "local";
 			var noisemaker;
 			var labelList = [];
+			var itemBeingEdited = "";
 
 			var sampleList = [
 				{
@@ -759,6 +760,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -829,6 +831,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -865,6 +868,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -1340,6 +1344,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								itemBeingEdited = listItem.description;
 								showHide();
 								S.getId("editorSection").children[1].style.display = "block";
 							}
@@ -1371,6 +1376,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
 
@@ -1399,6 +1405,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
 
@@ -1438,6 +1445,7 @@
 				S.forEach(["elaboration"], function (ID) {
 					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
+				itemBeingEdited = "";
 				refresh();
 			}
 
@@ -1455,6 +1463,7 @@
 				S.forEach(["elaboration"], function (ID) {
 					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
+				itemBeingEdited = "";
 				showHide();
 				S.getId("editorSection").children[1].style.display = "none";
 			}
@@ -1611,32 +1620,6 @@
 						} else if (time >= 2 && time < dayThreshold && !noisemaker.playing) {
 							noisemaker = new S.Sound({ frequency: 660, waveform: "square", changeWave: "sawtooth", modulation: 1, hertzChange: 220 });
 							noisemaker.start();
-							/*  This is too much fun to make me want to go to bed.
-							let playString;
-							function addNote() {
-								playString += ["a", "b", "c", "d", "e", "f", "g"][Math.floor(Math.random()*7)] + (Math.floor(Math.random()*2) + 4);
-							}
-							function maybeAddSlur() {
-								if (Math.floor(Math.random() * 2) == 0) {
-									playString += "s";
-								} else {
-									addNote();
-								}
-							}
-							setInterval(function () {
-								if (Math.floor(Math.random() * 2) == 0) {
-									noisemaker.change("waveform", "sawtooth");
-								} else {
-									noisemaker.change("waveform", "square");
-								}
-								playString = "";
-								addNote();
-								maybeAddSlur();
-								maybeAddSlur();
-								addNote();
-								noisemaker.play(playString);
-							}, 1205);
-							*/
 						} else {
 							noisemaker.change("waveform", "sine");
 							if (now.getMonth() == 11 && Math.ceil(Math.random() * 3) == 3) {  // occasionally plays a part of "We Wish You a Merry Christmas" during December
@@ -1953,6 +1936,7 @@
 		<!--
 		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
 		-->
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/halloween.css">
 		<style>
 			main {
 				margin-top: 0em;
