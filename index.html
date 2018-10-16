@@ -339,9 +339,9 @@
 					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
 				}
 				if (item.difficulty) {
-					urgency *= 6 - item.difficulty;
+					urgency = Math.round((6 - item.difficulty) / 2);
 				} else {
-					urgency *= 3;
+					urgency = Math.round(urgency * 1.5);
 				}
 				
 				// creates the HTML objects to be displayed
