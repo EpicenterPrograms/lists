@@ -42,6 +42,7 @@
 					importance: 4,
 					recurrence: "weekly",
 					time: "monday wednesday friday~11:59 pm",
+					difficulty: 4,
 					lastFinished: now.getTime(),
 					done: false,
 					lastUpdated: now.getTime()
@@ -60,6 +61,7 @@
 					importance: 1,
 					recurrence: "indefinite",
 					time: now.getTime() + 86400000 + "~",
+					difficulty: 2,
 					lastFinished: now.getTime() - 172800000,
 					done: false,
 					lastUpdated: now.getTime()
@@ -69,6 +71,7 @@
 					importance: 3,
 					recurrence: "daily",
 					time: "~10:30 pm",
+					difficulty: 1,
 					lastFinished: now.getTime(),
 					done: false,
 					labels: ["sanitary"],
@@ -79,6 +82,7 @@
 					importance: 2,
 					recurrence: "indefinite",
 					time: now.getTime() + 700000000 + "~",
+					difficulty: 4,
 					lastFinished: now.getTime(),
 					done: false,
 					lastUpdated: now.getTime()
@@ -136,6 +140,7 @@
 					importance: 5,
 					recurrence: "indefinite",
 					time: now.getTime() + "~",
+					difficulty: 5,
 					lastFinished: now.getTime(),
 					done: true,
 					lastUpdated: now.getTime()
@@ -167,6 +172,7 @@
 					importance: 2,
 					recurrence: "continual",
 					time: now.getTime() + 2200000000 + "~",
+					difficulty: 5,
 					lastFinished: now.getTime() - 1000000000,
 					done: false,
 					labels: [],
@@ -177,6 +183,7 @@
 					importance: 5,
 					recurrence: "continual",
 					time: now.getTime() + "~",
+					difficulty: 3,
 					lastFinished: now.getTime() - 200000000,
 					done: false,
 					labels: [],
@@ -330,6 +337,11 @@
 					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
 				} else {
 					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+				}
+				if (item.difficulty) {
+					urgency *= 6 - item.difficulty;
+				} else {
+					urgency *= 3;
 				}
 				
 				// creates the HTML objects to be displayed
@@ -742,9 +754,9 @@
 					});
 					// stores the information
 					if (S.getId("recurrence").value == "indefinite" && S.getId("timeframe").value == "same") {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: S.storage[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
 					} else {
-						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
 					}
 					// resets stuff
 					["description", "importance", "recurrence", "timeframe", "fullDate", "day", "time", "labels"].forEach(function(ID) {
@@ -760,6 +772,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					advancedEditorSection.querySelector("#difficulty").value = 3;
 					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
@@ -767,7 +780,7 @@
 						refresh(true);
 					}, 0);
 					// randomly displays inspiring messages (if desired)
-					if (S.getId("inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
+					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
 						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
@@ -831,6 +844,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					advancedEditorSection.querySelector("#difficulty").value = 3;
 					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
@@ -838,7 +852,7 @@
 						refresh(true);
 					}, 0);
 					// randomly displays inspiring messages (if desired)
-					if (S.getId("inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
+					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
 						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
@@ -868,6 +882,7 @@
 					S.forEach(["elaboration"], function (ID) {
 						advancedEditorSection.querySelector("#" + ID).value = "";
 					});
+					advancedEditorSection.querySelector("#difficulty").value = 3;
 					itemBeingEdited = "";
 					// refreshes the list
 					refresh();
@@ -875,7 +890,7 @@
 						refresh(true);
 					}, 0);
 					// randomly displays inspiring messages (if desired)
-					if (S.getId("inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
+					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
 						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
 						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
@@ -1344,6 +1359,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								showHide();
 								S.getId("editorSection").children[1].style.display = "block";
@@ -1376,6 +1392,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
@@ -1405,6 +1422,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
+								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
@@ -1445,6 +1463,7 @@
 				S.forEach(["elaboration"], function (ID) {
 					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
+				advancedEditorSection.querySelector("#difficulty").value = 3;
 				itemBeingEdited = "";
 				refresh();
 			}
@@ -1463,6 +1482,7 @@
 				S.forEach(["elaboration"], function (ID) {
 					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
+				advancedEditorSection.querySelector("#difficulty").value = 3;
 				itemBeingEdited = "";
 				showHide();
 				S.getId("editorSection").children[1].style.display = "none";
@@ -1518,7 +1538,7 @@
 				S.getId("soundVolume").value = siteSettings.volume;
 				// sets the inspiration
 				if (siteSettings.inspiration == true) {
-					S.getId("inspiringMessages").checked = true;
+					S.getId(advancedSettingsSection, "inspiringMessages").checked = true;
 				}
 				// sets the storage type
 				if (siteSettings.storageType == "session") {
@@ -1773,6 +1793,12 @@
 				}
 			});
 
+			S.listen("inspiringMessages", "click", function () {
+				let settings = S.storage.local.recall("start-up settings", "/lists");
+				settings.inspiration = this.checked;
+				S.storage[storagePlace].store("start-up settings", settings, "/lists");
+			});
+
 			S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
 				now = new Date();
 				S.storage[storagePlace].list().forEach(function (key) {
@@ -1859,12 +1885,6 @@
 				}
 			});
 
-
-			S.listen("inspiringMessages", "click", function () {
-				let settings = S.storage.local.recall("start-up settings", "/lists");
-				settings.inspiration = this.checked;
-				S.storage[storagePlace].store("start-up settings", settings, "/lists");
-			});
 
 			S.listen("filterCheckbox", "click", function () {
 				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
@@ -2003,6 +2023,8 @@
 				background: red;
 				font-size: .75em;
 				color: white;
+				overflow: hidden;
+				line-height: 1.15em;
 			}
 			#dynamicEditor {
 				display: block;
@@ -2151,9 +2173,6 @@
 						Default list
 					</h4>
 					<select id="defaultList"></select>
-					<br>
-					<input type="checkbox" id="inspiringMessages">
-					<label for="inspiringMessages">say inspiring messages</label>
 					<h4 style="margin:.25em">
 						Sections to show
 					</h4>
@@ -2192,6 +2211,9 @@
 							Day threshold
 						</h4>
 						<input type="text" id="dayThresholdSetter" value="8" style="width:1.5em">&thinsp;:00
+						<br>
+						<input type="checkbox" id="inspiringMessages">
+						<label for="inspiringMessages">say inspiring messages</label>
 						<br>
 						<button id="procrastinator">
 							Postpone items
@@ -2358,7 +2380,7 @@
 						<h4 style="margin:.25em">
 							Difficulty
 						</h4>
-						<select>
+						<select id="difficulty">
 							<option value="5">
 								5 (highest)
 							</option>
