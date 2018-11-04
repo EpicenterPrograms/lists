@@ -1799,15 +1799,20 @@
 				S.storage[storagePlace].store("start-up settings", settings, "/lists");
 			});
 
-			S.listen("procrastinator", "click", function () {  // puts off indefinite items due immediately
+			S.listen("procrastinator", "click", function () {  // puts off indefinite and continual items due immediately
 				now = new Date();
 				S.storage[storagePlace].list().forEach(function (key) {
 					let item = S.storage[storagePlace].recall(key);
-					if (item.recurrence == "indefinite" && Number(item.time.split("~")[0]) <= now.getTime() && Number(item.importance) < 4) {
-						// puts lower-priority items further off into the future
-						// randomly assigns exact times within certain tiers
-						item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
-						S.storage[storagePlace].store(key, item);
+					if ((item.recurrence == "indefinite" || item.recurrence == "continual") && Number(item.time.split("~")[0]) <= now.getTime()) {
+						if (item.recurrence == "indefinite" && Number(item.importance) < 4) {
+							// puts lower-priority items further off into the future
+							// randomly assigns exact times within certain tiers
+							item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
+							S.storage[storagePlace].store(key, item);
+						} else if (item.recurrence == "continual") {
+							item.time = now.getTime() + Math.pow(6 - Number(item.importance), 2) * 100000000 + "~";  // This is half the normal time.
+							S.storage[storagePlace].store(key, item);
+						}
 					}
 				});
 				refresh();
