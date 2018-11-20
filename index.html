@@ -1492,7 +1492,7 @@
 				if (this.value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) { return box.checked; })) {
 					S.getId("filterSection").children[0].style.color = "#0a0";
 				} else {
-					S.getId("filterSection").children[0].style.color = "steelblue";
+					S.getId("filterSection").children[0].style.color = "";
 				}
 				refresh();
 			});
@@ -1573,7 +1573,7 @@
 						if (S.getId("listFilter").value.trim() || S.toArray(this.parentNode.getElementsByTagName("input")).some(function (box) { return box.checked; })) {
 							S.getId("filterSection").children[0].style.color = "#0a0";
 						} else {
-							S.getId("filterSection").children[0].style.color = "steelblue";
+							S.getId("filterSection").children[0].style.color = "";
 						}
 						refresh();
 					});
