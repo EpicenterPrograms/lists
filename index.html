@@ -688,24 +688,28 @@
 						case "indefinite":
 							switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
 								case "immediately":
-									date = now.getTime();  // now
+									date = 0;  // now
 									break;
 								case "soon":
-									date = now.getTime() + 250000000;  // in a little less than 3 days
+									date = 250000000;  // in a little less than 3 days
 									break;
 								case "later":
-									date = now.getTime() + 700000000;  // in a little more than 8 days
+									date = 700000000;  // in a little more than 8 days
 									break;
 								case "aWhile":
-									date = now.getTime() + 1600000000;  // in about 18.5 days
+									date = 1600000000;  // in about 18.5 days
 									break;
 								case "somePoint":
-									date = now.getTime() + 3628800000;  // in exactly 42 days
+									date = 3628800000;  // in exactly 42 days
 									break;
 								case "same":
-									date = Number(S.storage[storagePlace].recall(description).time.split("~")[0]);  // at the pre-estblished time
+									date = Number(S.storage[storagePlace].recall(description).time.split("~")[0]) - now.getTime();  // at the pre-estblished time
 									break;
 							}
+							if (time > 0 && S.getId("timeframe").value != "same") {
+								date += date*.1 * (Math.random()*2-1);  // varies the time set by 10% (helps prevent a bunch of things being due at the same time)
+							}
+							date += now.getTime();
 							break;
 						case "once":
 							date = S.getId("fullDate").value.replace(/-/g, " ");
