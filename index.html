@@ -34,6 +34,7 @@
 			var noisemaker;
 			var labelList = [];
 			var itemBeingEdited = "";
+			var recyclingBin = {};
 
 			var sampleList = [
 				{
@@ -763,21 +764,7 @@
 						S.storage[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
 					}
 					// resets stuff
-					["description", "importance", "recurrence", "timeframe", "fullDate", "day", "time", "labels"].forEach(function(ID) {
-						S.getId(ID).value = "";
-					});
-					week.forEach(function(ID) {
-						S.getId(ID).checked = false;
-					});
-					["indefinite", "once", "monthly", "weekly", "timeSection"].forEach(function(ID) {
-						S.getId(ID).style.display = "none";
-					});
-					S.getId("timeframe").options["same"].disabled = true;
-					S.forEach(["elaboration"], function (ID) {
-						advancedEditorSection.querySelector("#" + ID).value = "";
-					});
-					advancedEditorSection.querySelector("#difficulty").value = 3;
-					itemBeingEdited = "";
+					cancel();
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -842,14 +829,7 @@
 					// stores the information
 					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
-					["description", "labels", "importance", "positioner"].forEach(function (ID) {
-						S.getId(ID).value = "";
-					});
-					S.forEach(["elaboration"], function (ID) {
-						advancedEditorSection.querySelector("#" + ID).value = "";
-					});
-					advancedEditorSection.querySelector("#difficulty").value = 3;
-					itemBeingEdited = "";
+					cancel();
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -880,14 +860,7 @@
 					// stores the information
 					S.storage[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
-					["description", "labels", "importance"].forEach(function (ID) {
-						S.getId(ID).value = "";
-					});
-					S.forEach(["elaboration"], function (ID) {
-						advancedEditorSection.querySelector("#" + ID).value = "";
-					});
-					advancedEditorSection.querySelector("#difficulty").value = 3;
-					itemBeingEdited = "";
+					cancel();
 					// refreshes the list
 					refresh();
 					setTimeout(function () {
@@ -964,6 +937,7 @@
 				itemSet = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
+				recyclingBin = {};
 				////
 				if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
 					let information = S.storage[storagePlace].list("/lists");
@@ -989,6 +963,15 @@
 										if (!information.includes(key)) {
 											deleting = true;
 											listenable.value++;
+											recyclingBin[key] = {  // basically just retains the description as a reminder in case worst comes to worst
+												importance: 5,
+												recurrence: "indefinite",
+												time: now.getTime() + "~",
+												difficulty: 3,
+												lastFinished: now.getTime(),
+												done: false,
+												lastUpdated: now.getTime()
+											};
 											S.storage.server.forget(key, "/lists", function () {
 												listenable.value--;
 											});
@@ -1022,6 +1005,7 @@
 								if (index + 1 >= list.length) {  // once all items have been iterated through
 									S.forEach(S.storage[storagePlace].list("/lists"), function (key) {
 										if (!list.includes(key) && key != "start-up settings") {
+											recyclingBin[key] = S.storage[storagePlace].recall(key, "/lists");  // holds on to deleted items just in case
 											S.storage[storagePlace].forget(key, "/lists");
 										}
 									});
@@ -1238,6 +1222,7 @@
 						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
 						S.storage.server.defaultLocation = "lists/" + title + "/items";
 						currentList = title;
+						recyclingBin = {};
 						refresh();
 					});
 					S.getId("listList").appendChild(button);
@@ -1454,21 +1439,16 @@
 					location.list().forEach(function (key) {
 						let item = location.recall(key);
 						if (item.done && (item.recurrence == "indefinite" || item.recurrence == "once" || location.recall("ordering", "../settings") == "static" || location.recall("ordering", "../settings") == "random")) {
+							recyclingBin[key] = location.recall(key);
 							location.forget(key);
 						}
 					});
 				} else {
-					location.forget(encodeURIComponent(S.getId("description").value.trim()));
+					let key = encodeURIComponent(S.getId("description").value.trim());
+					recyclingBin[key] = location.recall(key);
+					location.forget(key);
 				}
-				S.getId("description").value = "";
-				S.getId("labels").value = "";
-				S.getId("importance").value = "";
-				S.getId("positioner").value = "";
-				S.forEach(["elaboration"], function (ID) {
-					advancedEditorSection.querySelector("#" + ID).value = "";
-				});
-				advancedEditorSection.querySelector("#difficulty").value = 3;
-				itemBeingEdited = "";
+				cancel();
 				refresh();
 			}
 
@@ -1721,6 +1701,7 @@
 			});
 
 			S.listen("useLocalStorage", "click", function () {
+				recyclingBin = {};
 				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
@@ -1732,6 +1713,7 @@
 			});
 
 			S.listen("useSessionStorage", "click", function () {
+				recyclingBin = {};
 				let settings = S.storage[storagePlace].recall("start-up settings", "/lists");
 				if (S.getName("storagePlace", true).id == "useLocalStorage") {
 					storagePlace = "local";
@@ -1769,7 +1751,7 @@
 
 
 			S.listen("showAdvancedSettings", "click", function () {
-				S.makeDialog(advancedSettingsSection, "Done");
+				S.makeDialog(advancedSettingsSection, "");
 				S.getId("listTitle").value = decodeURIComponent(S.storage[storagePlace].defaultLocation.split("/")[1]);
 				S.getId("settingsSection").children[1].style.display = "none";
 			});
@@ -1864,6 +1846,7 @@
 			});
 
 			S.listen("loadSampleList", "click", function () {
+				recyclingBin = {};
 				if (this.textContent.trim() == "Load sample list") {
 					this.textContent = "Remove sample list";
 					S.getId("useSessionStorage").checked = true;
@@ -1885,6 +1868,22 @@
 					this.textContent = "Load sample list";
 				}
 				refresh();
+			});
+
+			S.listen("undelete", "click", function () {
+				if (Object.keys(recyclingBin).length > 0) {  // if there are items in the recycling bin
+					if (Object.keys(recyclingBin)[0].includes("/")) {  // if the storage locations had the whole path specified
+						S.forEach(recyclingBin, function (value, key) {
+							S.storage[storagePlace].store(key, value, "/lists");
+						});
+					} else {
+						S.forEach(recyclingBin, function (value, key) {
+							S.storage[storagePlace].store(key, value);
+						});
+					}
+					recyclingBin = {};
+					refresh();
+				}
 			});
 
 			S.listen("update", "click", function () {
@@ -1962,6 +1961,7 @@
 					S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
 					S.storage.server.defaultLocation = "lists/" + title + "/items";
 					currentList = title;
+					recyclingBin = {};
 					refresh();
 					S.getId("showAdvancedSettings").click();
 				}
@@ -2241,6 +2241,10 @@
 						<button id="loadSampleList">
 							Load sample list
 						</button>
+						<button id="undelete">
+							Undelete items
+						</button>
+						<br>
 						<button id="update" disabled>
 							Run corrections
 						</button>
