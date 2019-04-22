@@ -1118,11 +1118,11 @@
 						throw "An invalid ordering type was selected.";
 				}
 				// adds list settings if necessary
-				if (!S.storage[storagePlace].recall("../settings/ordering")) {
+				if (S.storage[storagePlace].recall("../settings/ordering") instanceof Error) {
 					S.storage[storagePlace].store("../settings/ordering", "dynamic");
 				}
 				advancedSettingsSection.querySelector("#listOrdering").value = S.storage[storagePlace].recall("../settings/ordering");
-				if (!S.storage[storagePlace].recall("../settings/filter")) {
+				if (S.storage[storagePlace].recall("../settings/filter") instanceof Error) {
 					S.storage[storagePlace].store("../settings/filter", []);
 				}
 				// declares necessary variables
@@ -1544,10 +1544,10 @@
 				}
 
 				// adds list settings if necessary
-				if (!S.storage[storagePlace].recall("../settings/ordering")) {
+				if (S.storage[storagePlace].recall("../settings/ordering") instanceof Error) {
 					S.storage[storagePlace].store("../settings/ordering", "dynamic");
 				}
-				if (!S.storage[storagePlace].recall("../settings/filter")) {
+				if (S.storage[storagePlace].recall("../settings/filter") instanceof Error) {
 					S.storage[storagePlace].store("../settings/filter", []);
 				}
 
@@ -1849,7 +1849,7 @@
 					this.textContent = "Remove sample list";
 					S.getId("useSessionStorage").checked = true;
 					storagePlace = "session";
-					if (!S.storage[storagePlace].recall("../settings/ordering")) {
+					if (S.storage[storagePlace].recall("../settings/ordering") instanceof Error) {
 						S.storage[storagePlace].store("../settings/ordering", "dynamic");
 					}
 					S.forEach(sampleList, function (item) {
