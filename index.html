@@ -939,88 +939,96 @@
 				dueTodayNumber = 0;
 				recyclingBin = {};
 				////
-				if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
-					let information = S.storage[storagePlace].list("/lists/");
-					information.splice(information.indexOf("start-up settings"), 1);
-					let listenable = new S.Listenable();
-					listenable.value = 0;
-					listenable.addEventListener("change", function (value) {
-						if (value >= information.length) {  // when all items have been stored
-							listenable.removeEventListener("change", arguments.callee);
-							listenable.value = undefined;
-							S.storage.server.list("/lists", function (data) {
-								listenable.value = 0;
-								listenable.addEventListener("set", function (itemsLeft) {
-									if (itemsLeft == 0) {
-										listenable.removeEventListener("set", arguments.callee);
-										window.dispatchEvent(new Event("readyToRefresh"));
+				new Promise(function (resolve) {
+					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
+						let information = S.storage[storagePlace].list("/lists/");
+						information.splice(information.indexOf("start-up settings"), 1);
+						let listenable = new S.Listenable();
+						listenable.value = 0;
+						listenable.addEventListener("change", function (value) {
+							if (value >= information.length) {  // when all items have been stored
+								listenable.removeEventListener("change", arguments.callee);
+								listenable.value = undefined;
+								S.storage.server.list("/lists", function (data) {
+									listenable.value = 0;
+									listenable.addEventListener("set", function (itemsLeft) {
+										if (itemsLeft == 0) {
+											listenable.removeEventListener("set", arguments.callee);
+											resolve();
+										}
+									});
+									if (data.length > 0) {
+										// deletes account data not not present in the current data
+										let deleting = false;
+										S.forEach(data, function (key) {
+											if (!information.includes(key)) {
+												deleting = true;
+												listenable.value++;
+												recyclingBin[key] = {  // basically just retains the description as a reminder in case worst comes to worst
+													importance: 5,
+													recurrence: "indefinite",
+													time: now.getTime() + "~",
+													difficulty: 3,
+													lastFinished: now.getTime(),
+													done: false,
+													lastUpdated: now.getTime()
+												};
+												S.storage.server.forget(key, "/lists", function () {
+													listenable.value--;
+												});
+											}
+										});
+										if (!deleting) {
+											listenable.value = 0;
+										}
+									} else {
+										resolve();
 									}
 								});
-								if (data.length > 0) {
-									// deletes account data not not present in the current data
-									let deleting = false;
-									S.forEach(data, function (key) {
-										if (!information.includes(key)) {
-											deleting = true;
-											listenable.value++;
-											recyclingBin[key] = {  // basically just retains the description as a reminder in case worst comes to worst
-												importance: 5,
-												recurrence: "indefinite",
-												time: now.getTime() + "~",
-												difficulty: 3,
-												lastFinished: now.getTime(),
-												done: false,
-												lastUpdated: now.getTime()
-											};
-											S.storage.server.forget(key, "/lists", function () {
-												listenable.value--;
-											});
-										}
-									});
-									if (!deleting) {
-										listenable.value = 0;
-									}
-								} else {
-									window.dispatchEvent(new Event("readyToRefresh"));
-								}
-							});
-						}
-					});
-					if (information.length > 0) {
-						// stores and replaces account data with current data
-						S.forEach(information, function (key) {
-							S.storage.server.store(key, S.storage[storagePlace].recall("/lists/" + key), "/lists", function () {  ////
-								listenable.value++;
-							});
-						});
-					} else {
-						listenable.value++;
-					}
-				} else {  // if the server information should be given precedence over the local information
-					let listenable = new S.Listenable();
-					S.storage.server.list("/lists", function (list) {
-						listenable.addEventListener("change", function (index) {
-							S.storage.server.recall(list[index], "/lists", function (data) {
-								S.storage[storagePlace].store("/lists/" + list[index], data);
-								if (index + 1 >= list.length) {  // once all items have been iterated through
-									S.forEach(S.storage[storagePlace].list("/lists/"), function (key) {
-										if (!list.includes(key) && key != "start-up settings") {
-											recyclingBin[key] = S.storage[storagePlace].recall("/lists/" + key);  // holds on to deleted items just in case
-											S.storage[storagePlace].forget("/lists/" + key);
-										}
-									});
-									window.dispatchEvent(new Event("readyToRefresh"));
-								}
-							});
-							if (index + 1 < list.length) {
-								listenable.value++;
-							} else {
-								listenable.removeEventListener("change", arguments.callee);
 							}
 						});
-						listenable.value = 0;
-					});
-				}
+						if (information.length > 0) {
+							// stores and replaces account data with current data
+							S.forEach(information, function (key) {
+								S.storage.server.store(key, S.storage[storagePlace].recall("/lists/" + key), "/lists", function () {  ////
+									listenable.value++;
+								});
+							});
+						} else {
+							listenable.value++;
+						}
+					} else {  // if the server information should be given precedence over the local information
+						let listenable = new S.Listenable();
+						S.storage.server.list("/lists", function (list) {
+							listenable.addEventListener("change", function (index) {
+								S.storage.server.recall(list[index], "/lists", function (data) {
+									S.storage[storagePlace].store("/lists/" + list[index], data);
+									if (index + 1 >= list.length) {  // once all items have been iterated through
+										S.forEach(S.storage[storagePlace].list("/lists/"), function (key) {
+											if (!list.includes(key) && key != "start-up settings") {
+												recyclingBin[key] = S.storage[storagePlace].recall("/lists/" + key);  // holds on to deleted items just in case
+												S.storage[storagePlace].forget("/lists/" + key);
+											}
+										});
+										resolve();
+									}
+								});
+								if (index + 1 < list.length) {
+									listenable.value++;
+								} else {
+									listenable.removeEventListener("change", arguments.callee);
+								}
+							});
+							listenable.value = 0;
+						});
+					}
+				}).catch(function (error) {
+					console.error(error);
+					window.dispatchEvent(new Event("readyToRefresh"));
+					S.makeDialog("An error occurred while attempting to sync your information.");
+				}).then(function () {
+					window.dispatchEvent(new Event("readyToRefresh"));
+				});
 				S.getId("settingsSection").children[1].style.display = "none";
 			}
 
