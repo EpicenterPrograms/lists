@@ -1979,6 +1979,7 @@
 		<!--
 		<link rel="stylesheet" href="file:///C:/Users/Robert/Documents/GitHub/standards/formatting/foundation.css">
 		-->
+		<link rel="stylesheet" href="https://epicenterprograms.github.io/standards/formatting/fourthofjuly.css">
 		<style>
 			main {
 				margin-top: 0em;
@@ -1998,9 +1999,6 @@
 			}
 			nav.top-nav div.drop-down table {
 				margin: 0rem;
-			}
-			section button {
-				margin: 0rem .5em;
 			}
 			.list-item {
 				margin: .5em 0em;
@@ -2338,35 +2336,36 @@
 						<section id="timeSection" style="display:none">
 							<input type="text" id="time" placeholder="Time (hour:minute)">
 						</section>
-						<section>
+						<div>
 							<button onclick="includeDynamicItem()">
 								Add to list
 							</button>
 							<button onclick="remove()">
 								Remove
 							</button>
-						</section>
+						</div>
 					</div>
 					<div id="staticEditor">
 						<input type="text" class="block" id="positioner" placeholder="position">
-						<section>
+						<br>
+						<div>
 							<button onclick="includeStaticItem()">
 								Add to list
 							</button>
 							<button onclick="remove()">
 								Remove
 							</button>
-						</section>
+						</div>
 					</div>
 					<div id="randomEditor">
-						<section>
+						<div>
 							<button onclick="includeRandomItem()">
 								Add to list
 							</button>
 							<button onclick="remove()">
 								Remove
 							</button>
-						</section>
+						</div>
 					</div>
 					<button onclick="S.makeDialog(advancedEditorSection, 'Done')">
 						Advanced
