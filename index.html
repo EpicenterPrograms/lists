@@ -1073,7 +1073,7 @@
 					window.dispatchEvent(new Event("readyToRefresh"));
 				}
 			}
-			S.listen(window, "readyToRefresh", function () {
+			window.addEventListener("readyToRefresh", function () {
 
 				S.getClass("main-title")[0].textContent = decodeURIComponent(S.storage[storagePlace].defaultLocation.split("/")[1]);  // sets the title
 
