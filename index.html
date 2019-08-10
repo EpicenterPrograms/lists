@@ -16,7 +16,7 @@
 			var S = Standards.general;
 			S.storage.session.defaultLocation = "lists/Default/items";  //// "lists/items" "lists/default/items"
 			S.storage.local.defaultLocation = "lists/Default/items";  //// "lists/items" "lists/default/items"
-			S.storage.server.defaultLocation = "lists/Default/items";  //// "lists/default/items"
+			S.storage.server.defaultLocation = "/lists";  //// "lists/default/items"
 
 			var currentList = "Default";
 			var itemSet = {};
@@ -939,7 +939,7 @@
 				dueTodayNumber = 0;
 				recyclingBin = {};
 				////
-				new Promise(function (resolve) {
+				new Promise(function (resolve, reject) {
 					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
 						let information = S.storage[storagePlace].list("/lists/");
 						information.splice(information.indexOf("start-up settings"), 1);
@@ -949,7 +949,7 @@
 							if (value >= information.length) {  // when all items have been stored
 								listenable.removeEventListener("change", arguments.callee);
 								listenable.value = undefined;
-								S.storage.server.list("/lists", function (data) {
+								S.storage.server.list("./", function (data) {
 									listenable.value = 0;
 									listenable.addEventListener("set", function (itemsLeft) {
 										if (itemsLeft == 0) {
@@ -973,8 +973,10 @@
 													done: false,
 													lastUpdated: now.getTime()
 												};
-												S.storage.server.forget(key, "/lists", function () {
+												S.storage.server.forget("./" + key, function () {
 													listenable.value--;
+												}).catch(function (error) {
+													reject(error);
 												});
 											}
 										});
@@ -984,24 +986,28 @@
 									} else {
 										resolve();
 									}
+								}).catch(function (error) {
+									reject(error);
 								});
 							}
 						});
 						if (information.length > 0) {
 							// stores and replaces account data with current data
 							S.forEach(information, function (key) {
-								S.storage.server.store(key, S.storage[storagePlace].recall("/lists/" + key), "/lists", function () {  ////
+								S.storage.server.store("./" + key, S.storage[storagePlace].recall("/lists/" + key), function () {
 									listenable.value++;
+								}).catch(function (error) {
+									reject(error);
 								});
 							});
 						} else {
 							listenable.value++;
 						}
 					} else {  // if the server information should be given precedence over the local information
-						let listenable = new S.Listenable();
-						S.storage.server.list("/lists", function (list) {
+						S.storage.server.list("./", function (list) {
+							let listenable = new S.Listenable();
 							listenable.addEventListener("change", function (index) {
-								S.storage.server.recall(list[index], "/lists", function (data) {
+								S.storage.server.recall("./" + list[index], function (data) {
 									S.storage[storagePlace].store("/lists/" + list[index], data);
 									if (index + 1 >= list.length) {  // once all items have been iterated through
 										S.forEach(S.storage[storagePlace].list("/lists/"), function (key) {
@@ -1012,6 +1018,8 @@
 										});
 										resolve();
 									}
+								}).catch(function (error) {
+									reject(error);
 								});
 								if (index + 1 < list.length) {
 									listenable.value++;
@@ -1020,11 +1028,13 @@
 								}
 							});
 							listenable.value = 0;
+						}).catch(function (error) {
+							reject(error);
 						});
 					}
 				}).catch(function (error) {
+					console.error("There was a problem merging the information.");
 					console.error(error);
-					window.dispatchEvent(new Event("readyToRefresh"));
 					S.makeDialog("An error occurred while attempting to sync your information.");
 				}).then(function () {
 					window.dispatchEvent(new Event("readyToRefresh"));
@@ -1228,7 +1238,6 @@
 					button.addEventListener("click", function () {
 						S.getId("listsSection").children[1].style.display = "none";
 						S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
-						S.storage.server.defaultLocation = "lists/" + title + "/items";
 						currentList = title;
 						recyclingBin = {};
 						refresh();
@@ -1525,7 +1534,6 @@
 				// sets the current list
 				currentList = siteSettings.list;
 				S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
-				S.storage.server.defaultLocation = "lists/" + currentList + "/items";
 				// sets the volume
 				S.getId("soundVolume").value = siteSettings.volume;
 				// sets the inspiration
@@ -1771,7 +1779,6 @@
 				let newTitle = encodeURIComponent(this.value.trim());
 				S.storage[storagePlace].move("/lists/" + oldTitle + "/", "/lists/" + newTitle + "/");
 				S.storage[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
-				S.storage.server.defaultLocation = "lists/" + newTitle + "/items";
 				if (S.storage[storagePlace].recall("/lists/start-up settings").list == currentList) {
 					let settings = S.storage[storagePlace].recall("/lists/start-up settings");
 					settings.list = newTitle;
@@ -1835,10 +1842,8 @@
 								if (S.storage[storagePlace].recall("/lists/start-up settings").list != currentList) {
 									currentList = S.storage[storagePlace].recall("/lists/start-up settings").list;
 									S.storage[storagePlace].defaultLocation = "lists/" + currentList + "/items";
-									S.storage.server.defaultLocation = "lists/" + currentList + "/items";
 								} else {
 									S.storage[storagePlace].defaultLocation = "lists/Default/items";
-									S.storage.server.defaultLocation = "lists/Default/items";
 									currentList = "Default";
 									S.storage[storagePlace].store("../settings/ordering", "dynamic");
 									S.storage[storagePlace].store("../settings/filter", []);
@@ -1967,7 +1972,6 @@
 					S.getId("newListTitle").value = "";
 					S.getId("listsSection").children[1].style.display = "none";
 					S.storage[storagePlace].defaultLocation = "lists/" + title + "/items";
-					S.storage.server.defaultLocation = "lists/" + title + "/items";
 					currentList = title;
 					recyclingBin = {};
 					refresh();
