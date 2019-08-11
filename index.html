@@ -952,7 +952,6 @@
 								listenable.removeEventListener("change", arguments.callee);
 								listenable.value = undefined;
 								S.storage.server.list("./", function (data) {
-									console.log(data);
 									listenable.value = 0;
 									listenable.addEventListener("set", function (itemsLeft) {
 										if (itemsLeft == 0) {
@@ -1198,8 +1197,6 @@
 						}
 					}
 				}
-				console.log(itemSet);
-				console.log(list);
 				// inserts the items onto the page
 				let HTML = "";
 				list.forEach(function (instance) {
@@ -1908,6 +1905,7 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					/*
 					console.log("Starting server check");
 					S.storage.server.list("./", function (list) {
 						console.log(list);
@@ -1937,6 +1935,7 @@
 					}).catch(function (error) {
 						console.error(error);
 					});
+					*/
 				}
 			});
 
@@ -2253,7 +2252,7 @@
 							Undelete items
 						</button>
 						<br>
-						<button id="update">
+						<button id="update" disabled>
 							Run corrections
 						</button>
 					</div>
