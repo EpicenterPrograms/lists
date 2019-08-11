@@ -1198,6 +1198,8 @@
 						}
 					}
 				}
+				console.log(itemSet);
+				console.log(list);
 				// inserts the items onto the page
 				let HTML = "";
 				list.forEach(function (instance) {
@@ -1236,7 +1238,6 @@
 						}
 					}
 				});
-				console.log(listArray);
 				listArray.forEach(function (title) {
 					let button = document.createElement("button");
 					button.className = "subtle";
