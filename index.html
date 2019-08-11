@@ -1097,7 +1097,7 @@
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
 				// fills itemSet
-				if (S.storage[storagePlace].recall("../settings/ordering") instanceof Error) {  // for some reason, this can be true
+				if (S.storage[storagePlace].recall("../settings/ordering") instanceof Error) {  //// for some reason, this can be true
 					S.storage[storagePlace].store("../settings/ordering", "dynamic");
 				}
 				switch (S.storage[storagePlace].recall("../settings/ordering")) {
@@ -1236,6 +1236,7 @@
 						}
 					}
 				});
+				console.log(listArray);
 				listArray.forEach(function (title) {
 					let button = document.createElement("button");
 					button.className = "subtle";
