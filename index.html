@@ -933,7 +933,7 @@
 			function mergeInformation(localTakesPrecedence) {
 				////
 				now = new Date();
-				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
+				S.getId("list").innerHTML = "<p>Syncing your data...</p><p>(0/2)</p>";
 				itemSet = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
@@ -941,15 +941,18 @@
 				////
 				new Promise(function (resolve, reject) {
 					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
+						S.getId("list").innerHTML = "<p>Storing your data...</p><p>(1/2)</p>";
 						let information = S.storage[storagePlace].list("/lists/");
 						information.splice(information.indexOf("start-up settings"), 1);
 						let listenable = new S.Listenable();
 						listenable.value = 0;
 						listenable.addEventListener("change", function (value) {
 							if (value >= information.length) {  // when all items have been stored
+								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p><p>(2/2)</p>";
 								listenable.removeEventListener("change", arguments.callee);
 								listenable.value = undefined;
 								S.storage.server.list("./", function (data) {
+									console.log(data);
 									listenable.value = 0;
 									listenable.addEventListener("set", function (itemsLeft) {
 										if (itemsLeft == 0) {
@@ -1004,7 +1007,9 @@
 							listenable.value++;
 						}
 					} else {  // if the server information should be given precedence over the local information
+						S.getId("list").innerHTML = "<p>Retrieving stored information...</p><p>(1/2)</p>";
 						S.storage.server.list("./", function (list) {
+							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p><p>(1/2)</p>";
 							let listenable = new S.Listenable();
 							listenable.addEventListener("change", function (index) {
 								S.storage.server.recall("./" + list[index], function (data) {
@@ -1901,14 +1906,35 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					/*
-					S.storage.local.list("lists/default/items").forEach(function (key) {
-						S.storage.local.move("default/items/" + key, "Default/items/" + key, "lists");
+					console.log("Starting server check");
+					S.storage.server.list("./", function (list) {
+						console.log(list);
+						let listenable = new S.Listenable();
+						listenable.addEventListener("change", function (index) {
+							S.storage.server.recall("./" + list[index], function (data) {
+								console.log("/lists/" + list[index]);
+								console.log(data);
+								if (index + 1 >= list.length) {  // once all items have been iterated through
+									S.forEach(S.storage[storagePlace].list("/lists/"), function (key) {
+										if (!list.includes(key) && key != "start-up settings") {
+											console.log("Deleting /lists/" + key);
+										}
+									});
+									console.log("The end");
+								}
+							}).catch(function (error) {
+								console.error(error);
+							});
+							if (index + 1 < list.length) {
+								listenable.value++;
+							} else {
+								listenable.removeEventListener("change", arguments.callee);
+							}
+						});
+						listenable.value = 0;
+					}).catch(function (error) {
+						console.error(error);
 					});
-					S.storage.local.list("lists/default/items").forEach(function (key) {
-						console.log(S.storage.local.recall(key, "lists/default/items"));
-					});
-					*/
 				}
 			});
 
@@ -2225,7 +2251,7 @@
 							Undelete items
 						</button>
 						<br>
-						<button id="update" disabled>
+						<button id="update">
 							Run corrections
 						</button>
 					</div>
