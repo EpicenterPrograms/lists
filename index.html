@@ -933,7 +933,7 @@
 			function mergeInformation(localTakesPrecedence) {
 				////
 				now = new Date();
-				S.getId("list").innerHTML = "<p>Syncing your data...</p><p>(0/2)</p>";
+				S.getId("list").innerHTML = "<p>Syncing your data...</p>";
 				itemSet = {};
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
@@ -941,14 +941,14 @@
 				////
 				new Promise(function (resolve, reject) {
 					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
-						S.getId("list").innerHTML = "<p>Storing your data...</p><p>(1/2)</p>";
+						S.getId("list").innerHTML = "<p>Storing your data...</p>";
 						let information = S.storage[storagePlace].list("/lists/");
 						information.splice(information.indexOf("start-up settings"), 1);
 						let listenable = new S.Listenable();
 						listenable.value = 0;
 						listenable.addEventListener("change", function (value) {
 							if (value >= information.length) {  // when all items have been stored
-								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p><p>(2/2)</p>";
+								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p>";
 								listenable.removeEventListener("change", arguments.callee);
 								listenable.value = undefined;
 								S.storage.server.list("./", function (data) {
@@ -1006,9 +1006,9 @@
 							listenable.value++;
 						}
 					} else {  // if the server information should be given precedence over the local information
-						S.getId("list").innerHTML = "<p>Retrieving stored information...</p><p>(1/2)</p>";
+						S.getId("list").innerHTML = "<p>Retrieving stored information...</p>";
 						S.storage.server.list("./", function (list) {
-							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p><p>(1/2)</p>";
+							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p>";
 							let listenable = new S.Listenable();
 							listenable.addEventListener("change", function (index) {
 								S.storage.server.recall("./" + list[index], function (data) {
