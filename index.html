@@ -4,11 +4,13 @@
 		<title>
 			Lists
 		</title>
+		<base target="_blank">
 		<link rel="icon" href="favicon.ico">
+		<script src="https://epicenterprograms.github.io/standards/behavior/general.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.6.1/firebase-firestore.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js"></script>
-		<script src="https://epicenterprograms.github.io/standards/behavior/general.js"></script>
+		<script src="https://epicenterprograms.github.io/standards/behavior/storage.js"></script>
 		<!--
 		<script src="file:///C:/Users/Robert/Documents/GitHub/standards/behavior/general.js"></script>
 		-->
@@ -1380,9 +1382,9 @@
 							});
 							// listens for touching and holding on a description
 							// (pulls up the editor for that item)
-							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "touchhold", function () {// allows easy list item editing (on touchscreen device)
 								fillDynamicEditor();
-							}, false, 300);
+							});
 
 						} else if (S.storage[storagePlace].recall("../settings/ordering") == "static") {
 							function fillStaticEditor() {
@@ -1410,9 +1412,9 @@
 							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
 								fillStaticEditor();
 							});
-							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "touchhold", function () {// allows easy list item editing (on touchscreen device)
 								fillStaticEditor();
-							}, false, 300);
+							});
 
 						} else if (S.storage[storagePlace].recall("../settings/ordering") == "random") {
 							function fillRandomEditor() {
@@ -1440,9 +1442,9 @@
 							S.listen(S.getId("list").getElementsByTagName("span")[index], "dblclick", function () {  // allows easy list item editing (on the computer)
 								fillRandomEditor();
 							});
-							S.onTouchHold(S.getId("list").getElementsByTagName("span")[index], function () {  // allows easy list item editing (on a touchscreen device)
+							S.listen(S.getId("list").getElementsByTagName("span")[index], "touchhold", function () {// allows easy list item editing (on touchscreen device)
 								fillRandomEditor();
-							}, false, 300);
+							});
 						}
 					});
 				}
