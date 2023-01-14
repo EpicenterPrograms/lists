@@ -1908,7 +1908,14 @@
 			});
 
 			S.listen("update", "click", function () {
-				if (!this.disabled) {
+                if (!this.disabled) {
+                    S.forEach(M[storagePlace].list("/"), function (key) {
+                        if (key.search(/^lists\/\w+\/\w+\/lists\//) > -1) {
+							console.log("Deleting /" + key);
+							M[storagePlace].forget("/" + key);
+                        }
+                    });
+					/*
 					console.log("Starting server check");
 					M.server.list("/", function (list) {
 						console.log(list);
@@ -1917,7 +1924,6 @@
                             console.log("/" + list[index]);
                             if (list[index].search(/^lists\/\w+\/\w+\/lists\//) > -1) {
 								console.log("Would have been forgotten");
-								/*
 								M.server.forget("/" + list[index], function (data) {
 									if (index + 1 >= list.length) {  // once all items have been iterated through
 										S.forEach(M[storagePlace].list("/"), function (key) {
@@ -1930,7 +1936,6 @@
 								}).catch(function (error) {
 									console.error(error);
 								});
-								*/
 							}
 							if (index + 1 < list.length) {
 								listenable.value++;
@@ -1942,6 +1947,7 @@
 					}).catch(function (error) {
 						console.error(error);
 					});
+					*/
 				}
 			});
 
