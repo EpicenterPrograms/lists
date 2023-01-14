@@ -1909,26 +1909,29 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					/*
 					console.log("Starting server check");
-					M.server.list("./", function (list) {
+					M.server.list("/", function (list) {
 						console.log(list);
 						let listenable = new S.Listenable();
-						listenable.addEventListener("change", function (index) {
-							M.server.recall("./" + list[index], function (data) {
-								console.log("/lists/" + list[index]);
-								console.log(data);
-								if (index + 1 >= list.length) {  // once all items have been iterated through
-									S.forEach(M[storagePlace].list("/lists/"), function (key) {
-										if (!list.includes(key) && key != "start-up settings") {
-											console.log("Deleting /lists/" + key);
-										}
-									});
-									console.log("The end");
-								}
-							}).catch(function (error) {
-								console.error(error);
-							});
+                        listenable.addEventListener("change", function (index) {
+                            console.log("/" + list[index]);
+                            if (list[index].search(/^lists\/\w+\/\w+\/lists\//) > -1) {
+								console.log("Would have been forgotten");
+								/*
+								M.server.forget("/" + list[index], function (data) {
+									if (index + 1 >= list.length) {  // once all items have been iterated through
+										S.forEach(M[storagePlace].list("/"), function (key) {
+											if (key.search(/^lists\/\w+\/\w+\/lists\//) > -1) {
+												console.log("Deleting /" + key);
+											}
+										});
+										console.log("The end");
+									}
+								}).catch(function (error) {
+									console.error(error);
+								});
+								*/
+							}
 							if (index + 1 < list.length) {
 								listenable.value++;
 							} else {
@@ -1939,7 +1942,6 @@
 					}).catch(function (error) {
 						console.error(error);
 					});
-					*/
 				}
 			});
 
@@ -2263,7 +2265,7 @@
 							Undelete items
 						</button>
 						<br>
-						<button id="update" disabled>
+						<button id="update">
 							Run corrections
 						</button>
 					</div>
