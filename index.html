@@ -1540,7 +1540,11 @@
 				}
 				var siteSettings = M[storagePlace].recall("/lists/start-up settings");
 				// sets the current list
-				currentList = siteSettings.list;
+				if (window.location.href.includes("?list=")) {
+					currentList = window.location.href.slice(window.location.href.indexOf("=") + 1);
+				} else {
+					currentList = siteSettings.list;
+				}
 				M[storagePlace].defaultLocation = "lists/" + currentList + "/items";
 				// sets the volume
 				S.getId("soundVolume").value = siteSettings.volume;
