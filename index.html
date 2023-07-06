@@ -950,10 +950,10 @@
 						information.splice(information.indexOf("start-up settings"), 1);
 						let listenable = new S.Listenable();
 						listenable.value = 0;
-						listenable.addEventListener("change", function (value) {
+						listenable.addEventListener("set", function (value) {
 							if (value >= information.length) {  // when all items have been stored
 								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p>";
-								listenable.removeEventListener("change", arguments.callee);
+								listenable.removeEventListener("set", arguments.callee);
 								listenable.value = undefined;
 								M.server.list("./", function (data) {
 									listenable.value = 0;
@@ -1014,7 +1014,7 @@
 						M.server.list("./", function (list) {
 							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p>";
 							let listenable = new S.Listenable();
-							listenable.addEventListener("change", function (index) {
+							listenable.addEventListener("set", function (index) {
 								M.server.recall("./" + list[index], function (data) {
 									M[storagePlace].store("/lists/" + list[index], data);
 									if (index + 1 >= list.length) {  // once all items have been iterated through
@@ -1032,7 +1032,7 @@
 								if (index + 1 < list.length) {
 									listenable.value++;
 								} else {
-									listenable.removeEventListener("change", arguments.callee);
+									listenable.removeEventListener("set", arguments.callee);
 								}
 							});
 							listenable.value = 0;
