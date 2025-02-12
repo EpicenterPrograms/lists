@@ -1000,7 +1000,7 @@
 						if (information.length > 0) {
 							// stores and replaces account data with current data
 							S.forEach(information, function (key) {
-								M.server.store("./" + key, M[storagePlace].recall("/lists/" + key), function () {
+								M.server.store("./" + key, M[storagePlace].recall("/lists/" + key)).then(function () {
 									listenable.value++;
 								}).catch(function (error) {
 									reject(error);
