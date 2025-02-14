@@ -955,7 +955,7 @@
 								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p>";
 								listenable.removeEventListener("set", arguments.callee);
 								listenable.value = undefined;
-								M.server.list("./", function (data) {
+								M.server.list("./").then(function (data) {
 									listenable.value = 0;
 									listenable.addEventListener("set", function (itemsLeft) {
 										if (itemsLeft == 0) {
@@ -1011,7 +1011,7 @@
 						}
 					} else {  // if the server information should be given precedence over the local information
 						S.getId("list").innerHTML = "<p>Retrieving stored information...</p>";
-						M.server.list("./", function (list) {
+						M.server.list("./").then(function (list) {
 							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p>";
 							let listenable = new S.Listenable();
 							listenable.addEventListener("set", function (index) {
