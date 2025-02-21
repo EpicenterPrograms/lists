@@ -1661,10 +1661,12 @@
 							}
 						}
 						*/
+						/*
 						noisemaker.change("waveform", "sine");
 						if (now.getMonth() == 11 && Math.ceil(Math.random() * 3) == 3) {  // occasionally plays a part of "We Wish You a Merry Christmas" during December
 							noisemaker.play("  a4---d5- d5-e5-d5-Db5-b4- b4- b4---e5- e5-F#5-e5-d5-C#5- a4- a4---F#5- F#5-g5-F#5-e5-d5- b4- a4-a4-b4-- e5- Db5- d5---", { noteLength: 75, attack: 30, decay: 30 });
 						}
+						*/
 						/*
 						if (pastDueNumber > 0 && !(time >= 2 && time < dayThreshold)) {
 							// makes an audible message for things that are past due
@@ -1700,10 +1702,13 @@
 						});
 					}
 				}
+				/*
 				S.makeToneGenerator(true, function () {
 					noisemaker = new S.Sound();
 					startDoingStuff();
 				}, startDoingStuff);
+				*/
+				startDoingStuff();
 			});
 
 
@@ -1762,6 +1767,7 @@
 			});
 
 			S.listen("soundVolume", "change", function () {
+				/*
 				if (noisemaker.playing && noisemaker.hertzChange != 0) {  // if the lateness alarm is constantly going off
 					//// console.log("--------");
 					//// console.log(noisemaker.playing);
@@ -1775,6 +1781,7 @@
 					noisemaker.change("maxVolume", Number(this.value) / 100);
 					noisemaker.play("a5---");
 				}
+				*/
 				let settings = M[storagePlace].recall("/lists/start-up settings");
 				settings.volume = Number(this.value);
 				M[storagePlace].store("/lists/start-up settings", settings);
@@ -1913,46 +1920,13 @@
 			});
 
 			S.listen("update", "click", function () {
-                if (!this.disabled) {
-                    S.forEach(M[storagePlace].list("/"), function (key) {
-                        if (key.search(/^lists\/\w+\/\w+\/lists\//) > -1) {
-							console.log("Deleting /" + key);
-							M[storagePlace].forget("/" + key);
-                        }
-                    });
-					/*
-					console.log("Starting server check");
-					M.server.list("/", function (list) {
-						console.log(list);
-						let listenable = new S.Listenable();
-                        listenable.addEventListener("change", function (index) {
-                            console.log("/" + list[index]);
-                            if (list[index].search(/^lists\/\w+\/\w+\/lists\//) > -1) {
-								console.log("Would have been forgotten");
-								M.server.forget("/" + list[index], function (data) {
-									if (index + 1 >= list.length) {  // once all items have been iterated through
-										S.forEach(M[storagePlace].list("/"), function (key) {
-											if (key.search(/^lists\/\w+\/\w+\/lists\//) > -1) {
-												console.log("Deleting /" + key);
-											}
-										});
-										console.log("The end");
-									}
-								}).catch(function (error) {
-									console.error(error);
-								});
-							}
-							if (index + 1 < list.length) {
-								listenable.value++;
-							} else {
-								listenable.removeEventListener("change", arguments.callee);
-							}
-						});
-						listenable.value = 0;
-					}).catch(function (error) {
-						console.error(error);
+				if (!this.disabled) {
+					let backup = "{\n";
+					S.forEach(M[storagePlace].list("/lists/"), function (key) {
+						backup += '"/lists/' + key + '": ' + JSON.stringify(M[storagePlace].recall("/lists/" + key)) + ",\n";
 					});
-					*/
+					backup = backup.slice(0, -2) + "\n}";
+					S.getId("list").innerHTML = "<pre>" + backup + "</pre>";
 				}
 			});
 
@@ -2276,7 +2250,7 @@
 						</button>
 						<br>
 						<button id="update">
-							Run corrections
+							Reprocess
 						</button>
 					</div>
 				</div>
