@@ -749,7 +749,7 @@
 								}
 							});
 							if (numberChecked == 0) {  //// This checking should integrate with enoughInformation.
-								alert("You need to check at least one day of the week.");
+								S.makeDialog("You need to check at least one day of the week.");
 								return;
 							}
 							date.trim();
@@ -780,7 +780,7 @@
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
 				} else {
-					alert("You left out at least one required field.");
+					S.makeDialog("You left out at least one required field.");
 				}
 			}
 
@@ -845,7 +845,7 @@
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
 				} else {
-					alert("You left out at least one required field.");
+					S.makeDialog("You left out at least one required field.");
 				}
 			}
 
@@ -876,7 +876,7 @@
 						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
 				} else {
-					alert("You left out at least one required field.");
+					S.makeDialog("You left out at least one required field.");
 				}
 			}
 
@@ -942,6 +942,30 @@
 				pastDueNumber = 0;
 				dueTodayNumber = 0;
 				recyclingBin = {};
+				////
+				/*
+				M.server.merge(
+					function () {
+
+					},
+					function () {
+
+					},
+					"", "",
+					{
+						storageType: storagePlace,
+						ignoreInClient: ["start-up settings"],
+						ignoreInServer: [],
+					}
+				).catch(function (error) {
+					console.error("There was a problem merging the information.");
+					console.error(error);
+					S.makeDialog("An error occurred while attempting to sync your information.");
+				}).then(function () {
+					window.dispatchEvent(new Event("readyToRefresh"));
+				});
+				S.getId("settingsSection").children[1].style.display = "none";
+				//*/
 				////
 				new Promise(function (resolve, reject) {
 					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
@@ -1921,6 +1945,11 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					S.forEach(M[storagePlace].list("/lists/", { shallowKeyList: true }), function (list) {
+						M[storagePlace].store("/lists/" + list + "/settings/lastUpdated", now.getTime());
+						M[storagePlace].store("/lists/" + list + "/lastUpdated", now.getTime());
+					});
+					M[storagePlace].store("/lists/last synchronized", now.getTime());
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
 						backup += '"/lists/' + key + '": ' + JSON.stringify(M[storagePlace].recall("/lists/" + key)) + ",\n";
