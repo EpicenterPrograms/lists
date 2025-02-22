@@ -1948,9 +1948,12 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					M[storagePlace].forget("/lists/start-up settings/");
-					M[storagePlace].forget("/lists/last synchronized/");
 					M[storagePlace].store("/lists/last synchronized", now.getTime());
+					S.forEach(M[storagePlace].list("/lists/", { shallowKeyList: true }), function (key) {
+						if (key != "start-up settings" && key != "last synchronized") {
+							M[storagePlace].store("/lists/" + key + "/lastUpdated", now.getTime());
+						}
+					});
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
 						backup += '"/lists/' + key + '": ' + JSON.stringify(M[storagePlace].recall("/lists/" + key)) + ",\n";
