@@ -945,17 +945,16 @@
 				////
 				/*
 				M.server.merge(
-					function () {
-
-					},
-					function () {
-
-					},
-					"", "",
+					(clientData, serverData) => clientData.lastUpdated > serverData.lastUpdated,
+					(item, syncTimes) => item.fromServer && syncTimes[0] < syncTimes[1] || !item.fromServer && item.data.lastUpdated > syncTimes[0],
+					"/lists/",
+					"/lists/",
 					{
+						maxDepth: 1,
 						storageType: storagePlace,
-						ignoreInClient: ["start-up settings"],
-						ignoreInServer: [],
+						ignoreInServer: "last synchronized",
+						ignoreInClient: ["last synchronized", "start-up settings"],
+						prepTasks: [M[storagePlace].recall("/lists/last synchronized"), M.server.recall("/lists/last synchronized")]
 					}
 				).catch(function (error) {
 					console.error("There was a problem merging the information.");
@@ -1949,11 +1948,13 @@
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
 					M[storagePlace].store("/lists/last synchronized", now.getTime());
-					S.forEach(M[storagePlace].list("/lists/", { shallowKeyList: true }), function (key) {
+					// gives all settings a lastUpdated time
+					S.forEach(M[storagePlace].list("/lists/", { maxDepth: 1 }), function (key) {
 						if (key != "start-up settings" && key != "last synchronized") {
-							M[storagePlace].store("/lists/" + key + "/lastUpdated", now.getTime());
+							M[storagePlace].store("/lists/" + key + "/settings/lastUpdated", now.getTime());
 						}
 					});
+					// displays a JSON backup of the data
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
 						backup += '"/lists/' + key + '": ' + JSON.stringify(M[storagePlace].recall("/lists/" + key)) + ",\n";
@@ -1961,6 +1962,7 @@
 					backup = backup.slice(0, -2) + "\n}";
 					S.getId("list").innerHTML = "<pre>" + backup + "</pre>";
 				}
+				//// do something with day thresholds (add them uniformly somehow)
 			});
 
 
@@ -2018,8 +2020,10 @@
 			S.listen("listMaker", "click", function () {
 				let title = encodeURIComponent(S.getId("newListTitle").value.trim());
 				if (title != "") {
+					M[storagePlace].store("/lists/" + title + "/settings/lastUpdated", now.getTime());
 					M[storagePlace].store("/lists/" + title + "/settings/ordering", "dynamic");
 					M[storagePlace].store("/lists/" + title + "/settings/filter", []);
+					M[storagePlace].store("/lists/" + title + "/lastUpdated", now.getTime());
 					S.getId("newListTitle").value = "";
 					S.getId("listsSection").children[1].style.display = "none";
 					M[storagePlace].defaultLocation = "lists/" + title + "/items";
