@@ -198,6 +198,12 @@
 
 
 
+			function encode(text) {
+				return encodeURIComponent(text.replace(/</g, "&lt;").replace(/>/g, "&gt;")).replace(/\*/g, "%2A");
+			}
+
+
+
 
 			function makeDynamicItem(description, item) {
 				/**
@@ -681,7 +687,7 @@
 				}
 				if (enoughInformation) {
 					now = new Date();
-					let description = encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+					let description = encode(S.getId("description").value.trim());
 					let date = "";
 					let time = S.getId("time").value.trim();
 					if (time.search(/\d(?:am|pm)/) > -1) {  // if there's an am or pm not preceeded by a space
@@ -831,7 +837,7 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					M[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+					M[storagePlace].store(encode(S.getId("description").value.trim()), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
 					cancel();
 					// refreshes the list
@@ -862,7 +868,7 @@
 						labels[index] = label.trim();
 					});
 					// stores the information
-					M[storagePlace].store(encodeURIComponent(S.getId("description").value.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+					M[storagePlace].store(encode(S.getId("description").value.trim()), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
 					// resets stuff
 					cancel();
 					// refreshes the list
@@ -944,27 +950,73 @@
 				recyclingBin = {};
 				////
 				/*
-				M.server.merge(
-					(clientData, serverData) => clientData.lastUpdated > serverData.lastUpdated,
-					(item, syncTimes) => item.fromServer && syncTimes[0] < syncTimes[1] || !item.fromServer && item.data.lastUpdated > syncTimes[0],
-					"/lists/",
-					"/lists/",
+				M.server.defaultLocation = "/lists/";
+
+				let mergingPromises = [];
+				// merges all of the individual items (prevents needing to consider all items together as one group for each list)
+				mergingPromises.push(M.server.mergeData(
+					info => info.clientData.lastUpdated > info.serverData.lastUpdated,
+					function (info, syncTimes) {
+						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
+							return info.clientData.lastUpdated > syncTimes[0];
+						} else {  // if the data is from the server
+							return syncTimes[0] < syncTimes[1];
+						}
+					},
+					"* /items/*",
+					"* /items/*",
 					{
-						maxDepth: 1,
 						storageType: storagePlace,
-						ignoreInServer: "last synchronized",
-						ignoreInClient: ["last synchronized", "start-up settings"],
 						prepTasks: [M[storagePlace].recall("/lists/last synchronized"), M.server.recall("/lists/last synchronized")]
 					}
 				).catch(function (error) {
+					console.error("There was a problem merging the list items.");
+					console.error(error);
+				}));
+				// merges the list settings and lastUpdated
+				mergingPromises.push(M.server.mergeData(
+					function (info) {
+						if (info.location.slice(-11) == "lastUpdated") {
+							return info.clientData > info.serverData;
+						} else {  // if it's list settings
+							return info.clientData.lastUpdated > info.serverData.lastUpdated;
+						}
+					},
+					function (info, syncTimes) {
+						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
+							if (info.location.slice(-11) == "lastUpdated") {
+								return info.clientData > syncTimes[0];
+							} else {  // if it's list settings
+								return info.clientData.lastUpdated > syncTimes[0];
+							}
+						} else {  // if the data is from the server
+							return syncTimes[0] < syncTimes[1];
+						}
+					},
+					"",
+					"",
+					{
+						maxDepth: 2,
+						storageType: storagePlace,
+						ignoreInServer: ["last synchronized", "* /items/"],
+						ignoreInClient: ["last synchronized", "* /items/", "start-up settings"],
+						prepTasks: [M[storagePlace].recall("/lists/last synchronized"), M.server.recall("/lists/last synchronized")]
+					}
+				).catch(function (error) {
+					console.error("There was a problem merging the list settings and lastUpdated.");
+					console.error(error);
+				}));
+
+				S.getId("settingsSection").children[1].style.display = "none";
+
+				Promises.all(mergingPromises).then(function () {
+					window.dispatchEvent(new Event("readyToRefresh"));
+				}).catch(function (error) {
 					console.error("There was a problem merging the information.");
 					console.error(error);
 					S.makeDialog("An error occurred while attempting to sync your information.");
-				}).then(function () {
-					window.dispatchEvent(new Event("readyToRefresh"));
 				});
-				S.getId("settingsSection").children[1].style.display = "none";
-				//*/
+				/*/
 				////
 				new Promise(function (resolve, reject) {
 					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
@@ -1071,6 +1123,7 @@
 					window.dispatchEvent(new Event("readyToRefresh"));
 				});
 				S.getId("settingsSection").children[1].style.display = "none";
+				//*/
 			}
 
 
@@ -1145,9 +1198,9 @@
 						// ensures that item positions don't leave gaps
 						S.forEach(itemSet, function (item, placement, instances, index) {
 							if (Number(placement) >= 0) {  // avoids crossed-out items
-								let storedItem = M[storagePlace].recall(encodeURIComponent(item.description));
+								let storedItem = M[storagePlace].recall(encode(item.description));
 								storedItem.position = index + 1;
-								M[storagePlace].store(encodeURIComponent(item.description), storedItem);
+								M[storagePlace].store(encode(item.description), storedItem);
 							}
 						});
 						itemSet = {};
@@ -1314,7 +1367,7 @@
 						// listens for clicking on a checkbox
 						// (toggles the item's "done" property)
 						S.listen(S.getId("list").getElementsByTagName("input")[index], "click", function () {
-							let item = M[storagePlace].recall(encodeURIComponent(listItem.description));
+							let item = M[storagePlace].recall(encode(listItem.description));
 							if (item.recurrence == "continual") {
 								item.lastFinished = now.getTime();
 								item.time = now.getTime() + Math.pow(6-item.importance, 2) * 200000000 + "~";
@@ -1329,7 +1382,7 @@
 								item.position = -item.position;
 							}
 							item.lastUpdated = now.getTime();
-							M[storagePlace].store(encodeURIComponent(listItem.description), item);
+							M[storagePlace].store(encode(listItem.description), item);
 							refresh();
 						});
 						// listens for double-clicking on a description
@@ -1343,7 +1396,7 @@
 								} else if (window.getSelection) {
 									window.getSelection().removeAllRanges();
 								}
-								let item = M[storagePlace].recall(encodeURIComponent(listItem.description));
+								let item = M[storagePlace].recall(encode(listItem.description));
 								S.getId("description").value = listItem.description;
 								S.getId("importance").value = item.importance;
 								S.getId("recurrence").value = item.recurrence;
@@ -1420,7 +1473,7 @@
 								} else if (window.getSelection) {
 									window.getSelection().removeAllRanges();
 								}
-								let item = M[storagePlace].recall(encodeURIComponent(listItem.description));
+								let item = M[storagePlace].recall(encode(listItem.description));
 								S.getId("description").value = listItem.description;
 								S.getId("positioner").value = item.position;
 								if (item.labels) {
@@ -1450,7 +1503,7 @@
 								} else if (window.getSelection) {
 									window.getSelection().removeAllRanges();
 								}
-								let item = M[storagePlace].recall(encodeURIComponent(listItem.description));
+								let item = M[storagePlace].recall(encode(listItem.description));
 								S.getId("description").value = listItem.description;
 								S.getId("importance").value = listItem.importance;
 								if (item.labels) {
@@ -1492,7 +1545,7 @@
 						}
 					});
 				} else {
-					let key = encodeURIComponent(S.getId("description").value.trim());
+					let key = encode(S.getId("description").value.trim());
 					recyclingBin[key] = location.recall(key);
 					location.forget(key);
 				}
@@ -1822,7 +1875,7 @@
 
 			S.listen("listTitle", "change", function () {
 				let oldTitle = M[storagePlace].defaultLocation.split("/")[1];
-				let newTitle = encodeURIComponent(this.value.trim());
+				let newTitle = encode(this.value.trim());
 				M[storagePlace].move("/lists/" + oldTitle + "/", "/lists/" + newTitle + "/");
 				M[storagePlace].defaultLocation = "lists/" + newTitle + "/items";
 				if (M[storagePlace].recall("/lists/start-up settings").list == currentList) {
@@ -1914,7 +1967,7 @@
 						M[storagePlace].store("../settings/ordering", "dynamic");
 					}
 					S.forEach(sampleList, function (item) {
-						let description = encodeURIComponent(item.description);
+						let description = encode(item.description);
 						delete item.description;
 						M.session.store(description, item);
 					});
@@ -1947,13 +2000,6 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					M[storagePlace].store("/lists/last synchronized", now.getTime());
-					// gives all settings a lastUpdated time
-					S.forEach(M[storagePlace].list("/lists/", { maxDepth: 1 }), function (key) {
-						if (key != "start-up settings" && key != "last synchronized") {
-							M[storagePlace].store("/lists/" + key + "/settings/lastUpdated", now.getTime());
-						}
-					});
 					// displays a JSON backup of the data
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
@@ -2018,7 +2064,7 @@
 			});
 
 			S.listen("listMaker", "click", function () {
-				let title = encodeURIComponent(S.getId("newListTitle").value.trim());
+				let title = encode(S.getId("newListTitle").value.trim());
 				if (title != "") {
 					M[storagePlace].store("/lists/" + title + "/settings/lastUpdated", now.getTime());
 					M[storagePlace].store("/lists/" + title + "/settings/ordering", "dynamic");
