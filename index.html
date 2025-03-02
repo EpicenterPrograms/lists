@@ -955,8 +955,15 @@
 				let mergingPromises = [];
 				// merges all of the individual items (prevents needing to consider all items together as one group for each list)
 				mergingPromises.push(M.server.mergeData(
-					info => info.clientData.lastUpdated > info.serverData.lastUpdated,
+					info => {
+						console.log("preferClient:");
+						console.log(info);
+						return info.clientData.lastUpdated > info.serverData.lastUpdated;
+					},
 					function (info, syncTimes) {
+						console.log("keepMissing:");
+						console.log(info);
+						console.log(syncTimes);
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
 							return info.clientData.lastUpdated > syncTimes[0];
 						} else {  // if the data is from the server
