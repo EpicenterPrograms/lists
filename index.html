@@ -949,7 +949,7 @@
 				dueTodayNumber = 0;
 				recyclingBin = {};
 				////
-				/*
+				//*
 				M.server.defaultLocation = "/lists/";
 
 				let mergingPromises = [];
@@ -963,8 +963,8 @@
 							return syncTimes[0] < syncTimes[1];
 						}
 					},
-					"* /items/*",
-					"* /items/*",
+					"*/items/*",
+					"*/items/*",
 					{
 						storageType: storagePlace,
 						prepTasks: [M[storagePlace].recall("/lists/last synchronized"), M.server.recall("/lists/last synchronized")]
@@ -998,8 +998,8 @@
 					{
 						maxDepth: 2,
 						storageType: storagePlace,
-						ignoreInServer: ["last synchronized", "* /items/"],
-						ignoreInClient: ["last synchronized", "* /items/", "start-up settings"],
+						ignoreInServer: ["last synchronized", "*/items/"],
+						ignoreInClient: ["last synchronized", "*/items/", "start-up settings"],
 						prepTasks: [M[storagePlace].recall("/lists/last synchronized"), M.server.recall("/lists/last synchronized")]
 					}
 				).catch(function (error) {
