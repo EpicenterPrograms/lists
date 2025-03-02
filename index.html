@@ -1009,7 +1009,7 @@
 
 				S.getId("settingsSection").children[1].style.display = "none";
 
-				Promises.all(mergingPromises).then(function () {
+				Promise.all(mergingPromises).then(function () {
 					window.dispatchEvent(new Event("readyToRefresh"));
 				}).catch(function (error) {
 					console.error("There was a problem merging the information.");
