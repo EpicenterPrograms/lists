@@ -1204,6 +1204,9 @@
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
 				// fills itemSet
+				if (M[storagePlace].recall("../settings/lastUpdated") instanceof Error) {
+					M[storagePlace].store("../settings/lastUpdated", now.getTime());
+				}
 				if (M[storagePlace].recall("../settings/ordering") instanceof Error) {  //// for some reason, this can be true
 					M[storagePlace].store("../settings/ordering", "dynamic");
 				}
