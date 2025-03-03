@@ -2029,6 +2029,16 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
+					// loads the backup of the data and resets updated and syncing times of all varieties (or maybe delete all server data)
+					M.server.forget("/lists/").then(function () {
+						S.getFile("file://C:/Users/rtben/Documents/Backup list data.json", function (list) {
+							S.forEach(list, function (item, key) {
+								M[storagePlace].store(key, item);
+							});
+							window.dispatchEvent(new Event("readyToRefresh"));
+						});
+					});
+					/*
 					// displays a JSON backup of the data
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
@@ -2036,6 +2046,7 @@
 					});
 					backup = backup.slice(0, -2) + "\n}";
 					S.getId("list").innerHTML = "<pre>" + backup + "</pre>";
+					*/
 				}
 				//// do something with day thresholds (add them uniformly somehow)
 			});
