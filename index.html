@@ -973,7 +973,7 @@
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
 							return info.clientData.lastUpdated >= syncTimes[0];
 						} else {  // if the data is from the server
-							return syncTimes[0] <= syncTimes[1];
+							return syncTimes[0] < syncTimes[1];
 						}
 					},
 					"*/items/*",
@@ -1008,7 +1008,7 @@
 								return info.clientData.lastUpdated >= syncTimes[0];
 							}
 						} else {  // if the data is from the server
-							return syncTimes[0] <= syncTimes[1];
+							return syncTimes[0] < syncTimes[1];
 						}
 					},
 					"",
