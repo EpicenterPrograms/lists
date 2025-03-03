@@ -952,6 +952,11 @@
 				//*
 				M.server.defaultLocation = "/lists/";
 
+				console.log(M[storagePlace].recall("/lists/last synchronized"));
+				M.server.recall("/lists/last synchronized").then(time => console.log(time);
+				M.server.list("*/items/*").then(list => console.log(list));
+				M.server.list("").then(list => console.log(list));
+
 				let mergingPromises = [];
 				// merges all of the individual items (prevents needing to consider all items together as one group for each list)
 				mergingPromises.push(M.server.mergeData(
@@ -1779,7 +1784,6 @@
 						firebase.auth().onAuthStateChanged(function (user) {
 							if (user) {
 								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
-								S.getId("settingsSection").getElementsByTagName("button")[1].disabled = false;
 								if (S.getId("syncData").checked) {
 									mergeData = confirm("Merge this data with your account data?");
 									if (mergeData) {  ////
@@ -1793,7 +1797,6 @@
 								}
 							} else {
 								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
-								S.getId("settingsSection").getElementsByTagName("button")[1].disabled = true;
 							}
 							refresh(true);
 						});
@@ -2257,14 +2260,9 @@
 							<td><label for="syncData">Sync data with your account when possible</label></td>
 						</tr>
 						<tr>
-							<td>
-								<button onclick="mergeInformation(true)" disabled>
-									Copy local to server
-								</button>
-							</td>
-							<td>
+							<td colspan="2">
 								<button onclick="mergeInformation()" disabled>
-									Copy server to local
+									Sync information
 								</button>
 							</td>
 						</tr>
