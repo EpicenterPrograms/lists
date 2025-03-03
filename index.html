@@ -962,18 +962,18 @@
 				// merges all of the individual items (prevents needing to consider all items together as one group for each list)
 				mergingPromises.push(M.server.mergeData(
 					info => {
-						console.log("preferClient:");
+						console.log("items preferClient:");
 						console.log(info);
 						return info.clientData.lastUpdated > info.serverData.lastUpdated;
 					},
 					function (info, syncTimes) {
-						console.log("keepMissing:");
+						console.log("items keepMissing:");
 						console.log(info);
 						console.log(syncTimes);
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
-							return info.clientData.lastUpdated > syncTimes[0];
+							return info.clientData.lastUpdated >= syncTimes[0];
 						} else {  // if the data is from the server
-							return syncTimes[0] < syncTimes[1];
+							return syncTimes[0] =< syncTimes[1];
 						}
 					},
 					"*/items/*",
@@ -989,7 +989,7 @@
 				// merges the list settings and lastUpdated
 				mergingPromises.push(M.server.mergeData(
 					function (info) {
-						console.log("preferClient:");
+						console.log("settings preferClient:");
 						console.log(info);
 						if (info.location.slice(-11) == "lastUpdated") {
 							return info.clientData > info.serverData;
@@ -998,17 +998,17 @@
 						}
 					},
 					function (info, syncTimes) {
-						console.log("keepMissing:");
+						console.log("settings keepMissing:");
 						console.log(info);
 						console.log(syncTimes);
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
 							if (info.location.slice(-11) == "lastUpdated") {
-								return info.clientData > syncTimes[0];
+								return info.clientData >= syncTimes[0];
 							} else {  // if it's list settings
-								return info.clientData.lastUpdated > syncTimes[0];
+								return info.clientData.lastUpdated >= syncTimes[0];
 							}
 						} else {  // if the data is from the server
-							return syncTimes[0] < syncTimes[1];
+							return syncTimes[0] <= syncTimes[1];
 						}
 					},
 					"",
