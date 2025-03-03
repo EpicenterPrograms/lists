@@ -1044,114 +1044,6 @@
 					console.error(error);
 					S.makeDialog("An error occurred while attempting to sync your information.");
 				});
-				/*/
-				////
-				new Promise(function (resolve, reject) {
-					if (localTakesPrecedence) {  // if the local information should be given precedence over the server information
-						S.getId("list").innerHTML = "<p>Storing your data...</p>";
-						let information = M[storagePlace].list("/lists/");
-						information.splice(information.indexOf("start-up settings"), 1);
-						let listenable = new S.Listenable();
-						listenable.value = 0;
-						listenable.addEventListener("set", function (value) {
-							if (value >= information.length) {  // when all items have been stored
-								S.getId("list").innerHTML = "<p>Deleting unwanted server information...</p>";
-								listenable.removeEventListener("set", arguments.callee);
-								listenable.value = undefined;
-								M.server.list("./").then(function (data) {
-									listenable.value = 0;
-									listenable.addEventListener("set", function (itemsLeft) {
-										if (itemsLeft == 0) {
-											listenable.removeEventListener("set", arguments.callee);
-											resolve();
-										}
-									});
-									if (data.length > 0) {
-										// deletes account data not not present in the current data
-										let deleting = false;
-										S.forEach(data, function (key) {
-											if (!information.includes(key)) {
-												deleting = true;
-												listenable.value++;
-												recyclingBin[key] = {  // basically just retains the description as a reminder in case worst comes to worst
-													importance: 5,
-													recurrence: "indefinite",
-													time: now.getTime() + "~",
-													difficulty: 3,
-													lastFinished: now.getTime(),
-													done: false,
-													lastUpdated: now.getTime()
-												};
-												M.server.forget("./" + key, function () {
-													listenable.value--;
-												}).catch(function (error) {
-													reject(error);
-												});
-											}
-										});
-										if (!deleting) {
-											listenable.value = 0;
-										}
-									} else {
-										resolve();
-									}
-								}).catch(function (error) {
-									reject(error);
-								});
-							}
-						});
-						if (information.length > 0) {
-							// stores and replaces account data with current data
-							S.forEach(information, function (key) {
-								M.server.store("./" + key, M[storagePlace].recall("/lists/" + key)).then(function () {
-									listenable.value++;
-								}).catch(function (error) {
-									reject(error);
-								});
-							});
-						} else {
-							listenable.value++;
-						}
-					} else {  // if the server information should be given precedence over the local information
-						S.getId("list").innerHTML = "<p>Retrieving stored information...</p>";
-						M.server.list("./").then(function (list) {
-							S.getId("list").innerHTML = "<p>Deleting unwanted local information...</p>";
-							let listenable = new S.Listenable();
-							listenable.addEventListener("set", function (index) {
-								M.server.recall("./" + list[index], function (data) {
-									M[storagePlace].store("/lists/" + list[index], data);
-									if (index + 1 >= list.length) {  // once all items have been iterated through
-										S.forEach(M[storagePlace].list("/lists/"), function (key) {
-											if (!list.includes(key) && key != "start-up settings" && key != "last synchronized") {
-												recyclingBin[key] = M[storagePlace].recall("/lists/" + key);  // holds on to deleted items just in case
-												M[storagePlace].forget("/lists/" + key);
-											}
-										});
-										resolve();
-									}
-								}).catch(function (error) {
-									reject(error);
-								});
-								if (index + 1 < list.length) {
-									listenable.value++;
-								} else {
-									listenable.removeEventListener("set", arguments.callee);
-								}
-							});
-							listenable.value = 0;
-						}).catch(function (error) {
-							reject(error);
-						});
-					}
-				}).catch(function (error) {
-					console.error("There was a problem merging the information.");
-					console.error(error);
-					S.makeDialog("An error occurred while attempting to sync your information.");
-				}).then(function () {
-					window.dispatchEvent(new Event("readyToRefresh"));
-				});
-				S.getId("settingsSection").children[1].style.display = "none";
-				//*/
 			}
 
 
@@ -2029,7 +1921,8 @@
 
 			S.listen("update", "click", function () {
 				if (!this.disabled) {
-					// loads the backup of the data and resets updated and syncing times of all varieties (or maybe delete all server data)
+					/*
+					// deletes all data and loads a backup
 					M.server.forget("/lists/").then(function () {
 						S.getFile("file://C:/Users/rtben/Documents/Backup list data.json", function (list) {
 							S.forEach(list, function (item, key) {
@@ -2038,7 +1931,8 @@
 							window.dispatchEvent(new Event("readyToRefresh"));
 						});
 					});
-					/*
+					*/
+					//*
 					// displays a JSON backup of the data
 					let backup = "{\n";
 					S.forEach(M[storagePlace].list("/lists/"), function (key) {
@@ -2046,7 +1940,7 @@
 					});
 					backup = backup.slice(0, -2) + "\n}";
 					S.getId("list").innerHTML = "<pre>" + backup + "</pre>";
-					*/
+					//*/
 				}
 				//// do something with day thresholds (add them uniformly somehow)
 			});
