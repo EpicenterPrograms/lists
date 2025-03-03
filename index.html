@@ -1028,17 +1028,17 @@
 				S.getId("settingsSection").children[1].style.display = "none";
 
 				Promise.all(mergingPromises).then(function () {
+					// updates the last synchronized times
+					M.server.store("/lists/last synchronized", now.getTime()).catch(function (error) {
+						console.error('The "last synchronized" time couldn\'t be updated on the server.');
+						console.error(error);
+					});
+					M[storagePlace].store("/lists/last synchronized", now.getTime());
 					// resets the default locations
 					M.server.defaultLocation = oldServerDefault;
 					M[storagePlace].defaultLocation = oldClientDefault;
 					// refreshes the list display
 					window.dispatchEvent(new Event("readyToRefresh"));
-					// updates the last synchronized times
-					M[storagePlace].store("/lists/last synchronized", now.getTime());
-					M.server.store("/lists/last synchronized", now.getTime()).catch(function (error) {
-						console.error('The "last synchronized" time couldn\'t be updated on the server.');
-						console.error(error);
-					});
 				}).catch(function (error) {
 					console.error("There was a problem merging the information.");
 					console.error(error);
