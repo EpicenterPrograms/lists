@@ -23,7 +23,7 @@
 			M.server.defaultLocation = "/lists";  //// "lists/default/items"
 
 			var currentList = "Default";
-			var itemSet = {};
+			var itemSet = {};  // the list of items to be displayed, ordered by numerical keys
 			var itemNumber = 1;
 			var now = new Date();
 			var week = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -475,7 +475,9 @@
 						let storedItem = M[storagePlace].recall(description);
 						storedItem.lastFinished = lastFinished;
 						storedItem.done = done;
+						storedItem.lastUpdated = now.getTime();
 						M[storagePlace].store(description, storedItem);
+						M[storagePlace].store("../lastUpdated", now.getTime());
 						var needsToRunFunctionAgain = true;
 					}
 				}
@@ -570,6 +572,7 @@
 								}
 							}
 							M[storagePlace].store(key, currentItem);
+							M[storagePlace].store("../lastUpdated", now.getTime());
 						}
 					});
 					// corrects the items in itemSet
@@ -773,6 +776,7 @@
 					} else {
 						M[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
 					}
+					M[storagePlace].store("../lastUpdated", now.getTime());
 					// resets stuff
 					cancel();
 					// refreshes the list
@@ -838,6 +842,7 @@
 					});
 					// stores the information
 					M[storagePlace].store(encode(S.getId("description").value.trim()), { position: position, importance: S.getId("importance").value, done: false, positioned: positioned, lastFinished: now.getTime(), lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+					M[storagePlace].store("../lastUpdated", now.getTime());
 					// resets stuff
 					cancel();
 					// refreshes the list
@@ -869,6 +874,7 @@
 					});
 					// stores the information
 					M[storagePlace].store(encode(S.getId("description").value.trim()), { importance: S.getId("importance").value, done: false, lastUpdated: now.getTime(), labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value });
+					M[storagePlace].store("../lastUpdated", now.getTime());
 					// resets stuff
 					cancel();
 					// refreshes the list
@@ -1095,6 +1101,9 @@
 				S.getId("labelContainer").innerHTML = "";
 				S.getId("listList").innerHTML = "";
 				S.getId("defaultList").innerHTML = "";
+				if (M[storagePlace].store("../lastUpdated") instanceof Error) {
+					M[storagePlace].store("../lastUpdated", now.getTime());
+				}
 				// fills itemSet
 				if (M[storagePlace].recall("../settings/lastUpdated") instanceof Error) {
 					M[storagePlace].store("../settings/lastUpdated", now.getTime());
@@ -1307,6 +1316,13 @@
 							item.lastUpdated = now.getTime();
 							M[storagePlace].store(encode(listItem.description), item);
 							refresh();
+							if (S.getId(advancedSettingsSection, "inspiringMessages").checked) {
+								if (item.difficulty == 4) {
+									S.makeDialog("You're doing great!", "Keep going");
+								} else if (item.difficulty == 5) {
+									S.makeDialog("WOOHOO! That's how it's done!", "Keep being<br>awesome");
+								}
+							}
 						});
 						// listens for double-clicking on a description
 						// (pulls up the editor for that item)
@@ -1810,12 +1826,14 @@
 
 			S.listen("listOrdering", "change", function () {
 				M[storagePlace].store("../settings/ordering", this.value);
+				M[storagePlace].store("../settings/lastUpdated", now.getTime());
 				refresh();
 			});
 
 			S.listen("dayThresholdSetter", "change", function () {
 				if (this.value == Math.round(this.value)) {  // if the number is an integer
 					M[storagePlace].store("../settings/threshold", this.value);
+					M[storagePlace].store("../settings/lastUpdated", now.getTime());
 					refresh();
 				}
 			});
@@ -1835,9 +1853,11 @@
 							// puts lower-priority items further off into the future
 							// randomly assigns exact times within certain tiers
 							item.time = Math.round(now.getTime() + ((3.7 - Number(item.importance)) * 7 + Math.random() * 7 - 3.5) * 86400000) + "~";
+							item.lastUpdated = now.getTime();
 							M[storagePlace].store(key, item);
 						} else if (item.recurrence == "continual") {
 							item.time = now.getTime() + Math.pow(6 - Number(item.importance), 2) * 100000000 + "~";  // This is half the normal time.
+							item.lastUpdated = now.getTime();
 							M[storagePlace].store(key, item);
 						}
 					}
@@ -1865,6 +1885,7 @@
 								} else {
 									M[storagePlace].defaultLocation = "lists/Default/items";
 									currentList = "Default";
+									M[storagePlace].store("../settings/lastUpdated", now.getTime());
 									M[storagePlace].store("../settings/ordering", "dynamic");
 									M[storagePlace].store("../settings/filter", []);
 									let settings = M[storagePlace].recall("/lists/start-up settings");
