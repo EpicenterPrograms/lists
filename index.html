@@ -39,6 +39,7 @@
 			var labelList = [];
 			var itemBeingEdited = "";
 			var recyclingBin = {};
+			var inspiringMessages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you."];  // , "I love you."];
 
 			var sampleList = [
 				{
@@ -786,7 +787,7 @@
 					}, 0);
 					// randomly displays inspiring messages (if desired)
 					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
-						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
+						let messages = inspiringMessages;
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
 				} else {
@@ -852,7 +853,7 @@
 					}, 0);
 					// randomly displays inspiring messages (if desired)
 					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
-						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you.", "I love you."];
+						let messages = inspiringMessages;
 						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
 					}
 				} else {
@@ -884,7 +885,7 @@
 					}, 0);
 					// randomly displays inspiring messages (if desired)
 					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
-						let messages = ["You're the best!", "You're worth it.", "Nothing can stop you.", "You rock!", "You're an amazing person.", "The world wouldn't be the same without you."];  //, "I love you."];
+						let messages = inspiringMessages;
 						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
 				} else {
@@ -1166,10 +1167,7 @@
 				// puts items from the itemSet object into an array
 				// allows filtering items
 				if (S.getId("listFilter").value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) {return box.checked;})) {
-					let labelsToInclude = S.getId("listFilter").value.trim().split(",");
-					S.forEach(labelsToInclude, function (label, index) {
-						labelsToInclude[index] = label.trim();
-					});
+					let labelsToInclude = S.getId("listFilter").value.trim().toLowerCase().split(/\s*,\s*/);
 					if (labelsToInclude[0] === "") {  // prevents empty labels from being counted as matching
 						labelsToInclude.shift();
 					}
@@ -1178,7 +1176,7 @@
 						let shouldAdd = true;
 						// checks labels
 						if (S.getId("listFilter").value.trim() && !(item.labels && item.labels.some(function (label) {
-							return labelsToInclude.includes(label);
+							return labelsToInclude.includes(label.toLowerCase());
 						}))) {
 							shouldAdd = false;
 						}
@@ -1236,7 +1234,7 @@
 				}
 				S.getId("pastDueItems").textContent = pastDueNumber;
 				// adds an indicator of what's due the same day
-				S.getId("dueTodayItems").textContent = "_"  //// dueTodayNumber;
+				S.getId("dueTodayItems").textContent = "_";  //// dueTodayNumber;
 				// lists the lists
 				let listArray = [];
 				M[storagePlace].list("/lists/").forEach(function (location) {
@@ -1247,6 +1245,7 @@
 						}
 					}
 				});
+				listArray.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));  // makes sure the lists are in alphabetical order
 				listArray.forEach(function (title) {
 					let button = document.createElement("button");
 					button.className = "subtle";
