@@ -378,8 +378,9 @@
 				// sets label highlighting
 				if (then.getTime() >= now.getTime() || recurrence == "indefinite" || recurrence == "continual") {
 					let later;
+					/*
 					if (recurrence == "indefinite") {
-						if (then.getTime() <= now.getTime()) {
+						if (then.getTime() <= now.getTime()) {  // if it should be done right away
 							label.style.fontWeight = "bold";
 							if (importance == 5) {
 								label.style.textDecoration = "underline";
@@ -388,14 +389,14 @@
 								label.style.textDecoration = "underline dotted";
 							}
 							label.innerHTML = "<mark style='background:#00ff00'>" + label.innerHTML + "</mark>";
-						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
+						} else if (then.getTime() - now.getTime() < (then.getTime() - lastFinished) / 3) {  // if it should be done soon
 							label.innerHTML = "<mark style='background:#88ff88'>" + label.innerHTML + "</mark>";
 						}
 					} else if (recurrence == "continual") {
 						if (then.getTime() <= now.getTime()) {
 							label.style.fontWeight = "bold";
 							label.innerHTML = "<mark style='background:#00aaff'>" + label.innerHTML + "</mark>";
-						} else if (then.getTime() - now.getTime() < (then.getTime()-lastFinished) / 3) {
+						} else if (then.getTime() - now.getTime() < (then.getTime() - lastFinished) / 3) {
 							label.innerHTML = "<mark style='background:#88aaff'>" + label.innerHTML + "</mark>";
 						}
 					} else if (recurrence == "daily") {
@@ -411,9 +412,9 @@
 						} else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
 							label.innerHTML = "<mark style='background:#ff88ff'>" + label.innerHTML + "</mark>";
 						}
-					} else {
+					} else {  // once, monthly, weekly
 						////////////////////////////////////////// setting the due-today number should be done somewhere around here
-						if (now.getHours() < dayThreshold) {  // if the current time is before the day threshold (defaults to 8:00am)
+						if (now.getHours() < dayThreshold) {  // if the current time is before the day threshold (defaults to 7:00am)
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
 						} else {
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
@@ -431,7 +432,36 @@
 							label.innerHTML = "<mark style='background:#ffff88'>" + label.innerHTML + "</mark>";
 						}
 					}
+					/*/
+					if (recurrence == "daily") {
+						if (then.getTime() - now.getTime() < 10800000) {  // if it's closer than 3 hours away
+							label.className = "full-highlighting";
+						} else if (then.getTime() - now.getTime() < 21600000) {  // if it's closer than 6 hours away
+							label.className = "partial-highlighting";
+						}
+					} else if (["indefinite", "continual"].includes(recurrence)) {
+						if (then.getTime() <= now.getTime()) {  // if it should be done right away
+							label.className = "full-highlighting";
+						} else if (then.getTime() - now.getTime() < (then.getTime() - lastFinished) / 3) {  // if it should be done soon
+							label.className = "partial-highlighting";
+						}
+					} else if (["once", "monthly", "weekly"].includes(recurrence)) {
+						////////////////////////////////////////// setting the due-today number should be done somewhere around here
+						if (now.getHours() < dayThreshold) {  // if the current time is before the day threshold (defaults to 7:00am)
+							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 86400000);
+						} else {
+							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
+						}
+						if (then.getTime() < later.getTime()) {
+							label.className = "full-highlighting";
+						} else if (then.getTime() < later.getTime() + 86400000) {
+							label.className = "partial-highlighting";
+						}
+					}
+					//*/
 				} else {
+					label.className = "past-due";
+					/*
 					label.style.fontWeight = "bold";
 					if (importance == 5) {
 						label.style.textDecoration = "underline solid red";
@@ -440,9 +470,14 @@
 						label.style.textDecoration = "underline dotted red";
 					}
 					label.style.color = "red";
+					*/
 					label.title = "Past due";
 					pastDueNumber++;
 				}
+				Object.assign(label.dataset, {
+					recurrence: recurrence,
+					importance: importance
+				});
 				
 				// puts the elements into a container
 				let section = document.createElement("section");
@@ -463,13 +498,17 @@
 					if (then.getTime() < now.getTime() && recurrence != "indefinite" && recurrence != "continual") {
 						pastDueNumber--;
 					}
-					label.style.textDecoration = "line-through";
 					label.title = "Finished";
+					/*
+					label.style.textDecoration = "line-through";
 					label.style.color = "inherit";
 					label.style.fontWeight = "inherit";
 					if (label.children.length > 0) {  // if there's a <mark> tag
 						label.children[0].style.background = "inherit";
 					}
+					/*/
+					label.dataset.done = "true";
+					//*/
 					if (recurrence != "indefinite" && recurrence != "once" && now.getTime() > then.getTime()) {
 						lastFinished = then.getTime() + 1;
 						done = false;
@@ -773,9 +812,9 @@
 					});
 					// stores the information
 					if (S.getId("recurrence").value == "indefinite" && S.getId("timeframe").value == "same") {
-						M[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: M[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
+						M[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: M[storagePlace].recall(description).lastFinished, lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(S.getId("difficulty").value) });
 					} else {
-						M[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(advancedEditorSection.querySelector("#difficulty").value) });
+						M[storagePlace].store(description, { importance: S.getId("importance").value, time: date, recurrence: S.getId("recurrence").value, lastFinished: now.getTime(), lastUpdated: now.getTime(), done: false, labels: labels, elaboration: S.getId(advancedEditorSection, "elaboration").value, difficulty: Number(S.getId("difficulty").value) });
 					}
 					M[storagePlace].store("../lastUpdated", now.getTime());
 					// resets stuff
@@ -956,27 +995,16 @@
 				dueTodayNumber = 0;
 				recyclingBin = {};
 				////
-				//*
 				let oldServerDefault = M.server.defaultLocation;
 				let oldClientDefault = M[storagePlace].defaultLocation;
 				M.server.defaultLocation = "/lists/";
 				M[storagePlace].defaultLocation = "/lists/";
 
-				// M.server.list("*/items/*").then(list => console.log(list));
-				// M.server.list("").then(list => console.log(list));
-
 				let mergingPromises = [];
 				// merges all of the individual items (prevents needing to consider all items together as one group for each list)
 				mergingPromises.push(M.server.mergeData(
-					info => {
-						console.log("items preferClient:");
-						console.log(info);
-						return info.clientData.lastUpdated > info.serverData.lastUpdated;
-					},
+					info => info.clientData.lastUpdated > info.serverData.lastUpdated,
 					function (info, syncTimes) {
-						console.log("items keepMissing:");
-						console.log(info);
-						console.log(syncTimes);
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
 							return info.clientData.lastUpdated >= syncTimes[0];
 						} else {  // if the data is from the server
@@ -996,8 +1024,6 @@
 				// merges the list settings and lastUpdated
 				mergingPromises.push(M.server.mergeData(
 					function (info) {
-						console.log("settings preferClient:");
-						console.log(info);
 						if (info.location.slice(-11) == "lastUpdated") {
 							return info.clientData > info.serverData;
 						} else {  // if it's list settings
@@ -1005,9 +1031,6 @@
 						}
 					},
 					function (info, syncTimes) {
-						console.log("settings keepMissing:");
-						console.log(info);
-						console.log(syncTimes);
 						if (info.serverData === undefined || info.serverData instanceof Error) {  // if the data is from the client
 							if (info.location.slice(-11) == "lastUpdated") {
 								return info.clientData >= syncTimes[0];
@@ -1387,7 +1410,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
-								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
+								S.getId("difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								showHide();
 								S.getId("editorSection").children[1].style.display = "block";
@@ -1420,7 +1443,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
-								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
+								S.getId("difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
@@ -1450,7 +1473,7 @@
 								if (item.elaboration) {
 									S.getId(advancedEditorSection, "elaboration").value = item.elaboration;
 								}
-								advancedEditorSection.querySelector("#difficulty").value = item.difficulty || 3;
+								S.getId("difficulty").value = item.difficulty || 3;
 								itemBeingEdited = listItem.description;
 								S.getId("editorSection").children[1].style.display = "block";
 							}
@@ -1505,7 +1528,8 @@
 				S.forEach(["elaboration"], function (ID) {
 					advancedEditorSection.querySelector("#" + ID).value = "";
 				});
-				advancedEditorSection.querySelector("#difficulty").value = 3;
+				// advancedEditorSection.querySelector("#difficulty").value = 3;
+				S.getId("difficulty").value = 3;
 				itemBeingEdited = "";
 				showHide();
 				S.getId("editorSection").children[1].style.display = "none";
@@ -2039,6 +2063,9 @@
 		<link rel="stylesheet" href="file:///C:/Users/rtben/Documents/GitHub/standards/formatting/foundation.css">
 		-->
 		<style>
+			:root {
+				--background-lightness: 75%;
+			}
 			main {
 				margin-top: 0em;
 			}
@@ -2090,6 +2117,46 @@
 				margin-left: .5em;
 				height: 1em;
 			}
+
+			.full-highlighting {
+				padding: .1em;
+				color: black;
+				font-weight: bold;
+				--background-lightness: 50%;
+			}
+			.partial-highlighting {
+				padding: .1em;
+				color: black;
+			}
+			.past-due {
+				color: red;
+				font-weight: bold;
+			}
+			:is(.full-highlighting, .partial-highlighting, .past-due)[data-importance="4"] {
+				text-decoration: underline dotted;
+			}
+			:is(.full-highlighting, .partial-highlighting, .past-due)[data-importance="5"] {
+				text-decoration: underline;
+			}
+			:is(.full-highlighting, .partial-highlighting)[data-recurrence="indefinite"] {
+				background: hsl(120, 100%, var(--background-lightness));
+			}
+			:is(.full-highlighting,.partial-highlighting):is([data-recurrence="once"],[data-recurrence="monthly"],[data-recurrence="weekly"]) {
+				background: hsl(60, 100%, var(--background-lightness));
+			}
+			:is(.full-highlighting, .partial-highlighting)[data-recurrence="daily"] {
+				background: hsl(300, 100%, var(--background-lightness));
+			}
+			:is(.full-highlighting, .partial-highlighting)[data-recurrence="continual"] {
+				background: hsl(200, 100%, var(--background-lightness));
+			}
+			[data-done="true"] {
+				background: none !important;
+				color: inherit !important;
+				text-decoration: line-through !important;
+				font-weight: normal !important;
+			}
+
 			#pastDueNotifier {
 				display: none;
 				position: relative;
@@ -2315,6 +2382,27 @@
 							1 (lowest)
 						</option>
 					</select>
+					<br>
+					<select id="difficulty">
+						<option value="" disabled>
+							Difficulty
+						</option>
+						<option value="5">
+							5 (highest)
+						</option>
+						<option value="4">
+							4
+						</option>
+						<option value="3" selected>
+							3
+						</option>
+						<option value="2">
+							2
+						</option>
+						<option value="1">
+							1 (lowest)
+						</option>
+					</select>
 					<div id="dynamicEditor">
 						<select class="block" id="recurrence">
 							<option value="" disabled selected>
@@ -2434,26 +2522,6 @@
 					</button>
 					<div id="advancedEditor">
 						<textarea id="elaboration" placeholder="Elaboration"></textarea>
-						<h4 style="margin:.25em">
-							Difficulty
-						</h4>
-						<select id="difficulty">
-							<option value="5">
-								5 (highest)
-							</option>
-							<option value="4">
-								4
-							</option>
-							<option value="3" selected>
-								3
-							</option>
-							<option value="2">
-								2
-							</option>
-							<option value="1">
-								1 (lowest)
-							</option>
-						</select>
 						<h4 style="margin:.25em">
 							Ideal due time
 						</h4>
