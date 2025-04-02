@@ -452,10 +452,15 @@
 						} else {
 							later = new Date(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() + 172800000);
 						}
-						if (then.getTime() < later.getTime()) {
+						if (then.getTime() < later.getTime()) {  // if the item is due today or tomorrow
 							label.className = "full-highlighting";
-						} else if (then.getTime() < later.getTime() + 86400000) {
+						} else if (then.getTime() < later.getTime() + 86400000) {  // if the item is due the day after tomorrow
 							label.className = "partial-highlighting";
+						}
+						if (then.getTime() < now.getTime() + 14400000) {  // if the item is due within 4 hours
+							label.classList.add("due-very-soon");
+						} else if (then.getTime() < now.getTime() + 57600000) {  // if the item is due within 16 hours
+							label.classList.add("due-soon");
 						}
 					}
 					//*/
@@ -2127,6 +2132,13 @@
 			.partial-highlighting {
 				padding: .1em;
 				color: black;
+			}
+			.due-soon::before {
+				content: "\26A0\00a0";
+				font-weight: normal;
+			}
+			.due-very-soon::before {
+				content: "!\26A0!\00a0";
 			}
 			.past-due {
 				color: red;
