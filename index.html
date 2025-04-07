@@ -1343,11 +1343,13 @@
 							item.lastUpdated = now.getTime();
 							M[storagePlace].store(encode(listItem.description), item);
 							refresh();
-							if (S.getId(advancedSettingsSection, "inspiringMessages").checked) {
+							if (S.getId(advancedSettingsSection, "inspiringMessages").checked && item.done) {
 								if (item.difficulty == 4) {
-									S.makeDialog("You're doing great!", "Keep going");
+									S.makeDialog("Nothing can stop you!", "Keep going");
 								} else if (item.difficulty == 5) {
 									S.makeDialog("WOOHOO! That's how it's done!", "Keep being<br>awesome");
+								} else if (item.difficulty + Number(item.importance) >= 7) {
+									S.makeDialog("You're doing great!", "I agree");
 								}
 							}
 						});
