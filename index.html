@@ -6,6 +6,9 @@
 		</title>
 		<base target="_blank">
 		<link rel="icon" href="favicon.ico">
+		<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/firebaseinit.js" type="module"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/general.js"></script>
 		<script src="https://epicenterprograms.github.io/standards/behavior/storage.js"></script>
@@ -1728,6 +1731,7 @@
 						firebase.auth().onAuthStateChanged(function (user) {
 							if (user) {
 								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
+								/*
 								if (S.getId("syncData").checked) {
 									mergeData = confirm("Merge this data with your account data?");
 									if (mergeData) {  ////
@@ -1739,6 +1743,15 @@
 										deleteData = confirm("Delete account data not present here?");
 									}
 								}
+								*/
+							} else {
+								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
+							}
+							refresh(true);
+						});
+						firebase.auth().getRedirectResult().then(function (result) {
+							if (result.user) {
+								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = false;
 							} else {
 								S.getId("settingsSection").getElementsByTagName("button")[0].disabled = true;
 							}
