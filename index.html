@@ -100,7 +100,7 @@
 					recurrence: "once",
 					time: function () {
 						let time = new Date(now.getTime() + 345600000);
-						return (time.getMonth()+1) + "/" + time.getDate() + "/" + time.getFullYear() + "~8:00 pm";
+						return (time.getMonth() + 1) + "/" + time.getDate() + "/" + time.getFullYear() + "~8:00 pm";
 					}(),
 					lastFinished: now.getTime(),
 					done: false,
@@ -137,7 +137,7 @@
 						let time = new Date(now.getTime() - 86400000);
 						return (time.getMonth() + 1) + "/" + time.getDate() + "/" + time.getFullYear() + "~5:00 pm";
 					}(),
-					lastFinished: now.getTime()-172800000,
+					lastFinished: now.getTime() - 172800000,
 					done: false,
 					lastUpdated: now.getTime()
 				},
@@ -157,9 +157,9 @@
 					importance: 3,
 					recurrence: "once",
 					time: (function () {
-						let year = (now.getMonth()>10 ? now.getFullYear()+1 : now.getFullYear());
-						let month = ((now.getMonth()>10 ? 0 : now.getMonth()+1)+1);
-						let day = (now.getDate()+1);
+						let year = (now.getMonth() > 10 ? now.getFullYear() + 1 : now.getFullYear());
+						let month = ((now.getMonth() > 10 ? 0 : now.getMonth() + 1) + 1);
+						let day = (now.getDate() + 1);
 						let time = "~8:00 am";
 						if (String(month).length == 1) {
 							month = "0" + month;
@@ -211,7 +211,7 @@
 				/**
 				adds a dynamic list item to itemSet
 				*/
-				
+
 				// makes a Date object for the due date (assigned to "then")
 				let importance = item.importance;
 				let date = item.time;
@@ -243,29 +243,29 @@
 						break;
 					case "monthly":
 						if (beginning.getDate() == then) {
-							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth()+1, then]).getTime()) {
-								then = combine([beginning.getFullYear(), beginning.getMonth()+1, then]);
+							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth() + 1, then]).getTime()) {
+								then = combine([beginning.getFullYear(), beginning.getMonth() + 1, then]);
 							} else {
 								if (beginning.getMonth() + 2 <= 12) {
-									then = combine([beginning.getFullYear(), beginning.getMonth()+2, then]);
+									then = combine([beginning.getFullYear(), beginning.getMonth() + 2, then]);
 								} else {
-									then = combine([beginning.getFullYear()+1, 1, then]);
+									then = combine([beginning.getFullYear() + 1, 1, then]);
 								}
 							}
 						} else if (beginning.getDate() < then) {
-							then = new Date(beginning.getTime() + (then-beginning.getDate())*86400000);
+							then = new Date(beginning.getTime() + (then - beginning.getDate()) * 86400000);
 						} else {
 							if (beginning.getMonth() + 2 <= 12) {
-								then = combine([beginning.getFullYear(), beginning.getMonth()+2, then]);
+								then = combine([beginning.getFullYear(), beginning.getMonth() + 2, then]);
 							} else {
-								then = combine([beginning.getFullYear()+1, 1, then]);
+								then = combine([beginning.getFullYear() + 1, 1, then]);
 							}
 						}
-						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
 						break;
 					case "weekly":
 						let closest = Infinity;
-						then.split(" ").forEach(function(weekday) {
+						then.split(" ").forEach(function (weekday) {
 							let number = week.indexOf(weekday);
 							if (beginning.getDay() > number) {
 								number = 7 + number - beginning.getDay();
@@ -281,11 +281,11 @@
 							closest -= 7;
 						}
 						if (beginning.getDay() == closest) {
-							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]).getTime()) {
-								then = combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]);
+							if (beginning.getTime() <= combine([beginning.getFullYear(), beginning.getMonth() + 1, beginning.getDate()]).getTime()) {
+								then = combine([beginning.getFullYear(), beginning.getMonth() + 1, beginning.getDate()]);
 							} else {
 								closest = Infinity;
-								then.split(" ").forEach(function(weekday) {
+								then.split(" ").forEach(function (weekday) {
 									let number = week.indexOf(weekday);
 									if (beginning.getDay() + 1 > number) {
 										number = 6 + number - beginning.getDay();
@@ -301,31 +301,31 @@
 									closest -= 7;
 								}
 								if (beginning.getDay() < closest) {
-									then = new Date(beginning.getTime() + (closest-beginning.getDay())*86400000);
-									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+									then = new Date(beginning.getTime() + (closest - beginning.getDay()) * 86400000);
+									then = combine([then.getFullYear(), then.getMonth() + 1, then.getDate()]);
 								} else {
-									then = new Date(beginning.getTime() + (7+closest-beginning.getDay())*86400000);
-									then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+									then = new Date(beginning.getTime() + (7 + closest - beginning.getDay()) * 86400000);
+									then = combine([then.getFullYear(), then.getMonth() + 1, then.getDate()]);
 								}
 							}
 						} else if (beginning.getDay() < closest) {
-							then = new Date(beginning.getTime() + (closest-beginning.getDay())*86400000);
-							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+							then = new Date(beginning.getTime() + (closest - beginning.getDay()) * 86400000);
+							then = combine([then.getFullYear(), then.getMonth() + 1, then.getDate()]);
 						} else {
-							then = new Date(beginning.getTime() + (7+closest-beginning.getDay())*86400000);
-							then = combine([then.getFullYear(), then.getMonth()+1, then.getDate()]);
+							then = new Date(beginning.getTime() + (7 + closest - beginning.getDay()) * 86400000);
+							then = combine([then.getFullYear(), then.getMonth() + 1, then.getDate()]);
 						}
-						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
 						break;
 					case "daily":
-						then = combine([beginning.getFullYear(), beginning.getMonth()+1, beginning.getDate()]);
+						then = combine([beginning.getFullYear(), beginning.getMonth() + 1, beginning.getDate()]);
 						if (beginning.getTime() > then.getTime()) {
-							then = new Date(then.getTime()+86400000);
+							then = new Date(then.getTime() + 86400000);
 						}
-						date = then.getMonth()+1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
+						date = then.getMonth() + 1 + "/" + then.getDate() + "/" + then.getFullYear() + time;
 						break;
 				}
-				
+
 				// sets the urgency of the item
 				now = new Date();
 				if (recurrence == "indefinite" || recurrence == "continual") {
@@ -341,22 +341,22 @@
 					} else {
 						date = "At some point";
 					}
-					var urgency = (then.getTime()-now.getTime())/1000;
+					var urgency = (then.getTime() - now.getTime()) / 1000;
 					if (urgency < 54000) {  // Negative numbers will put it at the end, not the top.
 						urgency = 54000;  // This causes indefinite items to effectively never be any closer than 15 hours away.
 					}
-					urgency = Math.round(urgency * (10-importance));
+					urgency = Math.round(urgency * (10 - importance));
 				} else if (recurrence == "daily") {
-					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/100*(10-importance));
+					var urgency = Math.round(Math.abs(then.getTime() - now.getTime()) / 100 * (10 - importance));
 				} else {
-					var urgency = Math.round(Math.abs(then.getTime()-now.getTime())/1000*(10-importance));
+					var urgency = Math.round(Math.abs(then.getTime() - now.getTime()) / 1000 * (10 - importance));
 				}
 				if (item.difficulty) {
 					urgency = Math.round(urgency * ((6 - item.difficulty) / 2));
 				} else {
 					urgency = Math.round(urgency * 1.5);
 				}
-				
+
 				// creates the HTML objects to be displayed
 				let checkbox = document.createElement("input");
 				checkbox.type = "checkbox";
@@ -369,13 +369,13 @@
 					if (then.getTime() - now.getTime() < 86400000) {
 						label.title = "Due:{0}\nImportance: {1}".format(time, importance);
 					} else if (then.getTime() - now.getTime() < 518400000) {
-						label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+time, importance);
+						label.title = "Due: {0}\nImportance: {1}".format(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][then.getDay()] + time, importance);
 					} else {
-						label.title = "Due: {0}\nImportance: {1}".format(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][then.getDay()]+", "+date, importance);
+						label.title = "Due: {0}\nImportance: {1}".format(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][then.getDay()] + ", " + date, importance);
 					}
 				}
 				label.innerHTML = decodeURIComponent(description);
-				
+
 				// sets label highlighting
 				if (then.getTime() >= now.getTime() || recurrence == "indefinite" || recurrence == "continual") {
 					let later;
@@ -484,7 +484,7 @@
 					recurrence: recurrence,
 					importance: importance
 				});
-				
+
 				// puts the elements into a container
 				let section = document.createElement("section");
 				section.className = "list-item";
@@ -498,7 +498,7 @@
 				}
 				let elements = document.createElement("div");
 				elements.appendChild(section);
-				
+
 				// crosses out finished items
 				if (done) {
 					if (then.getTime() < now.getTime() && recurrence != "indefinite" && recurrence != "continual") {
@@ -543,7 +543,7 @@
 					watcher.observe(getId("list"), {"childList":true, "subtree":true});
 				}
 				*/
-				
+
 				// adds the item to the priority list or runs the function again
 				if (needsToRunFunctionAgain) {
 					item.time = originalDate;
@@ -560,7 +560,7 @@
 						// (prevents overwriting when things have the same due-date and importance)
 						increment++;
 					}
-					itemSet[urgency+increment] = {description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels};
+					itemSet[urgency + increment] = { description: decodeURIComponent(description), importance: importance, done: done, elements: elements.innerHTML, labels: labels };
 				}
 			}
 
@@ -603,7 +603,7 @@
 					label.title = "Finished";
 				}
 
-				if (item.position>0 && itemSet.hasOwnProperty(item.position-1) || item.position<0 && itemSet.hasOwnProperty(item.position)) {  // if the position is taken
+				if (item.position > 0 && itemSet.hasOwnProperty(item.position - 1) || item.position < 0 && itemSet.hasOwnProperty(item.position)) {  // if the position is taken
 					// corrects the stored items
 					S.forEach(M[storagePlace].list(), function (key) {
 						if (description != key) {
@@ -644,7 +644,7 @@
 				}
 
 				if (item.position > 0) {
-					itemSet[item.position-1] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
+					itemSet[item.position - 1] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
 				} else {
 					itemSet[item.position] = { description: decodeURIComponent(description), importance: item.importance, done: item.done, elements: elements.innerHTML, labels: item.labels };
 				}
@@ -704,7 +704,7 @@
 				}
 
 				// sets the placement
-				let placement = Math.round((6-item.importance) * 100 + Math.random() * 100 - 50);
+				let placement = Math.round((6 - item.importance) * 100 + Math.random() * 100 - 50);
 
 				// adds the item to the priority list
 				let increment = 0;
@@ -740,11 +740,11 @@
 					let date = "";
 					let time = S.getId("time").value.trim();
 					if (time.search(/\d(?:am|pm)/) > -1) {  // if there's an am or pm not preceeded by a space
-						time = time.slice(0, time.indexOf("m")-1) + " " + time.slice(time.indexOf("m")-1);
+						time = time.slice(0, time.indexOf("m") - 1) + " " + time.slice(time.indexOf("m") - 1);
 					}
 					switch (S.getId("recurrence").value) {
 						case "continual":
-							date = now.getTime() + Math.pow(6-Number(S.getId("importance").value), 2) * 200000000;
+							date = now.getTime() + Math.pow(6 - Number(S.getId("importance").value), 2) * 200000000;
 						case "indefinite":
 							switch (S.getId("timeframe").value) {  // sets when the highlight will become most apparent
 								case "immediately":
@@ -767,7 +767,7 @@
 									break;
 							}
 							if (time > 0 && S.getId("timeframe").value != "same") {
-								date += date*.1 * (Math.random()*2-1);  // varies the time set by 10% (helps prevent a bunch of things being due at the same time)
+								date += date * .1 * (Math.random() * 2 - 1);  // varies the time set by 10% (helps prevent a bunch of things being due at the same time)
 							}
 							date += now.getTime();
 							break;
@@ -797,7 +797,7 @@
 							break;
 						case "weekly":
 							let numberChecked = 0;
-							week.forEach(function(ID) {
+							week.forEach(function (ID) {
 								if (S.getId(ID).checked) {
 									date += ID + " ";
 									numberChecked++;
@@ -831,9 +831,9 @@
 						refresh(true);
 					}, 0);
 					// randomly displays inspiring messages (if desired)
-					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
+					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
 						let messages = inspiringMessages;
-						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
+						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
 				} else {
 					S.makeDialog("You left out at least one required field.");
@@ -860,7 +860,7 @@
 						if (S.getId("importance").value == "") {
 							position = unfinishedListLength + 1;
 						} else {
-							position = Math.ceil(unfinishedListLength * (6-Number(S.getId("importance").value)) / 5 + 1);
+							position = Math.ceil(unfinishedListLength * (6 - Number(S.getId("importance").value)) / 5 + 1);
 							positioned = true;
 						}
 					} else {
@@ -897,9 +897,9 @@
 						refresh(true);
 					}, 0);
 					// randomly displays inspiring messages (if desired)
-					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random()*5) == 0) {
+					if (S.getId(advancedSettingsSection, "inspiringMessages").checked && Math.floor(Math.random() * 5) == 0) {
 						let messages = inspiringMessages;
-						S.makeDialog(messages[Math.floor(Math.random()*messages.length)], "Thank you");
+						S.makeDialog(messages[Math.floor(Math.random() * messages.length)], "Thank you");
 					}
 				} else {
 					S.makeDialog("You left out at least one required field.");
@@ -1195,7 +1195,7 @@
 					alreadyCounted = [];
 				// puts items from the itemSet object into an array
 				// allows filtering items
-				if (S.getId("listFilter").value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) {return box.checked;})) {
+				if (S.getId("listFilter").value.trim() || S.toArray(S.getId("importanceFilter").getElementsByTagName("input")).some(function (box) { return box.checked; })) {
 					let labelsToInclude = S.getId("listFilter").value.trim().toLowerCase().split(/\s*,\s*/);
 					if (labelsToInclude[0] === "") {  // prevents empty labels from being counted as matching
 						labelsToInclude.shift();
@@ -1330,7 +1330,7 @@
 							let item = M[storagePlace].recall(encode(listItem.description));
 							if (item.recurrence == "continual") {
 								item.lastFinished = now.getTime();
-								item.time = now.getTime() + Math.pow(6-item.importance, 2) * 200000000 + "~";
+								item.time = now.getTime() + Math.pow(6 - item.importance, 2) * 200000000 + "~";
 							} else {
 								if (this.checked) {
 									item.done = true;
@@ -1391,7 +1391,7 @@
 									case "once":
 										if (item.time.includes("/")) {  ////
 											let date = item.time.split("~")[0].split("/");
-											date = date[2] + "-" + (date[0].length>1 ? "" : "0") + date[0] + "-" + (date[1].length>1 ? "" : "0") + date[1];
+											date = date[2] + "-" + (date[0].length > 1 ? "" : "0") + date[0] + "-" + (date[1].length > 1 ? "" : "0") + date[1];
 											S.getId("fullDate").value = date;
 										} else {
 											S.getId("fullDate").value = item.time.split("~")[0].replace(/ /g, "-");
@@ -2002,6 +2002,12 @@
 					});
 					backup = backup.slice(0, -2) + "\n}";
 					S.getId("list").innerHTML = "<pre>" + backup + "</pre>";
+					// automatically copies to the clipboard
+					navigator.clipboard.writeText(S.getId("list").textContent).then(function () {
+						S.makeDialog("Copied to clipboard");
+					}, function () {
+						S.makeDialog("Something went wrong while copying to the clipboard.");
+					});
 					//*/
 				}
 				//// do something with day thresholds (add them uniformly somehow)
